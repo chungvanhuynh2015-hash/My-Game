@@ -3,14 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hill Climb Racing 2D - Supercar Edition</title>
+    <title>Hill Climb Racing 2D - Separate Background</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             background-color: #1a1a1a;
             color: #ffffff;
@@ -22,62 +17,38 @@
             min-height: 100vh;
             overflow: hidden;
         }
-
         #game-container {
             position: relative;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
             border-radius: 12px;
             overflow: hidden;
         }
-
-        canvas {
-            display: block;
-            background: #87ceeb;
-        }
-
+        canvas { display: block; background: #a3b899; }
         .ui-panel {
             position: absolute;
-            top: 15px;
-            left: 20px;
-            right: 20px;
-            display: flex;
-            justify-content: space-between;
-            font-size: 18px;
-            font-weight: bold;
-            color: #ffffff;
+            top: 15px; left: 20px; right: 20px;
+            display: flex; justify-content: space-between;
+            font-size: 18px; font-weight: bold; color: #ffffff;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
             pointer-events: none;
         }
-
         .fuel-bar-container {
-            width: 150px;
-            height: 16px;
+            width: 150px; height: 16px;
             background: rgba(0, 0, 0, 0.5);
-            border: 2px solid #fff;
-            border-radius: 8px;
-            overflow: hidden;
-            margin-top: 4px;
+            border: 2px solid #fff; border-radius: 8px;
+            overflow: hidden; margin-top: 4px;
         }
-
         .fuel-bar {
-            width: 100%;
-            height: 100%;
+            width: 100%; height: 100%;
             background: #2ed573;
             transition: width 0.1s linear, background-color 0.3s;
         }
-
-        .controls-hint {
-            margin-top: 15px;
-            font-size: 14px;
-            color: #a4b0be;
-            text-align: center;
-        }
+        .controls-hint { margin-top: 15px; font-size: 14px; color: #a4b0be; text-align: center; }
     </style>
 </head>
 <body>
 
     <div id="game-container">
-        <!-- Đã mở rộng kích thước Canvas lên 1000x500 cho tầm nhìn thoáng hơn -->
         <canvas id="gameCanvas" width="1000" height="500"></canvas>
         <div class="ui-panel">
             <div>
@@ -97,292 +68,242 @@
         Dùng phím <b>Mũi tên Phải / D</b> để Tăng tốc | <b>Mũi tên Trái / A</b> để Phanh/Lùi | Phím <b>Space</b> để chơi lại
     </div>
 
-<script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
+    <!-- 1. NHÚNG FILE BACKGROUND Ở ĐÂY -->
+    <script src="background.js"></script>
 
-    const distanceEl = document.getElementById('distance');
-    const coinsEl = document.getElementById('coins');
-    const fuelBarEl = document.getElementById('fuelBar');
+    <!-- 2. SCRIPT GAME CHÍNH -->
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
 
-    // Tải ảnh xe
-    const carImage = new Image();
-    carImage.src = 'image.png'; // Bạn giữ nguyên tên file ảnh xe của bạn[cite: 2]
+        const distanceEl = document.getElementById('distance');
+        const coinsEl = document.getElementById('coins');
+        const fuelBarEl = document.getElementById('fuelBar');
 
-    // Biến game
-    let gameOver = false;
-    let scoreDistance = 0;
-    let coinsCount = 0;
-    let fuel = 100;
-    let cameraX = 0;
+        const carImage = new Image();
+        carImage.src = 'image.png';
 
-    // Phím điều khiển
-    const keys = { right: false, left: false };
+        let gameOver = false;
+        let scoreDistance = 0;
+        let coinsCount = 0;
+        let fuel = 100;
+        let cameraX = 0;
 
-    // Địa hình mở rộng: Sóng thoai thoải giúp xe to chạy mượt hơn, không bị dốc gắt
-    function getTerrainHeight(x) {
-        return Math.sin(x * 0.002) * 50 + Math.sin(x * 0.008) * 25 + Math.sin(x * 0.0005) * 80 + 360;
-    }
+        const keys = { right: false, left: false };
 
-    function getTerrainAngle(x) {
-        const dx = 2;
-        const dy = getTerrainHeight(x + dx) - getTerrainHeight(x - dx);
-        return Math.atan2(dy, dx * 2);
-    }
+        function getTerrainHeight(x) {
+            return Math.sin(x * 0.002) * 50 + Math.sin(x * 0.008) * 25 + Math.sin(x * 0.0005) * 80 + 360;
+        }
 
-    // Vật phẩm (Xăng & Coin)
-    let items = [];
-    function generateItems() {
-        items = [];
-        for (let x = 600; x < 30000; x += 400 + Math.random() * 500) {
-            const isFuel = Math.random() < 0.25;
-            items.push({
-                x: x,
-                y: getTerrainHeight(x) - 40,
-                type: isFuel ? 'fuel' : 'coin',
-                collected: false
+        function getTerrainAngle(x) {
+            const dx = 2;
+            const dy = getTerrainHeight(x + dx) - getTerrainHeight(x - dx);
+            return Math.atan2(dy, dx * 2);
+        }
+
+        let items = [];
+        function generateItems() {
+            items = [];
+            for (let x = 600; x < 30000; x += 400 + Math.random() * 500) {
+                const isFuel = Math.random() < 0.25;
+                items.push({
+                    x: x,
+                    y: getTerrainHeight(x) - 40,
+                    type: isFuel ? 'fuel' : 'coin',
+                    collected: false
+                });
+            }
+        }
+
+        const car = {
+            x: 150, y: 200, vx: 0, vy: 0, angle: 0, angularVelocity: 0,
+            width: 140, height: 40,
+            reset() {
+                this.x = 150;
+                this.y = getTerrainHeight(150) - 50;
+                this.vx = 0; this.vy = 0; this.angle = 0; this.angularVelocity = 0;
+            }
+        };
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = true;
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = true;
+            if (e.key === ' ' && gameOver) resetGame();
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = false;
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = false;
+        });
+
+        function updatePhysics() {
+            if (gameOver) return;
+
+            car.vy += 0.22;
+
+            if (keys.right && fuel > 0) {
+                car.vx += Math.cos(car.angle) * 0.22;
+                car.vy += Math.sin(car.angle) * 0.22;
+                fuel -= 0.07;
+            }
+            if (keys.left && fuel > 0) {
+                car.vx -= Math.cos(car.angle) * 0.14;
+                car.vy -= Math.sin(car.angle) * 0.14;
+                fuel -= 0.04;
+            }
+
+            fuel -= 0.012;
+            if (fuel <= 0) {
+                fuel = 0;
+                if (Math.abs(car.vx) < 0.1) gameOver = true;
+            }
+
+            car.x += car.vx;
+            car.y += car.vy;
+            car.angle += car.angularVelocity;
+
+            car.vx *= 0.985;
+            car.vy *= 0.985;
+            car.angularVelocity *= 0.92;
+
+            const groundY = getTerrainHeight(car.x);
+            const groundAngle = getTerrainAngle(car.x);
+
+            if (car.y + car.height / 2 >= groundY) {
+                car.y = groundY - car.height / 2;
+                car.vy = 0;
+                car.angle += (groundAngle - car.angle) * 0.25;
+
+                const angleDiff = Math.abs((car.angle - groundAngle) % (Math.PI * 2));
+                if (angleDiff > Math.PI / 1.7 && angleDiff < (Math.PI * 1.4)) {
+                    gameOver = true;
+                }
+            } else {
+                if (keys.right) car.angularVelocity += 0.004;
+                if (keys.left) car.angularVelocity -= 0.004;
+            }
+
+            cameraX = car.x - 250;
+            scoreDistance = Math.max(scoreDistance, Math.floor(car.x / 10));
+
+            items.forEach(item => {
+                if (!item.collected && Math.hypot(car.x - item.x, car.y - item.y) < 60) {
+                    item.collected = true;
+                    if (item.type === 'coin') coinsCount += 10;
+                    else if (item.type === 'fuel') fuel = Math.min(100, fuel + 40);
+                }
+            });
+
+            distanceEl.innerText = scoreDistance;
+            coinsEl.innerText = coinsCount;
+            fuelBarEl.style.width = fuel + '%';
+            fuelBarEl.style.backgroundColor = fuel < 25 ? '#ff4757' : '#2ed573';
+        }
+
+        function drawTerrain() {
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height);
+            for (let screenX = 0; screenX <= canvas.width + 10; screenX += 5) {
+                const worldX = screenX + cameraX;
+                const worldY = getTerrainHeight(worldX);
+                ctx.lineTo(screenX, worldY);
+            }
+            ctx.lineTo(canvas.width, canvas.height);
+            ctx.closePath();
+
+            ctx.fillStyle = '#4a3319';
+            ctx.fill();
+
+            ctx.lineWidth = 6;
+            ctx.strokeStyle = '#769438';
+            ctx.stroke();
+        }
+
+        function drawCar() {
+            ctx.save();
+            ctx.translate(car.x - cameraX, car.y);
+            ctx.rotate(car.angle);
+
+            if (carImage.complete && carImage.naturalWidth !== 0) {
+                ctx.drawImage(carImage, -car.width / 2, -car.height / 2 - 5, car.width, car.height + 10);
+            } else {
+                ctx.fillStyle = '#2e86de';
+                ctx.fillRect(-car.width / 2, -car.height / 2, car.width, car.height);
+            }
+            ctx.restore();
+        }
+
+        function drawItems() {
+            items.forEach(item => {
+                if (item.collected) return;
+                const screenX = item.x - cameraX;
+                if (screenX < -50 || screenX > canvas.width + 50) return;
+
+                if (item.type === 'coin') {
+                    ctx.beginPath();
+                    ctx.arc(screenX, item.y, 12, 0, Math.PI * 2);
+                    ctx.fillStyle = '#ffa502';
+                    ctx.fill();
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                } else if (item.type === 'fuel') {
+                    ctx.fillStyle = '#ff4757';
+                    ctx.fillRect(screenX - 12, item.y - 14, 24, 28);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 11px Arial';
+                    ctx.fillText('GAS', screenX - 11, item.y + 4);
+                }
             });
         }
-    }
 
-    // Cấu hình Xe: Hitbox mở rộng cho siêu xe
-    const car = {
-        x: 150,
-        y: 200,
-        vx: 0,
-        vy: 0,
-        angle: 0,
-        angularVelocity: 0,
-        width: 140,  // Tăng chiều dài hitbox xe[cite: 3]
-        height: 40,  // Tăng chiều cao hitbox xe[cite: 3]
+        function drawGameOver() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        reset() {
-            this.x = 150;
-            this.y = getTerrainHeight(150) - 50;
-            this.vx = 0;
-            this.vy = 0;
-            this.angle = 0;
-            this.angularVelocity = 0;
-        }
-    };
+            ctx.fillStyle = '#ff4757';
+            ctx.font = 'bold 36px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 30);
 
-    // Sự kiện bàn phím
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = true;
-        if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = true;
-        if (e.key === ' ' && gameOver) resetGame();
-    });
-
-    document.addEventListener('keyup', (e) => {
-        if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = false;
-        if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = false;
-    });
-
-    // Cập nhật vật lý
-    function updatePhysics() {
-        if (gameOver) return;
-
-        // Trọng lực
-        car.vy += 0.22;
-
-        // Tăng tốc / Lùi
-        if (keys.right && fuel > 0) {
-            car.vx += Math.cos(car.angle) * 0.22;
-            car.vy += Math.sin(car.angle) * 0.22;
-            fuel -= 0.07;
-        }
-        if (keys.left && fuel > 0) {
-            car.vx -= Math.cos(car.angle) * 0.14;
-            car.vy -= Math.sin(car.angle) * 0.14;
-            fuel -= 0.04;
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '18px Arial';
+            ctx.fillText(`Quãng đường: ${scoreDistance} m | Tiền xu: ${coinsCount}`, canvas.width / 2, canvas.height / 2 + 10);
+            ctx.fillText('Nhấn Space để chơi lại', canvas.width / 2, canvas.height / 2 + 50);
         }
 
-        // Tiêu hao nhiên liệu
-        fuel -= 0.012;
-        if (fuel <= 0) {
-            fuel = 0;
-            if (Math.abs(car.vx) < 0.1) gameOver = true;
+        function resetGame() {
+            scoreDistance = 0;
+            coinsCount = 0;
+            fuel = 100;
+            gameOver = false;
+            car.reset();
+            generateItems();
+            loop();
         }
 
-        // Cập nhật tọa độ
-        car.x += car.vx;
-        car.y += car.vy;
-        car.angle += car.angularVelocity;
+        function loop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Ma sát
-        car.vx *= 0.985;
-        car.vy *= 0.985;
-        car.angularVelocity *= 0.92;
+            updatePhysics();
+            
+            // GỌI HÀM VẼ BACKGROUND TỪ FILE BACKGROUND.JS TÁCH RIÊNG
+            drawGameBackground(ctx, canvas, cameraX);
+            
+            drawTerrain();
+            drawItems();
+            drawCar();
 
-        // Va chạm địa hình (Tính theo 2 điểm bánh xe trước & sau)
-        const frontWheelX = car.x + Math.cos(car.angle) * (car.width / 2.5);
-        const backWheelX = car.x - Math.cos(car.angle) * (car.width / 2.5);
-        
-        const groundY = getTerrainHeight(car.x);
-        const groundAngle = getTerrainAngle(car.x);
-
-        if (car.y + car.height / 2 >= groundY) {
-            car.y = groundY - car.height / 2;
-            car.vy = 0;
-
-            // Bám theo độ nghiêng mặt đất
-            car.angle += (groundAngle - car.angle) * 0.25;
-
-            // Kiểm tra lật xe (Nếu góc quá nghiêng)
-            const angleDiff = Math.abs((car.angle - groundAngle) % (Math.PI * 2));
-            if (angleDiff > Math.PI / 1.7 && angleDiff < (Math.PI * 1.4)) {
-                gameOver = true;
+            if (!gameOver) {
+                requestAnimationFrame(loop);
+            } else {
+                drawGameOver();
             }
-        } else {
-            // Điều khiển xoay xe khi ở trên không
-            if (keys.right) car.angularVelocity += 0.004;
-            if (keys.left) car.angularVelocity -= 0.004;
         }
 
-        // Camera bám theo xe (Vị trí xe nằm ở 1/3 màn hình)
-        cameraX = car.x - 250;
-        scoreDistance = Math.max(scoreDistance, Math.floor(car.x / 10));
-
-        // Nhặt vật phẩm (Mở rộng bán kính nhặt cho xe to)
-        items.forEach(item => {
-            if (!item.collected && Math.hypot(car.x - item.x, car.y - item.y) < 60) {
-                item.collected = true;
-                if (item.type === 'coin') {
-                    coinsCount += 10;
-                } else if (item.type === 'fuel') {
-                    fuel = Math.min(100, fuel + 40);
-                }
-            }
-        });
-
-        // Cập nhật UI
-        distanceEl.innerText = scoreDistance;
-        coinsEl.innerText = coinsCount;
-        fuelBarEl.style.width = fuel + '%';
-        fuelBarEl.style.backgroundColor = fuel < 25 ? '#ff4757' : '#2ed573';
-    }
-
-    // Vẽ mặt đất
-    function drawTerrain() {
-        ctx.beginPath();
-        ctx.moveTo(0, canvas.height);
-
-        for (let screenX = 0; screenX <= canvas.width + 10; screenX += 5) {
-            const worldX = screenX + cameraX;
-            const worldY = getTerrainHeight(worldX);
-            ctx.lineTo(screenX, worldY);
-        }
-
-        ctx.lineTo(canvas.width, canvas.height);
-        ctx.closePath();
-
-        // Lòng đất
-        ctx.fillStyle = '#5c3a21';
-        ctx.fill();
-
-        // Viền cỏ mặt đất
-        ctx.lineWidth = 6;
-        ctx.strokeStyle = '#85b927';
-        ctx.stroke();
-    }
-
-    // Vẽ Xe bằng ảnh siêu xe khớp với Hitbox
-    function drawCar() {
-        ctx.save();
-        ctx.translate(car.x - cameraX, car.y);
-        ctx.rotate(car.angle);
-
-        if (carImage.complete && carImage.naturalWidth !== 0) {
-            // Vẽ ảnh siêu xe khớp hoàn toàn với tỉ lệ xe
-            ctx.drawImage(
-                carImage,
-                -car.width / 2,
-                -car.height / 2 - 5,
-                car.width,
-                car.height + 10
-            );
-        } else {
-            // Dự phòng khi ảnh đang nạp
-            ctx.fillStyle = '#2e86de';
-            ctx.fillRect(-car.width / 2, -car.height / 2, car.width, car.height);
-        }
-
-        ctx.restore();
-    }
-
-    // Vẽ Vật phẩm
-    function drawItems() {
-        items.forEach(item => {
-            if (item.collected) return;
-            const screenX = item.x - cameraX;
-            if (screenX < -50 || screenX > canvas.width + 50) return;
-
-            if (item.type === 'coin') {
-                ctx.beginPath();
-                ctx.arc(screenX, item.y, 12, 0, Math.PI * 2);
-                ctx.fillStyle = '#ffa502';
-                ctx.fill();
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-            } else if (item.type === 'fuel') {
-                ctx.fillStyle = '#ff4757';
-                ctx.fillRect(screenX - 12, item.y - 14, 24, 28);
-                ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 11px Arial';
-                ctx.fillText('GAS', screenX - 11, item.y + 4);
-            }
-        });
-    }
-
-    // Vẽ màn hình Thua
-    function drawGameOver() {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        ctx.fillStyle = '#ff4757';
-        ctx.font = 'bold 36px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 30);
-
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '18px Arial';
-        ctx.fillText(`Quãng đường: ${scoreDistance} m | Tiền xu: ${coinsCount}`, canvas.width / 2, canvas.height / 2 + 10);
-        ctx.fillText('Nhấn Space để chơi lại', canvas.width / 2, canvas.height / 2 + 50);
-    }
-
-    // Reset Game
-    function resetGame() {
-        scoreDistance = 0;
-        coinsCount = 0;
-        fuel = 100;
-        gameOver = false;
-        car.reset();
         generateItems();
+        car.reset();
         loop();
-    }
-
-    // Vòng lặp game
-    function loop() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        updatePhysics();
-        drawTerrain();
-        drawItems();
-        drawCar();
-
-        if (!gameOver) {
-            requestAnimationFrame(loop);
-        } else {
-            drawGameOver();
-        }
-    }
-
-    // Khởi chạy
-    generateItems();
-    car.reset();
-    loop();
-</script>
-
+    </script>
 </body>
 </html>
