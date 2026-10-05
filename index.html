@@ -17,7 +17,7 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #111;
+      background: #73c2fb;
       font-family: 'Arial Black', Impact, sans-serif;
     }
     #game-container {
@@ -32,7 +32,7 @@
       height: 100%;
     }
 
-    /* Floating UI elements */
+    /* Top Stats Bar */
     .top-bar {
       position: absolute;
       top: 15px;
@@ -141,7 +141,6 @@
       border-radius: 50%;
     }
 
-    /* Small center fuel gauge */
     .fuel-gauge {
       width: 90px;
       height: 90px;
@@ -258,7 +257,6 @@
 
     <!-- Dashboard Gauges -->
     <div class="dashboard">
-      <!-- RPM Gauge -->
       <div class="gauge-container">
         <div class="gauge-center">
           <div class="needle" id="rpm-needle"></div>
@@ -267,7 +265,6 @@
         </div>
       </div>
 
-      <!-- Fuel Gauge (45 Seconds System) -->
       <div class="gauge-container fuel-gauge">
         <div class="gauge-center">
           <div class="needle" id="fuel-needle"></div>
@@ -276,7 +273,6 @@
         </div>
       </div>
 
-      <!-- Speed Gauge -->
       <div class="gauge-container">
         <div class="gauge-center">
           <div class="needle" id="speed-needle"></div>
@@ -286,7 +282,7 @@
       </div>
     </div>
 
-    <!-- Controls -->
+    <!-- Pedals -->
     <div class="pedal pedal-brake" id="btn-brake">
       <div class="pedal-grip"></div>
       <div class="pedal-grip"></div>
@@ -310,20 +306,20 @@
   </div>
 
   <script>
-    const { Engine, Render, Runner, Bodies, Composite, Constraint, Vector, Body, Events } = Matter;
+    const { Engine, Render, Runner, Bodies, Composite, Constraint, Body, Events } = Matter;
 
-    // Game variables
-    const FUEL_MAX_TIME = 45; // Exactly 45 seconds fuel duration
+    // Game Constants & State
+    const FUEL_MAX_TIME = 45; // 45 seconds exact
     let fuelTimeLeft = FUEL_MAX_TIME;
     let distance = 0;
     let isGameOver = false;
     let gasPressed = false;
     let brakePressed = false;
 
-    // Setup Matter.js Engine
+    // Matter Engine
     const container = document.getElementById('game-container');
     const engine = Engine.create({ enableSleeping: false });
-    engine.world.gravity.y = 1.2;
+    engine.world.gravity.y = 1.25;
 
     const render = Render.create({
       element: container,
@@ -332,7 +328,7 @@
         width: window.innerWidth,
         height: window.innerHeight,
         wireframes: false,
-        background: '#87CEEB'
+        background: 'transparent'
       }
     });
 
@@ -340,30 +336,36 @@
     const runner = Runner.create();
     Runner.run(runner, engine);
 
-    // Terrain Generation
+    // Procedural Terrain Points
+    const terrainPoints = [];
     const terrainSegments = [];
-    const segmentWidth = 60;
-    let lastX = -200;
+    const segmentWidth = 40;
+    let lastX = -300;
     let lastY = window.innerHeight * 0.65;
 
     function generateTerrain(toX) {
+      if (terrainPoints.length === 0) {
+        terrainPoints.push({ x: lastX, y: lastY });
+      }
+
       while (lastX < toX) {
         let nextX = lastX + segmentWidth;
-        let nextY = lastY + (Math.sin(lastX * 0.008) * 35) + (Math.cos(lastX * 0.02) * 20);
-        
+        let nextY = lastY + (Math.sin(lastX * 0.007) * 45) + (Math.cos(lastX * 0.018) * 25);
+
+        terrainPoints.push({ x: nextX, y: nextY });
+
         let ground = Bodies.rectangle(
           (lastX + nextX) / 2,
-          (lastY + nextY) / 2 + 20,
-          segmentWidth + 10,
-          80,
+          (lastY + nextY) / 2 + 15,
+          segmentWidth + 5,
+          600,
           {
             isStatic: true,
-            friction: 0.9,
-            render: { fillStyle: '#4d8a27' }
+            friction: 0.95,
+            render: { visible: false }
           }
         );
-        
-        // Calculate ground angle
+
         const angle = Math.atan2(nextY - lastY, nextX - lastX);
         Body.setAngle(ground, angle);
 
@@ -375,81 +377,167 @@
       }
     }
 
-    // Vehicle & Driver Creation
-    let car, rearWheel, frontWheel, driverHead, nameBadge;
+    // Vehicle Setup
+    let car, rearWheel, frontWheel, driverHead;
 
     function createVehicle(startX, startY) {
-      // Chassis
-      car = Bodies.rectangle(startX, startY, 130, 40, {
+      car = Bodies.rectangle(startX, startY, 130, 38, {
         density: 0.004,
         friction: 0.8,
-        restitution: 0.1,
+        restitution: 0.05,
         collisionFilter: { group: -1 },
-        render: { fillStyle: '#2980b9' }
+        render: { fillStyle: '#2ecc71' }
       });
 
-      // Driver Head (Defeat Trigger)
       driverHead = Bodies.circle(startX - 10, startY - 35, 16, {
         density: 0.001,
         collisionFilter: { group: -1 },
-        render: { fillStyle: '#f39c12' }
+        render: { fillStyle: '#e67e22' }
       });
 
-      // Joint attaching head to car body
       const neckJoint = Constraint.create({
         bodyA: car,
         bodyB: driverHead,
-        pointA: { x: -10, y: -30 },
+        pointA: { x: -10, y: -28 },
         pointB: { x: 0, y: 0 },
-        stiffness: 0.8,
+        stiffness: 0.85,
         length: 0,
         render: { visible: false }
       });
 
-      // Wheels
       const wheelOptions = {
-        friction: 1.0,
+        friction: 1.1,
         density: 0.005,
-        restitution: 0.2,
+        restitution: 0.1,
         collisionFilter: { group: -1 },
-        render: { fillStyle: '#222', strokeStyle: '#555', lineWidth: 6 }
+        render: { fillStyle: '#111', strokeStyle: '#444', lineWidth: 6 }
       };
 
       rearWheel = Bodies.circle(startX - 45, startY + 25, 24, wheelOptions);
       frontWheel = Bodies.circle(startX + 45, startY + 25, 24, wheelOptions);
 
-      // Suspension Constraints
       const rearAxle = Constraint.create({
         bodyA: car,
         bodyB: rearWheel,
         pointA: { x: -45, y: 20 },
-        stiffness: 0.2,
+        stiffness: 0.22,
         damping: 0.05,
-        render: { strokeStyle: '#333', lineWidth: 4 }
+        render: { strokeStyle: '#222', lineWidth: 5 }
       });
 
       const frontAxle = Constraint.create({
         bodyA: car,
         bodyB: frontWheel,
         pointA: { x: 45, y: 20 },
-        stiffness: 0.2,
+        stiffness: 0.22,
         damping: 0.05,
-        render: { strokeStyle: '#333', lineWidth: 4 }
+        render: { strokeStyle: '#222', lineWidth: 5 }
       });
 
       Composite.add(engine.world, [car, driverHead, neckJoint, rearWheel, frontWheel, rearAxle, frontAxle]);
     }
 
-    // Initial setup
-    generateTerrain(window.innerWidth + 1000);
-    createVehicle(100, lastY - 150);
+    generateTerrain(window.innerWidth + 1200);
+    createVehicle(100, terrainPoints[10].y - 120);
 
-    // Custom Canvas Rendering for Driver Cap, Buggy Frame, & Name Badge
+    // Custom Rendering (Background, Country Stage Ground, Vehicle Graphics)
+    Events.on(render, 'beforeRender', () => {
+      const ctx = render.context;
+      const width = render.canvas.width;
+      const height = render.canvas.height;
+
+      // 1. Sky Gradient
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, height);
+      skyGrad.addColorStop(0, '#50b5fd');
+      skyGrad.addColorStop(0.6, '#a1dbff');
+      skyGrad.addColorStop(1, '#e3f4ff');
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, width, height);
+
+      const camX = render.bounds.min.x;
+
+      // 2. Parallax Clouds
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+      for (let i = -2; i < 10; i++) {
+        let cloudX = i * 400 - (camX * 0.1) % 400;
+        ctx.beginPath();
+        ctx.arc(cloudX, 90, 45, 0, Math.PI * 2);
+        ctx.arc(cloudX + 35, 75, 55, 0, Math.PI * 2);
+        ctx.arc(cloudX + 80, 90, 40, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // 3. Parallax Mountains (Matching Image Stage)
+      ctx.fillStyle = '#82ca9c';
+      for (let i = -2; i < 8; i++) {
+        let mtnX = i * 600 - (camX * 0.25) % 600;
+        ctx.beginPath();
+        ctx.moveTo(mtnX - 200, height);
+        ctx.quadraticCurveTo(mtnX, height - 380, mtnX + 250, height);
+        ctx.fill();
+      }
+
+      ctx.fillStyle = '#6cb788';
+      for (let i = -2; i < 8; i++) {
+        let mtnX = i * 500 + 200 - (camX * 0.35) % 500;
+        ctx.beginPath();
+        ctx.moveTo(mtnX - 180, height);
+        ctx.quadraticCurveTo(mtnX, height - 280, mtnX + 200, height);
+        ctx.fill();
+      }
+    });
+
     Events.on(render, 'afterRender', () => {
       const ctx = render.context;
 
-      // 1. Draw Name Tag above car ("Toansigma")
+      // 4. Render 3-Layer Country Ground (Grass -> Yellow Earth -> Dark Moss)
+      if (terrainPoints.length > 1) {
+        ctx.save();
+
+        // Layer 3: Dark Moss Bottom
+        ctx.fillStyle = '#2f571b';
+        ctx.beginPath();
+        ctx.moveTo(terrainPoints[0].x, terrainPoints[0].y + 35);
+        for (let i = 1; i < terrainPoints.length; i++) {
+          ctx.lineTo(terrainPoints[i].x, terrainPoints[i].y + 35);
+        }
+        ctx.lineTo(terrainPoints[terrainPoints.length - 1].x, terrainPoints[terrainPoints.length - 1].y + 1000);
+        ctx.lineTo(terrainPoints[0].x, terrainPoints[0].y + 1000);
+        ctx.closePath();
+        ctx.fill();
+
+        // Layer 2: Yellow Soil Strip
+        ctx.fillStyle = '#d1b838';
+        ctx.beginPath();
+        ctx.moveTo(terrainPoints[0].x, terrainPoints[0].y + 8);
+        for (let i = 1; i < terrainPoints.length; i++) {
+          ctx.lineTo(terrainPoints[i].x, terrainPoints[i].y + 8);
+        }
+        for (let i = terrainPoints.length - 1; i >= 0; i--) {
+          ctx.lineTo(terrainPoints[i].x, terrainPoints[i].y + 35);
+        }
+        ctx.closePath();
+        ctx.fill();
+
+        // Layer 1: Bright Green Grass Top
+        ctx.fillStyle = '#54aa2b';
+        ctx.beginPath();
+        ctx.moveTo(terrainPoints[0].x, terrainPoints[0].y - 3);
+        for (let i = 1; i < terrainPoints.length; i++) {
+          ctx.lineTo(terrainPoints[i].x, terrainPoints[i].y - 3);
+        }
+        for (let i = terrainPoints.length - 1; i >= 0; i--) {
+          ctx.lineTo(terrainPoints[i].x, terrainPoints[i].y + 8);
+        }
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      // 5. Draw Dune Buggy Graphics & Driver
       if (car) {
+        // Name Badge ("Toansigma")
         ctx.save();
         ctx.translate(car.position.x, car.position.y - 75);
         ctx.fillStyle = '#e74c3c';
@@ -466,32 +554,25 @@
         ctx.fillText(text, 0, 0);
         ctx.restore();
 
-        // 2. Draw Driver Red Cap & Beard
+        // Driver Cap & Head
         ctx.save();
         ctx.translate(driverHead.position.x, driverHead.position.y);
         ctx.rotate(driverHead.angle);
-        
-        // Red Cap
         ctx.fillStyle = '#c0392b';
         ctx.beginPath();
         ctx.arc(0, -3, 17, Math.PI, 0);
         ctx.fill();
-        // Cap Visor
-        ctx.fillRect(5, -6, 16, 5);
-
-        // Beard
-        ctx.fillStyle = '#7f8c8d';
+        ctx.fillRect(4, -6, 16, 5); // Visor
+        ctx.fillStyle = '#666';
         ctx.beginPath();
-        ctx.arc(4, 6, 10, 0, Math.PI / 2);
+        ctx.arc(4, 6, 9, 0, Math.PI / 2); // Beard
         ctx.fill();
         ctx.restore();
 
-        // 3. Draw Dune Buggy Roll Cage & Flag
+        // Dune Buggy Frame & Flag
         ctx.save();
         ctx.translate(car.position.x, car.position.y);
         ctx.rotate(car.angle);
-
-        // Buggy Frame
         ctx.strokeStyle = '#ecf0f1';
         ctx.lineWidth = 4;
         ctx.beginPath();
@@ -501,25 +582,21 @@
         ctx.lineTo(50, -10);
         ctx.stroke();
 
-        // Rear Exhaust
+        // Exhaust & Flag
         ctx.fillStyle = '#7f8c8d';
         ctx.fillRect(-70, -10, 20, 8);
-
-        // Rear Flag Pole
         ctx.strokeStyle = '#333';
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(-60, -10);
         ctx.lineTo(-60, -55);
         ctx.stroke();
-        // Flag
         ctx.fillStyle = '#e74c3c';
         ctx.beginPath();
         ctx.moveTo(-60, -55);
         ctx.lineTo(-40, -48);
         ctx.lineTo(-60, -40);
         ctx.fill();
-
         ctx.restore();
       }
     });
@@ -527,16 +604,11 @@
     // Camera follow
     Events.on(render, 'beforeRender', () => {
       if (!car) return;
-      
-      const targetX = -car.position.x + window.innerWidth * 0.35;
-      const targetY = -car.position.y + window.innerHeight * 0.55;
-
       Render.lookAt(render, {
         min: { x: car.position.x - window.innerWidth * 0.35, y: car.position.y - window.innerHeight * 0.55 },
         max: { x: car.position.x + window.innerWidth * 0.65, y: car.position.y + window.innerHeight * 0.45 }
       });
 
-      // Expand terrain as player moves forward
       if (car.position.x + window.innerWidth > lastX) {
         generateTerrain(car.position.x + window.innerWidth + 800);
       }
@@ -552,42 +624,36 @@
       const delta = (now - lastTimestamp) / 1000;
       lastTimestamp = now;
 
-      // 1. Drain Fuel (Reaches 0 in exactly 45 seconds)
+      // 1. Fuel Decrease (Exact 45s)
       fuelTimeLeft = Math.max(0, fuelTimeLeft - delta);
       const fuelPercent = Math.floor((fuelTimeLeft / FUEL_MAX_TIME) * 100);
 
-      // Update Fuel UI
       document.getElementById('fuel-val').innerText = fuelPercent + '%';
       document.getElementById('fuel-needle').style.transform = `rotate(${-120 + (fuelPercent / 100) * 240}deg)`;
-      
-      if (fuelPercent < 20) {
-        document.getElementById('fuel-val').style.color = '#e74c3c';
-      } else {
-        document.getElementById('fuel-val').style.color = '#2ecc71';
-      }
+      document.getElementById('fuel-val').style.color = fuelPercent < 20 ? '#e74c3c' : '#2ecc71';
 
       if (fuelTimeLeft <= 0) {
         triggerGameOver("Hết nhiên liệu!");
         return;
       }
 
-      // 2. Driving Logic
+      // 2. Drive Controls
       const speed = Body.getVelocity(car).x;
       let rpm = Math.abs(speed) * 150;
 
       if (gasPressed) {
-        Body.setAngularVelocity(rearWheel, 0.3);
-        Body.setAngularVelocity(frontWheel, 0.3);
-        Body.applyForce(car, car.position, { x: 0.002, y: 0 });
-        rpm += 1200;
+        Body.setAngularVelocity(rearWheel, 0.32);
+        Body.setAngularVelocity(frontWheel, 0.32);
+        Body.applyForce(car, car.position, { x: 0.0022, y: 0 });
+        rpm += 1300;
       } else if (brakePressed) {
-        Body.setAngularVelocity(rearWheel, -0.2);
-        Body.setAngularVelocity(frontWheel, -0.2);
-        Body.applyForce(car, car.position, { x: -0.0015, y: 0 });
-        rpm += 800;
+        Body.setAngularVelocity(rearWheel, -0.22);
+        Body.setAngularVelocity(frontWheel, -0.22);
+        Body.applyForce(car, car.position, { x: -0.0016, y: 0 });
+        rpm += 850;
       }
 
-      // 3. Update Dash Gauges
+      // 3. Update Dashboard Indicators
       const displaySpeed = Math.max(0, Math.floor(speed * 3.6));
       document.getElementById('speed-val').innerText = displaySpeed;
       document.getElementById('speed-needle').style.transform = `rotate(${-120 + Math.min(240, displaySpeed * 3)}deg)`;
@@ -601,10 +667,9 @@
       document.getElementById('dist-val').innerText = distance;
     });
 
-    // Collision Detection for Driver Head Impact
+    // Collision Detection (Head Contact Defeat)
     Events.on(engine, 'collisionStart', (event) => {
       if (isGameOver) return;
-      
       event.pairs.forEach(pair => {
         const { bodyA, bodyB } = pair;
         const isHeadInvolved = (bodyA === driverHead || bodyB === driverHead);
@@ -616,7 +681,6 @@
       });
     });
 
-    // Game Over Trigger
     function triggerGameOver(reason) {
       if (isGameOver) return;
       isGameOver = true;
@@ -624,12 +688,11 @@
       document.getElementById('game-over-modal').style.display = 'flex';
     }
 
-    // Restart Game
     function restartGame() {
       location.reload();
     }
 
-    // Controls Handling (Touch, Mouse, Keyboard)
+    // Touch & Keyboard Bindings
     const btnGas = document.getElementById('btn-gas');
     const btnBrake = document.getElementById('btn-brake');
 
@@ -654,7 +717,6 @@
       if (e.key === 'ArrowLeft' || e.key === 'a') { brakePressed = false; btnBrake.classList.remove('active'); }
     });
 
-    // Resize Handling
     window.addEventListener('resize', () => {
       render.canvas.width = window.innerWidth;
       render.canvas.height = window.innerHeight;
