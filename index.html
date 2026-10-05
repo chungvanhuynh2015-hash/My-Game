@@ -309,7 +309,7 @@
     const { Engine, Render, Runner, Bodies, Composite, Constraint, Body, Events } = Matter;
 
     // Game Constants & State
-    const FUEL_MAX_TIME = 45; // 45 seconds exact
+    const FUEL_MAX_TIME = 45; // 45 seconds
     let fuelTimeLeft = FUEL_MAX_TIME;
     let distance = 0;
     let isGameOver = false;
@@ -340,8 +340,9 @@
     const terrainPoints = [];
     const terrainSegments = [];
     const segmentWidth = 40;
-    let lastX = -300;
-    let lastY = window.innerHeight * 0.65;
+    let lastX = -400;
+    let startY = window.innerHeight * 0.65;
+    let lastY = startY;
 
     function generateTerrain(toX) {
       if (terrainPoints.length === 0) {
@@ -350,7 +351,16 @@
 
       while (lastX < toX) {
         let nextX = lastX + segmentWidth;
-        let nextY = lastY + (Math.sin(lastX * 0.007) * 45) + (Math.cos(lastX * 0.018) * 25);
+        let nextY = lastY;
+
+        // TẠO ĐOẠN ĐẦU PHẲNG (~600px đầu tiên)
+        if (nextX < 600) {
+          nextY = startY;
+        } else {
+          // Bắt đầu tạo đồi núi sau đoạn xuất phát
+          const hillX = nextX - 600;
+          nextY = startY + (Math.sin(hillX * 0.007) * 45) + (Math.cos(hillX * 0.018) * 25);
+        }
 
         terrainPoints.push({ x: nextX, y: nextY });
 
@@ -437,10 +447,11 @@
       Composite.add(engine.world, [car, driverHead, neckJoint, rearWheel, frontWheel, rearAxle, frontAxle]);
     }
 
+    // Khởi tạo mặt đường và xe đặt ở đoạn phẳng
     generateTerrain(window.innerWidth + 1200);
-    createVehicle(100, terrainPoints[10].y - 120);
+    createVehicle(100, startY - 80);
 
-    // Custom Rendering (Background, Country Stage Ground, Vehicle Graphics)
+    // Render đồ họa nền & mặt đường
     Events.on(render, 'beforeRender', () => {
       const ctx = render.context;
       const width = render.canvas.width;
@@ -467,7 +478,7 @@
         ctx.fill();
       }
 
-      // 3. Parallax Mountains (Matching Image Stage)
+      // 3. Parallax Mountains
       ctx.fillStyle = '#82ca9c';
       for (let i = -2; i < 8; i++) {
         let mtnX = i * 600 - (camX * 0.25) % 600;
@@ -490,11 +501,11 @@
     Events.on(render, 'afterRender', () => {
       const ctx = render.context;
 
-      // 4. Render 3-Layer Country Ground (Grass -> Yellow Earth -> Dark Moss)
+      // Render đường 3 tầng
       if (terrainPoints.length > 1) {
         ctx.save();
 
-        // Layer 3: Dark Moss Bottom
+        // Tầng 3: Lòng đất rêu đậm
         ctx.fillStyle = '#2f571b';
         ctx.beginPath();
         ctx.moveTo(terrainPoints[0].x, terrainPoints[0].y + 35);
@@ -506,7 +517,7 @@
         ctx.closePath();
         ctx.fill();
 
-        // Layer 2: Yellow Soil Strip
+        // Tầng 2: Cát/đất vàng
         ctx.fillStyle = '#d1b838';
         ctx.beginPath();
         ctx.moveTo(terrainPoints[0].x, terrainPoints[0].y + 8);
@@ -519,7 +530,7 @@
         ctx.closePath();
         ctx.fill();
 
-        // Layer 1: Bright Green Grass Top
+        // Tầng 1: Cỏ xanh nhạt
         ctx.fillStyle = '#54aa2b';
         ctx.beginPath();
         ctx.moveTo(terrainPoints[0].x, terrainPoints[0].y - 3);
@@ -535,9 +546,9 @@
         ctx.restore();
       }
 
-      // 5. Draw Dune Buggy Graphics & Driver
+      // Vẽ xe & nhân vật
       if (car) {
-        // Name Badge ("Toansigma")
+        // Bảng tên "Toansigma"
         ctx.save();
         ctx.translate(car.position.x, car.position.y - 75);
         ctx.fillStyle = '#e74c3c';
@@ -554,7 +565,7 @@
         ctx.fillText(text, 0, 0);
         ctx.restore();
 
-        // Driver Cap & Head
+        // Đầu & Mũ bảo hiểm
         ctx.save();
         ctx.translate(driverHead.position.x, driverHead.position.y);
         ctx.rotate(driverHead.angle);
@@ -562,14 +573,14 @@
         ctx.beginPath();
         ctx.arc(0, -3, 17, Math.PI, 0);
         ctx.fill();
-        ctx.fillRect(4, -6, 16, 5); // Visor
+        ctx.fillRect(4, -6, 16, 5);
         ctx.fillStyle = '#666';
         ctx.beginPath();
-        ctx.arc(4, 6, 9, 0, Math.PI / 2); // Beard
+        ctx.arc(4, 6, 9, 0, Math.PI / 2);
         ctx.fill();
         ctx.restore();
 
-        // Dune Buggy Frame & Flag
+        // Khung xe & Cờ
         ctx.save();
         ctx.translate(car.position.x, car.position.y);
         ctx.rotate(car.angle);
@@ -582,7 +593,6 @@
         ctx.lineTo(50, -10);
         ctx.stroke();
 
-        // Exhaust & Flag
         ctx.fillStyle = '#7f8c8d';
         ctx.fillRect(-70, -10, 20, 8);
         ctx.strokeStyle = '#333';
@@ -601,7 +611,7 @@
       }
     });
 
-    // Camera follow
+    // Camera đi theo xe
     Events.on(render, 'beforeRender', () => {
       if (!car) return;
       Render.lookAt(render, {
@@ -614,7 +624,7 @@
       }
     });
 
-    // Game Physics & Driving Loop
+    // Vòng lặp vật lý & điều khiển
     let lastTimestamp = performance.now();
 
     Events.on(engine, 'beforeUpdate', () => {
@@ -624,7 +634,7 @@
       const delta = (now - lastTimestamp) / 1000;
       lastTimestamp = now;
 
-      // 1. Fuel Decrease (Exact 45s)
+      // 1. Trừ nhiên liệu (45 giây)
       fuelTimeLeft = Math.max(0, fuelTimeLeft - delta);
       const fuelPercent = Math.floor((fuelTimeLeft / FUEL_MAX_TIME) * 100);
 
@@ -637,7 +647,7 @@
         return;
       }
 
-      // 2. Drive Controls
+      // 2. Điều khiển Ga / Phanh
       const speed = Body.getVelocity(car).x;
       let rpm = Math.abs(speed) * 150;
 
@@ -653,7 +663,7 @@
         rpm += 850;
       }
 
-      // 3. Update Dashboard Indicators
+      // 3. Cập nhật đồng hồ
       const displaySpeed = Math.max(0, Math.floor(speed * 3.6));
       document.getElementById('speed-val').innerText = displaySpeed;
       document.getElementById('speed-needle').style.transform = `rotate(${-120 + Math.min(240, displaySpeed * 3)}deg)`;
@@ -662,12 +672,12 @@
       document.getElementById('rpm-val').innerText = displayRpm;
       document.getElementById('rpm-needle').style.transform = `rotate(${-120 + (displayRpm / 8000) * 240}deg)`;
 
-      // 4. Update Distance
+      // 4. Quãng đường
       distance = Math.max(distance, Math.floor((car.position.x - 100) / 10));
       document.getElementById('dist-val').innerText = distance;
     });
 
-    // Collision Detection (Head Contact Defeat)
+    // Phát hiện lật xe chạm đầu
     Events.on(engine, 'collisionStart', (event) => {
       if (isGameOver) return;
       event.pairs.forEach(pair => {
@@ -692,7 +702,7 @@
       location.reload();
     }
 
-    // Touch & Keyboard Bindings
+    // Sự kiện bàn phím & Cảm ứng
     const btnGas = document.getElementById('btn-gas');
     const btnBrake = document.getElementById('btn-brake');
 
