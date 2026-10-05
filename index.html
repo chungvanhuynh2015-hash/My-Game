@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Dune Buggy • Hill Climb</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-user-select:none}
+html,body{width:100%;height:100%;overflow:hidden;font-family:Arial,Helvetica,sans-serif;background:#79c7f5}
+button,input,select{font:inherit}
+#game-container{position:relative;width:100vw;height:100vh;overflow:hidden}
+canvas{display:block;width:100%;height:100%}
+
+/* PROFILE */
+#profile-screen{
+  position:absolute;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,rgba(18,34,48,.88),rgba(0,0,0,.78));padding:18px;
+}
+.profile-card{
+  width:min(460px,94vw);padding:24px;border:3px solid #f5c542;border-radius:22px;
+  background:rgba(30,30,30,.95);color:#fff;box-shadow:0 15px 50px rgba(0,0,0,.45)
+}
+.profile-card h1{text-align:center;color:#ffd34e;font-size:30px;margin-bottom:8px}
+.profile-card p{text-align:center;color:#ccc;margin-bottom:20px}
+.field{margin:12px 0}.field label{display:block;margin-bottom:6px;color:#ffd34e;font-weight:800}
+.field input,.field select{
+  width:100%;padding:13px;border-radius:11px;border:2px solid #555;background:#161616;color:#fff;outline:none
+}
+.field input:focus,.field select:focus{border-color:#ffd34e}
+.start-btn{
+  width:100%;margin-top:10px;padding:14px;border:0;border-radius:12px;background:#2ecc71;color:#fff;
+  font-weight:900;font-size:20px;cursor:pointer;box-shadow:0 5px 0 #208e4f
+}
+.start-btn:active{transform:translateY(3px);box-shadow:0 2px 0 #208e4f}
+.profile-error{height:20px;color:#ff6b6b;text-align:center;font-weight:700}
+
+/* HUD */
+.top-bar{position:absolute;top:12px;left:14px;right:14px;z-index:20;display:flex;gap:10px;align-items:center;justify-content:space-between;pointer-events:none}
+.badge{background:rgba(0,0,0,.65);border:2px solid #f5c542;border-radius:12px;padding:7px 12px;color:#fff;font-weight:800;text-shadow:1px 1px #000}
+.badge span{color:#ffd34e}
+.player-badge{border-color:#fff;max-width:45vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.refill-badge{border-color:#2ecc71}
+#fuel-val.low{color:#ff4d4d}
+.dashboard{
+  position:absolute;left:50%;bottom:12px;transform:translateX(-50%);z-index:20;
+  display:flex;gap:10px;pointer-events:none
+}
+.gauge{
+  width:88px;height:88px;border-radius:50%;background:#151515;border:4px solid #444;
+  box-shadow:inset 0 0 12px #000,0 5px 14px rgba(0,0,0,.5);position:relative
+}
+.gauge .ring{position:absolute;inset:7px;border:2px solid #555;border-radius:50%}
+.needle{position:absolute;width:3px;height:30px;left:50%;bottom:50%;background:#f33;transform-origin:50% 100%;transform:rotate(-120deg);border-radius:3px}
+.gauge .val{position:absolute;left:0;right:0;bottom:23px;text-align:center;color:#00ffcc;font-weight:900;font-size:12px}
+.gauge .title{position:absolute;left:0;right:0;bottom:9px;text-align:center;color:#aaa;font-size:9px;font-weight:800;letter-spacing:1px}
+
+.pedal{
+  position:absolute;bottom:18px;z-index:30;width:86px;height:126px;border-radius:17px;
+  background:linear-gradient(135deg,#444,#1c1c1c);border:4px solid #666;color:#fff;
+  box-shadow:0 7px 15px rgba(0,0,0,.6);display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;touch-action:none
+}
+.pedal:active,.pedal.active{transform:translateY(5px);filter:brightness(.8)}
+.pedal-brake{left:18px;border-color:#e74c3c}.pedal-gas{right:18px;border-color:#2ecc71}
+.grip{width:60%;height:8px;margin:4px;background:#111;border-radius:4px}
+.pedal-label{font-size:12px;font-weight:900;margin-top:6px}
+
+#game-over-modal{
+  position:absolute;inset:0;z-index:100;display:none;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.84);color:#fff;padding:15px
+}
+.over-card{width:min(500px,92vw);background:#202020;border:3px solid #ffd34e;border-radius:20px;padding:25px;text-align:center}
+.over-card h1{color:#ff4d4d;font-size:40px;margin-bottom:8px}
+.over-card .result{font-size:21px;color:#ffd34e;margin:8px}
+.over-card .reason{color:#ddd;margin-bottom:16px}
+.action-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.action-btn{padding:12px 20px;border:0;border-radius:10px;font-weight:900;cursor:pointer}
+.restart-btn{background:#2ecc71;color:#fff}.board-btn{background:#3498db;color:#fff}
+#leaderboard-panel{
+  position:absolute;inset:0;z-index:150;display:none;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.86);padding:15px
+}
+.board-card{width:min(560px,94vw);max-height:85vh;overflow:auto;background:#1e1e1e;color:#fff;border:3px solid #ffd34e;border-radius:18px;padding:20px}
+.board-card h2{text-align:center;color:#ffd34e;margin-bottom:12px}
+.board-row{display:grid;grid-template-columns:45px 1fr 100px 70px;gap:8px;padding:9px 6px;border-bottom:1px solid #444;align-items:center}
+.board-head{color:#aaa;font-weight:800;font-size:12px}
+.board-row.me{background:rgba(46,204,113,.16);border-radius:8px}
+.close-btn{margin-top:15px;width:100%;padding:11px;border:0;border-radius:10px;background:#555;color:#fff;font-weight:900}
+
+/* responsive */
+@media(max-width:600px){
+  .badge{font-size:12px;padding:6px 8px}.dashboard{gap:5px}.gauge{width:70px;height:70px}
+  .gauge .needle{height:23px}.gauge .val{bottom:19px;font-size:10px}.gauge .title{bottom:7px;font-size:7px}
+  .pedal{width:72px;height:108px}.pedal-label{font-size:10px}
+}
+</style>
+</head>
+<body>
+<div id="game-container">
+
+  <div id="profile-screen">
+    <form class="profile-card" id="profile-form">
+      <h1>🏁 DUNE BUGGY</h1>
+      <p>Tạo hồ sơ trước khi bắt đầu chuyến đi.</p>
+      <div class="field">
+        <label for="player-name">Tên người chơi</label>
+        <input id="player-name" maxlength="18" placeholder="Ví dụ: ToanSigma" autocomplete="off" required>
+      </div>
+      <div class="field">
+        <label for="player-country">Quốc gia</label>
+        <select id="player-country" required>
+          <option value="">-- Chọn quốc gia --</option>
+          <option>🇻🇳 Việt Nam</option><option>🇺🇸 Hoa Kỳ</option><option>🇯🇵 Nhật Bản</option>
+          <option>🇰🇷 Hàn Quốc</option><option>🇨🇳 Trung Quốc</option><option>🇬🇧 Vương quốc Anh</option>
+          <option>🇫🇷 Pháp</option><option>🇩🇪 Đức</option><option>🇦🇺 Úc</option>
+          <option>🇨🇦 Canada</option><option>🇸🇬 Singapore</option><option>🇹🇭 Thái Lan</option>
+          <option>🌍 Khác</option>
+        </select>
+      </div>
+      <div class="profile-error" id="profile-error"></div>
+      <button class="start-btn" type="submit">BẮT ĐẦU CHƠI</button>
+    </form>
+  </div>
+
+  <div class="top-bar">
+    <div class="badge">📏 <span id="dist-val">0</span> m</div>
+    <div class="badge refill-badge">⛽ <span id="refill-val">300</span> m</div>
+    <div class="badge player-badge" id="player-badge">👤 Chưa đăng nhập</div>
+  </div>
+
+  <div class="dashboard">
+    <div class="gauge"><div class="ring"></div><div class="needle" id="rpm-needle"></div><div class="val" id="rpm-val">0</div><div class="title">RPM</div></div>
+    <div class="gauge"><div class="ring"></div><div class="needle" id="fuel-needle"></div><div class="val" id="fuel-val">100%</div><div class="title">FUEL</div></div>
+    <div class="gauge"><div class="ring"></div><div class="needle" id="speed-needle"></div><div class="val" id="speed-val">0</div><div class="title">SPEED</div></div>
+  </div>
+
+  <div class="pedal pedal-brake" id="btn-brake">
+    <div class="grip"></div><div class="grip"></div><div class="grip"></div><div class="pedal-label">LÙI / PHANH</div>
+  </div>
+  <div class="pedal pedal-gas" id="btn-gas">
+    <div class="grip"></div><div class="grip"></div><div class="grip"></div><div class="pedal-label">GA</div>
+  </div>
+
+  <div id="game-over-modal">
+    <div class="over-card">
+      <h1>GAME OVER!</h1>
+      <div class="result">🏁 <span id="final-distance">0</span> m</div>
+      <div class="reason" id="game-over-reason"></div>
+      <div class="action-row">
+        <button class="action-btn restart-btn" onclick="restartGame()">THỬ LẠI</button>
+        <button class="action-btn board-btn" onclick="showLeaderboard()">BẢNG XẾP HẠNG</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="leaderboard-panel">
+    <div class="board-card">
+      <h2>🏆 BẢNG XẾP HẠNG</h2>
+      <div class="board-row board-head"><div>#</div><div>Người chơi</div><div>Quốc gia</div><div>Xa nhất</div></div>
+      <div id="leaderboard-list"></div>
+      <button class="close-btn" onclick="closeLeaderboard()">ĐÓNG</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const {Engine,Render,Runner,Bodies,Composite,Constraint,Body,Events,Vector}=Matter;
+
+// ================= GAME SETTINGS =================
+const FUEL_MAX_TIME = 30;          // Nhiên liệu hết sau 30 giây
+const REFILL_DISTANCE = 300;       // Mỗi 300 m nhận bình mới
+const FUEL_CAN_SIZE = 34;
+const CAR_ASSET = "car.svg";
+
+// ================= PROFILE =================
+let profile = {name:"", country:""};
+const form = document.getElementById("profile-form");
+form.addEventListener("submit", e => {
+  e.preventDefault();
+  const name = document.getElementById("player-name").value.trim();
+  const country = document.getElementById("player-country").value;
+  if(!name || !country){
+    document.getElementById("profile-error").textContent="Hãy nhập tên và chọn quốc gia.";
+    return;
+  }
+  profile={name,country};
+  document.getElementById("player-badge").textContent=`👤 ${name} • ${country}`;
+  document.getElementById("profile-screen").style.display="none";
+  resetGame();
+});
+
+// ================= MATTER =================
+const container=document.getElementById("game-container");
+const engine=Engine.create({enableSleeping:false});
+engine.world.gravity.y=1.25;
+
+const render=Render.create({
+  element:container,engine,
+  options:{width:innerWidth,height:innerHeight,wireframes:false,background:"transparent",pixelRatio:devicePixelRatio}
+});
+Render.run(render);
+const runner=Runner.create();
+Runner.run(runner,engine);
+
+let car,rearWheel,frontWheel,driverHead;
+let terrainPoints=[],terrainSegments=[];
+let fuelCans=[];
+const segmentWidth=40;
+let lastX=-400;
+let startY=innerHeight*.65,lastY=startY;
+
+let distance=0;
+let nextRefill=REFILL_DISTANCE;
+let fuelTimeLeft=FUEL_MAX_TIME;
+let isGameOver=true;
+let gasPressed=false,brakePressed=false;
+let lastTimestamp=performance.now();
+
+// ================= TERRAIN =================
+function clearTerrain(){
+  terrainSegments.forEach(b=>Composite.remove(engine.world,b));
+  terrainSegments=[];
+  terrainPoints=[];
+  lastX=-400; lastY=startY;
+}
+function generateTerrain(toX){
+  if(!terrainPoints.length) terrainPoints.push({x:lastX,y:lastY});
+  while(lastX<toX){
+    const nextX=lastX+segmentWidth;
+    let nextY;
+    if(nextX<600) nextY=startY;
+    else{
+      const hx=nextX-600;
+      nextY=startY + Math.sin(hx*.007)*45 + Math.cos(hx*.018)*25;
+    }
+    terrainPoints.push({x:nextX,y:nextY});
+    const ground=Bodies.rectangle((lastX+nextX)/2,(lastY+nextY)/2+15,segmentWidth+5,600,{
+      isStatic:true,friction:.95,restitution:0,render:{visible:false}
+    });
+    Body.setAngle(ground,Math.atan2(nextY-lastY,nextX-lastX));
+    Composite.add(engine.world,ground);
+    terrainSegments.push(ground);
+    lastX=nextX;lastY=nextY;
+  }
+}
+
+// ================= FUEL CANS =================
+function clearFuelCans(){
+  fuelCans.forEach(c=>Composite.remove(engine.world,c.body));
+  fuelCans=[];
+}
+function spawnFuelCanAt(distanceMeters){
+  const worldX=100 + distanceMeters*10;
+  const y=terrainYAt(worldX)-55;
+  const body=Bodies.rectangle(worldX,y,22,30,{
+    isStatic:true,isSensor:true,render:{visible:false}
+  });
+  body.fuelDistance=distanceMeters;
+  Composite.add(engine.world,body);
+  fuelCans.push({body,distance:distanceMeters,collected:false});
+}
+function terrainYAt(x){
+  if(x<600) return startY;
+  const hx=x-600;
+  return startY + Math.sin(hx*.007)*45 + Math.cos(hx*.018)*25;
+}
+function updateFuelCans(){
+  for(const c of fuelCans){
+    if(c.collected) continue;
+    if(Math.abs(car.position.x-c.body.position.x)<38 && Math.abs(car.position.y-c.body.position.y)<70){
+      c.collected=true;
+      fuelTimeLeft=FUEL_MAX_TIME;
+      Composite.remove(engine.world,c.body);
+      document.getElementById("fuel-val").textContent="100%";
+      flashRefill();
+    }
+  }
+}
+function flashRefill(){
+  const el=document.getElementById("refill-val");
+  el.textContent="100%";
+  setTimeout(()=>{ if(!isGameOver) el.textContent=Math.max(0,nextRefill-Math.floor((car.position.x-100)/10))+" m"; },900);
+}
+
+// ================= VEHICLE =================
+function createVehicle(x,y){
+  car=Bodies.rectangle(x,y,130,38,{
+    density:.004,friction:.8,restitution:.05,collisionFilter:{group:-1},render:{visible:false}
+  });
+  driverHead=Bodies.circle(x-10,y-35,16,{
+    density:.001,collisionFilter:{group:-1},render:{visible:false}
+  });
+  const neckJoint=Constraint.create({
+    bodyA:car,bodyB:driverHead,pointA:{x:-10,y:-28},pointB:{x:0,y:0},
+    stiffness:.85,length:0,render:{visible:false}
+  });
+  const wheelOptions={friction:1.1,density:.005,restitution:.1,collisionFilter:{group:-1},render:{visible:false}};
+  rearWheel=Bodies.circle(x-45,y+25,24,wheelOptions);
+  frontWheel=Bodies.circle(x+45,y+25,24,wheelOptions);
+  const rearAxle=Constraint.create({bodyA:car,bodyB:rearWheel,pointA:{x:-45,y:20},stiffness:.22,damping:.05,render:{visible:false}});
+  const frontAxle=Constraint.create({bodyA:car,bodyB:frontWheel,pointA:{x:45,y:20},stiffness:.22,damping:.05,render:{visible:false}});
+  Composite.add(engine.world,[car,driverHead,neckJoint,rearWheel,frontWheel,rearAxle,frontAxle]);
+}
+function removeVehicle(){
+  [car,driverHead,rearWheel,frontWheel].forEach(b=>{if(b)Composite.remove(engine.world,b)});
+  car=driverHead=rearWheel=frontWheel=null;
+}
+
+// ================= DRAWING =================
+function drawBackground(ctx,width,height,camX){
+  const g=ctx.createLinearGradient(0,0,0,height);
+  g.addColorStop(0,"#50b5fd");g.addColorStop(.6,"#a1dbff");g.addColorStop(1,"#e3f4ff");
+  ctx.fillStyle=g;ctx.fillRect(0,0,width,height);
+  ctx.fillStyle="rgba(255,255,255,.82)";
+  for(let i=-2;i<10;i++){
+    const x=i*400-(camX*.1%400);
+    ctx.beginPath();ctx.arc(x,90,45,0,Math.PI*2);ctx.arc(x+35,75,55,0,Math.PI*2);ctx.arc(x+80,90,40,0,Math.PI*2);ctx.fill();
+  }
+  ctx.fillStyle="#82ca9c";
+  for(let i=-2;i<8;i++){
+    const x=i*600-(camX*.25%600);
+    ctx.beginPath();ctx.moveTo(x-200,height);ctx.quadraticCurveTo(x,height-380,x+250,height);ctx.fill();
+  }
+  ctx.fillStyle="#6cb788";
+  for(let i=-2;i<8;i++){
+    const x=i*500+200-(camX*.35%500);
+    ctx.beginPath();ctx.moveTo(x-180,height);ctx.quadraticCurveTo(x,height-280,x+200,height);ctx.fill();
+  }
+}
+function drawTerrain(ctx){
+  if(terrainPoints.length<2)return;
+  ctx.save();
+  const layers=[
+    ["#2f571b",35,1000],["#d1b838",8,35],["#54aa2b",-3,8]
+  ];
+  for(const [color,top,bottom] of layers){
+    ctx.fillStyle=color;ctx.beginPath();
+    ctx.moveTo(terrainPoints[0].x,terrainPoints[0].y+top);
+    for(let i=1;i<terrainPoints.length;i++)ctx.lineTo(terrainPoints[i].x,terrainPoints[i].y+top);
+    for(let i=terrainPoints.length-1;i>=0;i--)ctx.lineTo(terrainPoints[i].x,terrainPoints[i].y+bottom);
+    ctx.closePath();ctx.fill();
+  }
+  ctx.restore();
+}
+function drawFuelCans(ctx){
+  for(const c of fuelCans){
+    if(c.collected)continue;
+    const x=c.body.position.x,y=c.body.position.y;
+    ctx.save();ctx.translate(x,y);
+    ctx.fillStyle="#e74c3c";ctx.strokeStyle="#fff";ctx.lineWidth=3;
+    ctx.fillRect(-13,-18,26,36);ctx.strokeRect(-13,-18,26,36);
+    ctx.fillStyle="#fff";ctx.fillRect(-6,-12,12,5);
+    ctx.fillStyle="#ffd34e";ctx.font="bold 14px Arial";ctx.textAlign="center";ctx.fillText("F",0,8);
+    ctx.restore();
+  }
+}
+function drawWheel(ctx,w){
+  ctx.save();ctx.translate(w.position.x,w.position.y);ctx.rotate(w.angle);
+  ctx.fillStyle="#171717";ctx.beginPath();ctx.arc(0,0,27,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle="#444";ctx.lineWidth=5;ctx.stroke();
+  ctx.fillStyle="#777";ctx.beginPath();ctx.arc(0,0,12,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle="#333";ctx.lineWidth=3;
+  for(let i=0;i<6;i++){const a=i*Math.PI/3;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(a)*10,Math.sin(a)*10);ctx.stroke()}
+  ctx.restore();
+}
+function drawCar(ctx){
+  if(!car)return;
+  const x=car.position.x,y=car.position.y;
+  ctx.save();ctx.translate(x,y);ctx.rotate(car.angle);
+
+  // Shadow
+  ctx.restore();
+  drawWheel(ctx,rearWheel);drawWheel(ctx,frontWheel);
+
+  ctx.save();ctx.translate(x,y);ctx.rotate(car.angle);
+  // Buggy body, inspired by the supplied reference: red panels + pale tubular frame.
+  ctx.fillStyle="#e43b3b";ctx.strokeStyle="#111";ctx.lineWidth=4;
+  ctx.beginPath();ctx.moveTo(-65,8);ctx.lineTo(-52,-18);ctx.lineTo(18,-20);ctx.lineTo(62,-4);
+  ctx.lineTo(53,24);ctx.lineTo(-58,24);ctx.closePath();ctx.fill();ctx.stroke();
+
+  ctx.fillStyle="#dce8e2";ctx.strokeStyle="#202020";ctx.lineWidth=5;
+  ctx.beginPath();ctx.moveTo(-55,-10);ctx.lineTo(-22,-53);ctx.lineTo(28,-53);ctx.lineTo(63,-7);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(-22,-53);ctx.lineTo(-42,-7);ctx.moveTo(28,-53);ctx.lineTo(45,-7);ctx.stroke();
+
+  // side graphic
+  ctx.fillStyle="#f3d45c";ctx.fillRect(-25,-5,65,18);
+  ctx.fillStyle="#e43b3b";ctx.fillRect(-25,2,65,11);
+  ctx.fillStyle="#f7e7b5";ctx.font="bold 10px Arial";ctx.textAlign="center";ctx.fillText("DUNE",8,9);
+
+  // rear exhaust
+  ctx.fillStyle="#4b4b4b";ctx.fillRect(-78,-6,18,12);
+  ctx.fillStyle="#f1b21c";ctx.fillRect(-61,-6,4,12);
+
+  // steering wheel
+  ctx.strokeStyle="#222";ctx.lineWidth=5;ctx.beginPath();ctx.arc(33,-12,8,0,Math.PI*2);ctx.stroke();
+
+  // driver
+  ctx.fillStyle="#f2b17d";ctx.beginPath();ctx.arc(-2,-43,13,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle="#c72c2c";ctx.beginPath();ctx.arc(-2,-48,14,Math.PI,0);ctx.fill();
+  ctx.fillStyle="#fff";ctx.font="bold 7px Arial";ctx.fillText("RACE",-2,-48);
+  ctx.fillStyle="#8a4a2e";ctx.fillRect(-9,-31,18,10);
+
+  // name plate
+  ctx.fillStyle="#e74c3c";ctx.strokeStyle="#fff";ctx.lineWidth=2;
+  ctx.fillRect(-45,-79,90,20);ctx.strokeRect(-45,-79,90,20);
+  ctx.fillStyle="#fff";ctx.font="bold 12px Arial";ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.fillText(profile.name||"PLAYER",0,-69);
+  ctx.restore();
+}
+
+// render hooks
+Events.on(render,"beforeRender",()=>{
+  const ctx=render.context;
+  drawBackground(ctx,render.canvas.width,render.canvas.height,render.bounds.min.x);
+  if(car){
+    Render.lookAt(render,{
+      min:{x:car.position.x-innerWidth*.35,y:car.position.y-innerHeight*.55},
+      max:{x:car.position.x+innerWidth*.65,y:car.position.y+innerHeight*.45}
+    });
+    if(car.position.x+innerWidth>lastX)generateTerrain(car.position.x+innerWidth+800);
+  }
+});
+Events.on(render,"afterRender",()=>{
+  drawTerrain(render.context);drawFuelCans(render.context);drawCar(render.context);
+});
+
+// ================= GAME LOOP =================
+Events.on(engine,"beforeUpdate",()=>{
+  if(isGameOver||!car)return;
+  const now=performance.now();
+  const delta=Math.min(.05,(now-lastTimestamp)/1000);
+  lastTimestamp=now;
+
+  fuelTimeLeft=Math.max(0,fuelTimeLeft-delta);
+  const fuelPercent=Math.floor(fuelTimeLeft/FUEL_MAX_TIME*100);
+  document.getElementById("fuel-val").textContent=fuelPercent+"%";
+  document.getElementById("fuel-val").classList.toggle("low",fuelPercent<20);
+  document.getElementById("fuel-needle").style.transform=`rotate(${-120+fuelPercent*2.4}deg)`;
+  if(fuelTimeLeft<=0){triggerGameOver("Hết nhiên liệu sau 30 giây!");return;}
+
+  const speed=Body.getVelocity(car).x;
+  if(gasPressed){
+    Body.setAngularVelocity(rearWheel,.32);Body.setAngularVelocity(frontWheel,.32);
+    Body.applyForce(car,car.position,{x:.0022,y:0});
+  }else if(brakePressed){
+    Body.setAngularVelocity(rearWheel,-.22);Body.setAngularVelocity(frontWheel,-.22);
+    Body.applyForce(car,car.position,{x:-.0016,y:0});
+  }
+
+  const speedDisplay = Math.max(0, Math.floor(speed * 3.6));
+  document.getElementById("speed-val").textContent = speedDisplay;
+  document.getElementById("speed-needle").style.transform = `rotate(${-120 + Math.min(speedDisplay * 3, 240)}deg)`;
+
+  const rpm = Math.min(8000, Math.floor(Math.abs(rearWheel ? rearWheel.angularVelocity : 0) * 1200 + (gasPressed ? 1800 : 200)));
+  document.getElementById("rpm-val").textContent = rpm;
+  document.getElementById("rpm-needle").style.transform = `rotate(${-120 + (rpm / 8000) * 240}deg)`;
+
+  distance = Math.max(0, Math.floor((car.position.x - 100) / 10));
+  document.getElementById("dist-val").textContent = distance;
+
+  if (distance >= nextRefill) {
+    spawnFuelCanAt(nextRefill);
+    nextRefill += REFILL_DISTANCE;
+  }
+  document.getElementById("refill-val").textContent = Math.max(0, nextRefill - distance) + " m";
+
+  updateFuelCans();
+
+  const up = Vector.rotate({ x: 0, y: -1 }, car.angle);
+  if (up.y > 0.4 && Math.abs(car.angularVelocity) < 0.05) {
+    triggerGameOver("Xe bị lật úp!");
+  }
+});
+
+// ================= INPUT CONTROLS =================
+function bindPedal(el, onStart, onEnd) {
+  const start = e => { e.preventDefault(); el.classList.add("active"); onStart(); };
+  const end = e => { e.preventDefault(); el.classList.remove("active"); onEnd(); };
+  el.addEventListener("mousedown", start);
+  el.addEventListener("mouseup", end);
+  el.addEventListener("mouseleave", end);
+  el.addEventListener("touchstart", start);
+  el.addEventListener("touchend", end);
+}
+
+bindPedal(document.getElementById("btn-gas"), () => gasPressed = true, () => gasPressed = false);
+bindPedal(document.getElementById("btn-brake"), () => brakePressed = true, () => brakePressed = false);
+
+window.addEventListener("keydown", e => {
+  if (e.key === "ArrowRight" || e.key === "d") gasPressed = true;
+  if (e.key === "ArrowLeft" || e.key === "a") brakePressed = true;
+});
+window.addEventListener("keyup", e => {
+  if (e.key === "ArrowRight" || e.key === "d") gasPressed = false;
+  if (e.key === "ArrowLeft" || e.key === "a") brakePressed = false;
+});
+
+// ================= GAME LIFECYCLE =================
+function resetGame() {
+  isGameOver = false;
+  fuelTimeLeft = FUEL_MAX_TIME;
+  nextRefill = REFILL_DISTANCE;
+  distance = 0;
+  lastTimestamp = performance.now();
+  document.getElementById("game-over-modal").style.display = "none";
+  clearVehicleAndTerrain();
+  generateTerrain(2000);
+  createVehicle(100, startY - 60);
+}
+
+function clearVehicleAndTerrain() {
+  removeVehicle();
+  clearTerrain();
+  clearFuelCans();
+}
+
+function triggerGameOver(reason) {
+  if (isGameOver) return;
+  isGameOver = true;
+  document.getElementById("final-distance").textContent = distance;
+  document.getElementById("game-over-reason").textContent = reason;
+  document.getElementById("game-over-modal").style.display = "flex";
+  saveScore(profile.name, profile.country, distance);
+}
+
+function restartGame() {
+  resetGame();
+}
+
+function saveScore(name, country, meters) {
+  const board = JSON.parse(localStorage.getItem("dune_buggy_scores") || "[]");
+  board.push({ name, country, meters, date: new Date().toISOString() });
+  board.sort((a, b) => b.meters - a.meters);
+  localStorage.setItem("dune_buggy_scores", JSON.stringify(board.slice(0, 15)));
+}
+
+function showLeaderboard() {
+  const board = JSON.parse(localStorage.getItem("dune_buggy_scores") || "[]");
+  const list = document.getElementById("leaderboard-list");
+  list.innerHTML = board.length ? "" : "<div style='text-align:center;padding:15px;color:#aaa'>Chưa có kỷ lục nào.</div>";
+  board.forEach((item, idx) => {
+    const isMe = item.name === profile.name && item.country === profile.country;
+    const row = document.createElement("div");
+    row.className = `board-row ${isMe ? "me" : ""}`;
+    row.innerHTML = `<div>${idx + 1}</div><div>${item.name}</div><div>${item.country}</div><div>${item.meters}m</div>`;
+    list.appendChild(row);
+  });
+  document.getElementById("leaderboard-panel").style.display = "flex";
+}
+
+function closeLeaderboard() {
+  document.getElementById("leaderboard-panel").style.display = "none";
+}
+</script>
+</body>
+</html>
