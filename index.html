@@ -86,7 +86,9 @@ canvas{display:block;width:100%;height:100%}
 .board-row{display:grid;grid-template-columns:45px 1fr 100px 70px;gap:8px;padding:9px 6px;border-bottom:1px solid #444;align-items:center}
 .board-head{color:#aaa;font-weight:800;font-size:12px}
 .board-row.me{background:rgba(46,204,113,.16);border-radius:8px}
-.close-btn{margin-top:15px;width:100%;padding:11px;border:0;border-radius:10px;background:#555;color:#fff;font-weight:900}
+.board-btn-group{display:flex;gap:10px;margin-top:15px}
+.reset-btn{flex:1;padding:11px;border:0;border-radius:10px;background:#e74c3c;color:#fff;font-weight:900;cursor:pointer}
+.close-btn{flex:1;padding:11px;border:0;border-radius:10px;background:#555;color:#fff;font-weight:900;cursor:pointer}
 
 /* responsive */
 @media(max-width:600px){
@@ -159,7 +161,10 @@ canvas{display:block;width:100%;height:100%}
       <h2>🏆 BẢNG XẾP HẠNG</h2>
       <div class="board-row board-head"><div>#</div><div>Người chơi</div><div>Quốc gia</div><div>Xa nhất</div></div>
       <div id="leaderboard-list"></div>
-      <button class="close-btn" onclick="closeLeaderboard()">ĐÓNG</button>
+      <div class="board-btn-group">
+        <button class="reset-btn" onclick="resetLeaderboard()">RESET BXH</button>
+        <button class="close-btn" onclick="closeLeaderboard()">ĐÓNG</button>
+      </div>
     </div>
   </div>
 </div>
@@ -170,8 +175,6 @@ const {Engine,Render,Runner,Bodies,Composite,Constraint,Body,Events,Vector}=Matt
 // ================= GAME SETTINGS =================
 const FUEL_MAX_TIME = 30;          // Nhiên liệu hết sau 30 giây
 const REFILL_DISTANCE = 300;       // Mỗi 300 m nhận bình mới
-const FUEL_CAN_SIZE = 34;
-const CAR_ASSET = "car.svg";
 
 // ================= PROFILE =================
 let profile = {name:"", country:""};
@@ -190,9 +193,13 @@ form.addEventListener("submit", e => {
   resetGame();
 });
 
-// ================= MATTER =================
+// ================= MATTER ENGINE =================
 const container=document.getElementById("game-container");
-const engine=Engine.create({enableSleeping:false});
+const engine=Engine.create({
+  enableSleeping: false,
+  positionIterations: 10, // Tăng số vòng lặp tính toán vị trí để tránh hiện tượng xuyên đất
+  velocityIterations: 10
+});
 engine.world.gravity.y=1.25;
 
 const render=Render.create({
@@ -224,6 +231,7 @@ function clearTerrain(){
   terrainPoints=[];
   lastX=-400; lastY=startY;
 }
+
 function generateTerrain(toX){
   if(!terrainPoints.length) terrainPoints.push({x:lastX,y:lastY});
   while(lastX<toX){
@@ -235,8 +243,14 @@ function generateTerrain(toX){
       nextY=startY + Math.sin(hx*.007)*45 + Math.cos(hx*.018)*25;
     }
     terrainPoints.push({x:nextX,y:nextY});
-    const ground=Bodies.rectangle((lastX+nextX)/2,(lastY+nextY)/2+15,segmentWidth+5,600,{
-      isStatic:true,friction:.95,restitution:0,render:{visible:false}
+    
+    // Tăng chiều cao mảng đất bên dưới lên 1200px để không bị lún lọt qua khe
+    const ground=Bodies.rectangle((lastX+nextX)/2, (lastY+nextY)/2 + 600, segmentWidth + 10, 1200, {
+      isStatic:true,
+      friction:0.95,
+      restitution:0,
+      slop: 0.05,
+      render:{visible:false}
     });
     Body.setAngle(ground,Math.atan2(nextY-lastY,nextX-lastX));
     Composite.add(engine.world,ground);
@@ -250,6 +264,7 @@ function clearFuelCans(){
   fuelCans.forEach(c=>Composite.remove(engine.world,c.body));
   fuelCans=[];
 }
+
 function spawnFuelCanAt(distanceMeters){
   const worldX=100 + distanceMeters*10;
   const y=terrainYAt(worldX)-55;
@@ -260,11 +275,13 @@ function spawnFuelCanAt(distanceMeters){
   Composite.add(engine.world,body);
   fuelCans.push({body,distance:distanceMeters,collected:false});
 }
+
 function terrainYAt(x){
   if(x<600) return startY;
   const hx=x-600;
   return startY + Math.sin(hx*.007)*45 + Math.cos(hx*.018)*25;
 }
+
 function updateFuelCans(){
   for(const c of fuelCans){
     if(c.collected) continue;
@@ -277,6 +294,7 @@ function updateFuelCans(){
     }
   }
 }
+
 function flashRefill(){
   const el=document.getElementById("refill-val");
   el.textContent="100%";
@@ -295,13 +313,17 @@ function createVehicle(x,y){
     bodyA:car,bodyB:driverHead,pointA:{x:-10,y:-28},pointB:{x:0,y:0},
     stiffness:.85,length:0,render:{visible:false}
   });
-  const wheelOptions={friction:1.1,density:.005,restitution:.1,collisionFilter:{group:-1},render:{visible:false}};
-  rearWheel=Bodies.circle(x-45,y+25,24,wheelOptions);
-  frontWheel=Bodies.circle(x+45,y+25,24,wheelOptions);
+  
+  // Đặt bán kính vật lý của bánh là 27px khớp với đồ họa
+  const wheelOptions={friction:1.1,density:.005,restitution:.1,slop:0.05,collisionFilter:{group:-1},render:{visible:false}};
+  rearWheel=Bodies.circle(x-45,y+25,27,wheelOptions);
+  frontWheel=Bodies.circle(x+45,y+25,27,wheelOptions);
+  
   const rearAxle=Constraint.create({bodyA:car,bodyB:rearWheel,pointA:{x:-45,y:20},stiffness:.22,damping:.05,render:{visible:false}});
   const frontAxle=Constraint.create({bodyA:car,bodyB:frontWheel,pointA:{x:45,y:20},stiffness:.22,damping:.05,render:{visible:false}});
   Composite.add(engine.world,[car,driverHead,neckJoint,rearWheel,frontWheel,rearAxle,frontAxle]);
 }
+
 function removeVehicle(){
   [car,driverHead,rearWheel,frontWheel].forEach(b=>{if(b)Composite.remove(engine.world,b)});
   car=driverHead=rearWheel=frontWheel=null;
@@ -328,11 +350,12 @@ function drawBackground(ctx,width,height,camX){
     ctx.beginPath();ctx.moveTo(x-180,height);ctx.quadraticCurveTo(x,height-280,x+200,height);ctx.fill();
   }
 }
+
 function drawTerrain(ctx){
   if(terrainPoints.length<2)return;
   ctx.save();
   const layers=[
-    ["#2f571b",35,1000],["#d1b838",8,35],["#54aa2b",-3,8]
+    ["#2f571b",35,2000],["#d1b838",8,35],["#54aa2b",-3,8]
   ];
   for(const [color,top,bottom] of layers){
     ctx.fillStyle=color;ctx.beginPath();
@@ -343,6 +366,7 @@ function drawTerrain(ctx){
   }
   ctx.restore();
 }
+
 function drawFuelCans(ctx){
   for(const c of fuelCans){
     if(c.collected)continue;
@@ -355,6 +379,7 @@ function drawFuelCans(ctx){
     ctx.restore();
   }
 }
+
 function drawWheel(ctx,w){
   ctx.save();ctx.translate(w.position.x,w.position.y);ctx.rotate(w.angle);
   ctx.fillStyle="#171717";ctx.beginPath();ctx.arc(0,0,27,0,Math.PI*2);ctx.fill();
@@ -364,17 +389,16 @@ function drawWheel(ctx,w){
   for(let i=0;i<6;i++){const a=i*Math.PI/3;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(a)*10,Math.sin(a)*10);ctx.stroke()}
   ctx.restore();
 }
+
 function drawCar(ctx){
   if(!car)return;
   const x=car.position.x,y=car.position.y;
   ctx.save();ctx.translate(x,y);ctx.rotate(car.angle);
 
-  // Shadow
   ctx.restore();
   drawWheel(ctx,rearWheel);drawWheel(ctx,frontWheel);
 
   ctx.save();ctx.translate(x,y);ctx.rotate(car.angle);
-  // Buggy body, inspired by the supplied reference: red panels + pale tubular frame.
   ctx.fillStyle="#e43b3b";ctx.strokeStyle="#111";ctx.lineWidth=4;
   ctx.beginPath();ctx.moveTo(-65,8);ctx.lineTo(-52,-18);ctx.lineTo(18,-20);ctx.lineTo(62,-4);
   ctx.lineTo(53,24);ctx.lineTo(-58,24);ctx.closePath();ctx.fill();ctx.stroke();
@@ -383,25 +407,20 @@ function drawCar(ctx){
   ctx.beginPath();ctx.moveTo(-55,-10);ctx.lineTo(-22,-53);ctx.lineTo(28,-53);ctx.lineTo(63,-7);ctx.stroke();
   ctx.beginPath();ctx.moveTo(-22,-53);ctx.lineTo(-42,-7);ctx.moveTo(28,-53);ctx.lineTo(45,-7);ctx.stroke();
 
-  // side graphic
   ctx.fillStyle="#f3d45c";ctx.fillRect(-25,-5,65,18);
   ctx.fillStyle="#e43b3b";ctx.fillRect(-25,2,65,11);
   ctx.fillStyle="#f7e7b5";ctx.font="bold 10px Arial";ctx.textAlign="center";ctx.fillText("DUNE",8,9);
 
-  // rear exhaust
   ctx.fillStyle="#4b4b4b";ctx.fillRect(-78,-6,18,12);
   ctx.fillStyle="#f1b21c";ctx.fillRect(-61,-6,4,12);
 
-  // steering wheel
   ctx.strokeStyle="#222";ctx.lineWidth=5;ctx.beginPath();ctx.arc(33,-12,8,0,Math.PI*2);ctx.stroke();
 
-  // driver
   ctx.fillStyle="#f2b17d";ctx.beginPath();ctx.arc(-2,-43,13,0,Math.PI*2);ctx.fill();
   ctx.fillStyle="#c72c2c";ctx.beginPath();ctx.arc(-2,-48,14,Math.PI,0);ctx.fill();
   ctx.fillStyle="#fff";ctx.font="bold 7px Arial";ctx.fillText("RACE",-2,-48);
   ctx.fillStyle="#8a4a2e";ctx.fillRect(-9,-31,18,10);
 
-  // name plate
   ctx.fillStyle="#e74c3c";ctx.strokeStyle="#fff";ctx.lineWidth=2;
   ctx.fillRect(-45,-79,90,20);ctx.strokeRect(-45,-79,90,20);
   ctx.fillStyle="#fff";ctx.font="bold 12px Arial";ctx.textAlign="center";ctx.textBaseline="middle";
@@ -437,7 +456,7 @@ Events.on(engine,"beforeUpdate",()=>{
   document.getElementById("fuel-val").textContent=fuelPercent+"%";
   document.getElementById("fuel-val").classList.toggle("low",fuelPercent<20);
   document.getElementById("fuel-needle").style.transform=`rotate(${-120+fuelPercent*2.4}deg)`;
-  if(fuelTimeLeft<=0){triggerGameOver("Hết nhiên liệu sau 30 giây!");return;}
+  if(fuelTimeLeft<=0){triggerGameOver("Hết nhiên liệu!");return;}
 
   const speed=Body.getVelocity(car).x;
   if(gasPressed){
@@ -529,6 +548,7 @@ function restartGame() {
 }
 
 function saveScore(name, country, meters) {
+  if (!meters || meters <= 0) return;
   const board = JSON.parse(localStorage.getItem("dune_buggy_scores") || "[]");
   board.push({ name, country, meters, date: new Date().toISOString() });
   board.sort((a, b) => b.meters - a.meters);
@@ -547,6 +567,13 @@ function showLeaderboard() {
     list.appendChild(row);
   });
   document.getElementById("leaderboard-panel").style.display = "flex";
+}
+
+function resetLeaderboard() {
+  if (confirm("Bạn có chắc chắn muốn xóa tất cả kỷ lục trên bảng xếp hạng?")) {
+    localStorage.removeItem("dune_buggy_scores");
+    showLeaderboard();
+  }
 }
 
 function closeLeaderboard() {
