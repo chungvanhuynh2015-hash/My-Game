@@ -46,8 +46,8 @@ input[type=number]{width:105px;border:2px solid #dfe5ee;border-radius:14px;paddi
 </head>
 <body>
 
-<!-- Thẻ audio âm thanh chiến thắng -->
-<audio id="winSound" src="win.mp3"></audio>
+<!-- Đã sửa tên file nguồn âm thanh chuẩn với file trên GitHub -->
+<audio id="winSound" src="WinSound.mp4"></audio>
 
 <div class="wrap">
   <h1>GỌI TÊN NGẪU NHIÊN</h1>
@@ -143,7 +143,6 @@ function startRace(){
     const t=Math.min(1,(now-start)/(duration*1000));
     ducks.forEach((d,i)=>{
       if(d.finished)return;
-      // Có chút ngẫu nhiên: vịt chạy nhanh/chậm khác nhau, nhưng vẫn có thể lật kèo.
       const noise=Math.sin(now/170+i*2.3)*.012 + (Math.random()-.5)*.018;
       d.progress=Math.max(d.progress, t*(0.90+((i*37)%17)/100)+noise);
       d.progress=Math.min(1,d.progress);
