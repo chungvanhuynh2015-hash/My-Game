@@ -548,11 +548,11 @@ Events.on(engine, "beforeUpdate", () => {
   const delta = Math.min(0.05, (now - lastTimestamp) / 1000);
   lastTimestamp = now;
 
-  // Xử lý nổ/lật xe - Chờ 0.5 giây trước khi bật Game Over Modal
+  // Xử lý nổ/lật xe - Chờ 2 giây trước khi bật Game Over Modal
   if(isCrashPending){
     crashTimer += delta;
     cameraShake = Math.max(0, 15 - crashTimer * 20); // Rung màn hình nhẹ khi va chạm
-    if(crashTimer >= 0.5){
+    if(crashTimer >= 2){
       isCrashPending = false;
       showGameOverModal();
     }
