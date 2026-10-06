@@ -64,7 +64,6 @@
         🪙 <span id="coin-val">0</span>
       </div>
 
-      <!-- THANH NITRO Ở GIỮA MÀN HÌNH -->
       <div class="nitro-card">
         ⚡ NITRO (SHIFT)
         <div class="nitro-bar-container">
@@ -142,24 +141,22 @@
     let distance = 0;
     let coins = 0;
     let fuel = 100;
-    let nitro = 100; // 0 - 100%
+    let nitro = 100;
     let cameraShake = 0;
     let lastX = 0;
     let startY = 400;
 
-    let isGameReady = false; // Trạng thái sẵn sàng (sau khi đếm ngược)
+    let isGameReady = false;
 
     let profile = { name: "PLAYER", country: "VN" };
     let upgrades = { engine: 1, wheels: 1 };
 
-    // SPEED CONTROL
     const BASE_MAX_SPEED_KMH = 65;
     const NITRO_MAX_SPEED_KMH = 110;
 
     let throttleAmount = 0;
-    const THROTTLE_ACCELERATION = 1.8;
-    const THROTTLE_RELEASE = 3.0;
-    const BRAKE_POWER = 0.10;
+    const THROTTLE_ACCELERATION = 2.0;
+    const THROTTLE_RELEASE = 3.5;
 
     // CAMERA SYSTEM
     let cameraX = 100;
@@ -209,7 +206,7 @@
     window.addEventListener("resize", resizeGame);
     window.addEventListener("orientationchange", () => setTimeout(resizeGame, 150));
 
-    // ĐẾM NGƯỢC 3 GIÂY CHUẨN BỊ
+    // ĐẾM NGƯỢC
     function startCountdown(onComplete) {
       isGameReady = false;
       let count = 3;
@@ -239,23 +236,23 @@
       tick();
     }
 
-    // VEHICLE CREATION
+    // TẠO XE
     function createVehicle(x, y) {
       car = Bodies.rectangle(x, y, 130, 36, {
         density: 0.004,
-        friction: 0.75,
-        frictionAir: 0.008,
-        restitution: 0.02,
+        friction: 0.5,
+        frictionAir: 0.005,
+        restitution: 0.01,
         slop: 0.01,
         collisionFilter: { group: -1 },
         render: { visible: false }
       });
 
       const wheelOptions = {
-        friction: 1.15 + upgrades.wheels * 0.12,
-        frictionStatic: 1.2,
-        density: 0.005,
-        restitution: 0.03,
+        friction: 1.5 + upgrades.wheels * 0.2, // Ma sát cao để bánh sau bám đường tốt
+        frictionStatic: 2.0,
+        density: 0.008,
+        restitution: 0.01,
         frictionAir: 0.01,
         slop: 0.01,
         collisionFilter: { group: -1 },
@@ -266,17 +263,17 @@
       frontWheel = Bodies.circle(x + 42, y + 20, 28, wheelOptions);
 
       const axleRear = Matter.Constraint.create({
-        bodyA: car, bodyB: rearWheel, pointA: { x: -42, y: 20 }, stiffness: 0.4, damping: 0.15
+        bodyA: car, bodyB: rearWheel, pointA: { x: -42, y: 20 }, stiffness: 0.45, damping: 0.15
       });
 
       const axleFront = Matter.Constraint.create({
-        bodyA: car, bodyB: frontWheel, pointA: { x: 42, y: 20 }, stiffness: 0.4, damping: 0.15
+        bodyA: car, bodyB: frontWheel, pointA: { x: 42, y: 20 }, stiffness: 0.45, damping: 0.15
       });
 
       Composite.add(engine.world, [car, rearWheel, frontWheel, axleRear, axleFront]);
     }
 
-    // TERRAIN GENERATION
+    // TẠO ĐỊA HÌNH
     let terrainPoints = [];
     function generateTerrain(toX) {
       if (lastX >= toX) return;
@@ -290,7 +287,7 @@
 
         let body = Bodies.rectangle((currX + nextX) / 2, (currY + nextY) / 2 + 300, nextX - currX, 600, {
           isStatic: true,
-          friction: 0.9,
+          friction: 1.0,
           render: { visible: false }
         });
         Body.setAngle(body, Math.atan2(nextY - currY, nextX - currX));
@@ -328,7 +325,6 @@
       ctx.fillRect(0, 0, w, h);
     }
 
-    // BEFORE RENDER
     Events.on(render, "beforeRender", () => {
       const ctx = render.context;
 
@@ -353,7 +349,6 @@
       drawBackground(ctx, render.canvas.width, render.canvas.height, cameraX);
     });
 
-    // AFTER RENDER
     Events.on(render, "afterRender", () => {
       const ctx = render.context;
       Render.startViewTransform(render);
@@ -363,36 +358,31 @@
       Render.endViewTransform(render);
     });
 
-    // GAME LOOP / ENGINE UPDATE
-    let accumRotation = 0;
-    let lastAngle = 0;
-
+    // GAME LOOP / VẬT LÝ ENGINE
     Events.on(engine, "beforeUpdate", (event) => {
       if (!car) return;
 
-      const delta = event.delta / 1000; // Giây
+      const delta = event.delta / 1000;
 
-      // CƠ CHẾ NẠP VÀ SỬ DỤNG NITRO
-      // 5s dùng hết -> tiêu tốn 20%/s
-      // 10s nạp đầy -> hồi 10%/s
+      // NITRO
       const isUsingNitro = isGameReady && nitroPressed && nitro > 0;
-
       if (isUsingNitro) {
-        nitro = Math.max(0, nitro - 20 * delta); // Dùng hết trong 5s
-        cameraShake = 3; // Rung nhẹ khi dùng Nitro
+        nitro = Math.max(0, nitro - 20 * delta);
+        cameraShake = 3;
       } else {
-        nitro = Math.min(100, nitro + 10 * delta); // Nạp lại đầy trong 10s
+        nitro = Math.min(100, nitro + 10 * delta);
       }
       document.getElementById("nitro-fill").style.width = nitro + "%";
 
-      // NẾU CHƯA SẴN SÀNG (ĐANG ĐẾM NGƯỢC) -> GIỮ XE DỪNG YÊN
       if (!isGameReady) {
         Body.setVelocity(car, { x: 0, y: car.velocity.y });
         Body.setAngularVelocity(car, 0);
+        Body.setAngularVelocity(rearWheel, 0);
+        Body.setAngularVelocity(frontWheel, 0);
         return;
       }
 
-      // ACCELERATION & THROTTLE
+      // GA & THROTTLE
       if(gasPressed){
         throttleAmount += delta * THROTTLE_ACCELERATION;
         throttleAmount = Math.min(1, throttleAmount);
@@ -403,69 +393,48 @@
 
       const velocity = Body.getVelocity(car);
       const currentSpeed = Math.hypot(velocity.x, velocity.y);
-      const engineLevel = upgrades.engine || 1;
-      
-      // Sức mạnh động cơ (x2 nếu bật Nitro)
-      let enginePower = 0.00065 + (engineLevel - 1) * 0.00012;
-      if (isUsingNitro) enginePower *= 2.2;
-
-      const driveForce = enginePower * throttleAmount;
-      const forward = { x: Math.cos(car.angle), y: Math.sin(car.angle) };
-
-      // Tốc độ tối đa (tăng lên khi dùng Nitro)
       const currentMaxKmh = isUsingNitro ? NITRO_MAX_SPEED_KMH : BASE_MAX_SPEED_KMH;
       const currentMaxSpeed = currentMaxKmh / 3.6;
 
-      if((gasPressed || isUsingNitro) && currentSpeed < currentMaxSpeed){
-        Body.applyForce(rearWheel, rearWheel.position, {
-          x: forward.x * driveForce,
-          y: forward.y * driveForce
-        });
+      // 1. TẠO MÔ-MEN XOẮN QUAY BÁNH SAU (MÂU THUẪN MA SÁT VỚI ĐẤT ĐỂ ĐẨY XE)
+      if ((gasPressed || isUsingNitro) && currentSpeed < currentMaxSpeed) {
+        let engineTorque = 0.25 + (upgrades.engine - 1) * 0.05;
+        if (isUsingNitro) engineTorque *= 2.2;
+
+        // Áp dụng mô-men xoắn vào bánh xe sau
+        rearWheel.torque = engineTorque * throttleAmount;
       }
 
-      // PHANH
-      if(brakePressed){
-        const brakeFactor = Math.min(1, currentSpeed / 3);
+      // 2. PHANH TÁC DỤNG VÀO BÁNH SAU & BÁNH TRƯỚC
+      if (brakePressed) {
+        Body.setAngularVelocity(rearWheel, rearWheel.angularVelocity * 0.85);
+        Body.setAngularVelocity(frontWheel, frontWheel.angularVelocity * 0.85);
+      }
+
+      // 3. XOAY / NGHIÊNG TRỰC TIẾP TẠI THÂN XE (CAR BODY)
+      const ROTATION_TORQUE = 0.12; // Lực xoay nghiêng xe
+      if (gasPressed) {
+        car.torque = ROTATION_TORQUE; // Xoay ngửa xe ra sau khi nhấn Ga
+      } else if (brakePressed) {
+        car.torque = -ROTATION_TORQUE; // Xoay chúi đầu xe xuống khi nhấn Phanh
+      }
+
+      // GIỚI HẠN TỐC ĐỘ CỦA XE
+      if (currentSpeed > currentMaxSpeed) {
+        const ratio = currentMaxSpeed / currentSpeed;
         Body.setVelocity(car, {
-          x: car.velocity.x * (1 - BRAKE_POWER * brakeFactor),
-          y: car.velocity.y
-        });
-        Body.setAngularVelocity(rearWheel, rearWheel.angularVelocity * 0.90);
-      }
-
-      // GIỚI HẠN TỐC ĐỘ TOÀN CỤC
-      const limitedVelocity = Body.getVelocity(car);
-      const limitedSpeed = Math.hypot(limitedVelocity.x, limitedVelocity.y);
-
-      if(limitedSpeed > currentMaxSpeed){
-        const ratio = currentMaxSpeed / limitedSpeed;
-        Body.setVelocity(car, {
-          x: limitedVelocity.x * ratio,
-          y: limitedVelocity.y * ratio
+          x: velocity.x * ratio,
+          y: velocity.y * ratio
         });
       }
 
-      // NGHIÊNG XE KHU BAY
-      if(gasPressed){
-        Body.setAngularVelocity(car, car.angularVelocity + 0.012);
-      } else if(brakePressed){
-        Body.setAngularVelocity(car, car.angularVelocity - 0.012);
-      }
-
-      // ĐỒNG HỒ SPEED
+      // ĐỒNG HỒ TỐC ĐỘ
       const realSpeed = Math.hypot(car.velocity.x, car.velocity.y);
       const speedDisplay = Math.max(0, Math.floor(realSpeed * 3.6));
 
       document.getElementById("speed-val").textContent = speedDisplay;
       document.getElementById("speed-needle").style.transform =
         `rotate(${-120 + Math.min(speedDisplay / NITRO_MAX_SPEED_KMH, 1) * 240}deg)`;
-
-      // FLIP LOGIC
-      let da = car.angle - lastAngle;
-      if (da > Math.PI) da -= Math.PI * 2;
-      if (da < -Math.PI) da += Math.PI * 2;
-      accumRotation += da;
-      lastAngle = car.angle;
 
       // NHIÊN LIỆU & QUÃNG ĐƯỜNG
       if (gasPressed || isUsingNitro) fuel -= 0.05;
@@ -586,7 +555,7 @@
       ctx.fill();
       ctx.shadowBlur = 0;
 
-      // EXHAUST (LỬA NITRO KHU BẬT)
+      // EXHAUST
       ctx.strokeStyle = "#444";
       ctx.lineWidth = 6;
       ctx.beginPath();
@@ -663,7 +632,7 @@
       ctx.restore();
     }
 
-    // RESET GAME & KHỞI ĐỘNG LẠI ĐẾM NGƯỢC
+    // RESET GAME
     function restartGame() {
       document.getElementById("game-over-modal").style.display = "none";
       
@@ -674,11 +643,9 @@
       fuel = 100;
       nitro = 100;
       distance = 0;
-      accumRotation = 0;
 
       createVehicle(100, startY - 60);
 
-      // Reset camera
       cameraX = 100; cameraY = startY;
       cameraTargetX = 100; cameraTargetY = startY;
 
@@ -692,11 +659,10 @@
       brakePressed = false;
       nitroPressed = false;
 
-      // Chạy lại đếm ngược
       startCountdown();
     }
 
-    // BÀN PHÍM: Shift = Nitro, Right/D = Ga, Left/A = Phanh
+    // INPUT CONTROLS
     window.addEventListener("keydown", (e) => {
       if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") gasPressed = true;
       if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") brakePressed = true;
@@ -709,7 +675,6 @@
       if (e.key === "Shift") nitroPressed = false;
     });
 
-    // NÚT ĐIỀU KHIỂN CẢM ỨNG
     const btnGas = document.getElementById("btn-gas");
     const btnBrake = document.getElementById("btn-brake");
     const btnNitro = document.getElementById("btn-nitro");
@@ -729,7 +694,7 @@
     btnNitro.addEventListener("mousedown", () => nitroPressed = true);
     btnNitro.addEventListener("mouseup", () => nitroPressed = false);
 
-    // KÍCH HOẠT GAME BAN ĐẦU
+    // INIT
     generateTerrain(2000);
     createVehicle(100, startY - 60);
     startCountdown();
