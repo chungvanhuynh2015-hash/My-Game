@@ -22,15 +22,15 @@ button:hover{filter:brightness(.97)}
 .titleRow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px}
 .titleRow h2{margin:0;font-size:27px}
 .badge{background:#fff3bf;color:#9a6800;border:1px solid #ffe27b;border-radius:999px;padding:9px 14px;font-weight:800;white-space:nowrap}
-.track{position:relative;overflow:hidden;border:8px solid #2866e9;border-radius:30px;min-height:430px;background:linear-gradient(180deg,#08b9ef,#1689ed);padding:12px 82px 12px 8px}
+.track{position:relative;overflow:hidden;border:8px solid #2866e9;border-radius:30px;min-height:430px;background:linear-gradient(180deg,#08b9ef,#1689ed);padding:12px 82px 12px 8px;max-height: 600px;overflow-y: auto;}
 .finish{position:absolute;right:0;top:0;width:70px;height:100%;background:repeating-linear-gradient(135deg,#111 0 14px,#fff 14px 28px);border-left:3px solid #fff;z-index:3}
 .finish span{position:absolute;top:8px;right:4px;background:#ef2020;color:white;padding:9px 8px;border-radius:10px;font-weight:900}
-.lane{position:relative;height:88px;border-bottom:2px dashed #ffffff45}
+.lane{position:relative;height:65px;border-bottom:2px dashed #ffffff45}
 .lane:last-child{border-bottom:0}
-.duck{position:absolute;left:0;top:12px;display:flex;align-items:center;gap:7px;transition:left .08s linear;z-index:4}
-.duckIcon{font-size:52px;line-height:1;filter:drop-shadow(0 7px 4px #174b8a55);transform:scaleX(-1)}
-.name{background:#fff;border-radius:15px;padding:7px 11px;box-shadow:0 4px 10px #194b7b25;font-weight:800;white-space:nowrap}
-.dot{display:inline-block;width:14px;height:14px;border-radius:50%;margin-right:7px;vertical-align:-1px}
+.duck{position:absolute;left:0;top:6px;display:flex;align-items:center;gap:7px;transition:left .08s linear;z-index:4}
+.duckIcon{font-size:40px;line-height:1;filter:drop-shadow(0 7px 4px #174b8a55);transform:scaleX(-1)}
+.name{background:#fff;border-radius:15px;padding:5px 9px;box-shadow:0 4px 10px #194b7b25;font-weight:800;white-space:nowrap;font-size:14px}
+.dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px}
 .controls{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:18px;font-size:18px;font-weight:800}
 input[type=number]{width:105px;border:2px solid #dfe5ee;border-radius:14px;padding:12px;font-size:20px;font-weight:800;text-align:center}
 .start{display:block;width:min(100%,520px);margin:18px auto 0;font-size:20px;padding:17px}
@@ -39,30 +39,26 @@ input[type=number]{width:105px;border:2px solid #dfe5ee;border-radius:14px;paddi
 @media(max-width:600px){
  .wrap{padding:12px 8px 35px}.card{border-radius:20px;padding:13px}
  .track{min-height:410px;padding-right:66px}.finish{width:58px}
- .duckIcon{font-size:44px}.name{font-size:14px;padding:6px 8px}
- .lane{height:86px}.titleRow h2{font-size:22px}
+ .duckIcon{font-size:32px}.name{font-size:12px;padding:4px 6px}
+ .lane{height:55px}.titleRow h2{font-size:22px}
 }
 </style>
 </head>
 <body>
 
-<!-- Đã sửa tên file nguồn âm thanh chuẩn với file trên GitHub -->
+<!-- Khai báo tệp âm thanh -->
 <audio id="winSound" src="WinSound.mp4"></audio>
+<audio id="duckSound" src="Ducksound.mp4"></audio>
 
 <div class="wrap">
   <h1>GỌI TÊN NGẪU NHIÊN</h1>
 
   <section class="card">
-    <label for="names">Nhập tên (mỗi dòng 1 người)</label>
-    <textarea id="names">Dũng
-Hà
-Bình
-Chi
-Phước
-Đức
-Lan
-Tâm
-Thủy</textarea>
+    <label for="names">Nhập tên (mỗi dòng 1 người - tối đa 67 người)</label>
+    <!-- Mặc định ban đầu chỉ 3 tên -->
+    <textarea id="names">Vịt Đỏ
+Vịt Vàng
+Vịt Xanh</textarea>
     <div class="row">
       <button class="primary" onclick="randomNames()">🎲 Random Mẫu</button>
       <button onclick="shuffleNames()">🔀 Xáo tên</button>
@@ -73,7 +69,7 @@ Thủy</textarea>
   <section class="card">
     <div class="titleRow">
       <h2>🚩 Đường Đua Vịt</h2>
-      <div class="badge">👥 <span id="count">9</span> người</div>
+      <div class="badge">👥 <span id="count">3</span>/67 người</div>
     </div>
     <div id="track" class="track">
       <div class="finish"><span>ĐÍCH</span></div>
@@ -91,13 +87,17 @@ Thủy</textarea>
 
 <script>
 const colors=["#d51b67","#f28c00","#ffd21a","#2879d7","#38a957","#7b22bc","#e52662","#14a9b7","#e55b22"];
-const duckEmojis=["🦆","🦆","🦆","🦆","🦆","🦆","🦆","🦆","🦆"];
+const duckEmojis=["🦆"];
 let ducks=[], timer=null, running=false;
+let duckSoundTimeout = null;
 
 const $=id=>document.getElementById(id);
+
+// Giới hạn tối đa nhận đúng 67 con vịt
 function getNames(){
-  return $("names").value.split(/\n+/).map(x=>x.trim()).filter(Boolean).slice(0,12);
+  return $("names").value.split(/\n+/).map(x=>x.trim()).filter(Boolean).slice(0, 67);
 }
+
 function buildTrack(){
   const names=getNames();
   $("count").textContent=names.length;
@@ -111,34 +111,69 @@ function buildTrack(){
     duck.className="duck";
     duck.innerHTML=`<span class="duckIcon">${duckEmojis[i%duckEmojis.length]}</span>
       <span class="name"><i class="dot" style="background:${colors[i%colors.length]}"></i>${escapeHtml(name)}</span>`;
-    lane.appendChild(duck); track.appendChild(lane);
+    lane.appendChild(duck); 
+    track.appendChild(lane);
     ducks.push({el:duck,name,progress:0,finished:false});
   });
 }
+
 function escapeHtml(s){
   return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 }
+
 function randomNames(){
-  const pool=["Dũng","Hà","Bình","Chi","Phước","Đức","Lan","Tâm","Thủy","An","Minh","Nam"];
+  const pool=["Dũng","Hà","Bình","Chi","Phước","Đức","Lan","Tâm","Thủy","An","Minh","Nam","Tuấn","Linh","Hương","Long"];
   const shuffled=[...pool].sort(()=>Math.random()-.5);
-  $("names").value=shuffled.slice(0,9).join("\n"); buildTrack();
+  $("names").value=shuffled.slice(0,9).join("\n"); 
+  buildTrack();
 }
+
 function shuffleNames(){
-  $("names").value=getNames().sort(()=>Math.random()-.5).join("\n"); buildTrack();
+  $("names").value=getNames().sort(()=>Math.random()-.5).join("\n"); 
+  buildTrack();
 }
+
+// Hàm bấm mẫu 3 tên
 function sample3(){
-  const pool=["Vịt Đỏ","Vịt Vàng","Vịt Xanh","Vịt Hồng","Vịt Tím","Vịt Cam"];
-  $("names").value=pool.sort(()=>Math.random()-.5).slice(0,3).join("\n"); buildTrack();
+  $("names").value="Vịt Đỏ\nVịt Vàng\nVịt Xanh"; 
+  buildTrack();
 }
+
+// Phát tiếng vịt kêu ngẫu nhiên từ 2 đến 6 giây
+function scheduleDuckSound(){
+  if(!running) return;
+  const randomDelay = Math.floor(Math.random() * 4000) + 2000;
+  
+  duckSoundTimeout = setTimeout(() => {
+    if(running){
+      const duckSound = document.getElementById("duckSound");
+      if(duckSound){
+        duckSound.currentTime = 0;
+        duckSound.play().catch(e => console.log("Lỗi phát tiếng vịt:", e));
+      }
+      scheduleDuckSound();
+    }
+  }, randomDelay);
+}
+
 function startRace(){
   if(running) return;
   buildTrack();
-  if(ducks.length<2){$("result").textContent="Hãy nhập ít nhất 2 tên!";return}
-  running=true; $("result").textContent="";
-  $("start").disabled=true; $("start").style.opacity=.55;
+  if(ducks.length<2){
+    $("result").textContent="Hãy nhập ít nhất 2 tên!";
+    return;
+  }
+  running=true; 
+  $("result").textContent="";
+  $("start").disabled=true; 
+  $("start").style.opacity=.55;
+  
+  scheduleDuckSound();
+
   const duration=Math.max(3,Math.min(60,Number($("seconds").value)||10));
   const start=performance.now();
   const finishX=()=> $("track").clientWidth-115;
+
   function frame(now){
     const t=Math.min(1,(now-start)/(duration*1000));
     ducks.forEach((d,i)=>{
@@ -161,15 +196,18 @@ function startRace(){
 }
 
 function finishRace(){
-  running=false; $("start").disabled=false; $("start").style.opacity=1;
+  running=false; 
+  $("start").disabled=false; 
+  $("start").style.opacity=1;
+  clearTimeout(duckSoundTimeout);
+  
   const winner=ducks.slice().sort((a,b)=>b.progress-a.progress)[0];
   $("result").textContent=`🏆 ${winner.name} thắng cuộc!`;
   
-  // Phát âm thanh chiến thắng
   const winSound = document.getElementById("winSound");
   if(winSound){
     winSound.currentTime = 0;
-    winSound.play().catch(e => console.log("Lỗi phát âm thanh:", e));
+    winSound.play().catch(e => console.log("Lỗi phát âm thanh chiến thắng:", e));
   }
 
   confetti();
@@ -177,10 +215,14 @@ function finishRace(){
 
 function resetRace(){
   if(timer)cancelAnimationFrame(timer);
-  running=false;$("start").disabled=false;$("start").style.opacity=1;
+  clearTimeout(duckSoundTimeout);
+  running=false;
+  $("start").disabled=false;
+  $("start").style.opacity=1;
   $("result").textContent="";
   buildTrack();
 }
+
 function confetti(){
   for(let i=0;i<55;i++){
     const c=document.createElement("div");
@@ -188,9 +230,11 @@ function confetti(){
     c.style.cssText=`position:fixed;left:${Math.random()*100}vw;top:-20px;
       font-size:${12+Math.random()*16}px;color:${colors[i%colors.length]};
       z-index:99;pointer-events:none;animation:fall ${1.2+Math.random()*1.7}s linear forwards`;
-    document.body.appendChild(c); setTimeout(()=>c.remove(),3200);
+    document.body.appendChild(c); 
+    setTimeout(()=>c.remove(),3200);
   }
 }
+
 const style=document.createElement("style");
 style.textContent="@keyframes fall{to{transform:translateY(110vh) rotate(600deg);opacity:0}}";
 document.head.appendChild(style);
