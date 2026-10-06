@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Dune Buggy Racing</title>
+  <title>Dune Buggy Racing - Pro Edition</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
   <style>
     * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
@@ -13,21 +13,20 @@
     /* HUD Overlay */
     #hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 15px; }
     .hud-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
-    .hud-card { background: rgba(0, 0, 0, 0.6); border: 2px solid rgba(255, 255, 255, 0.2); backdrop-filter: blur(5px); border-radius: 12px; padding: 8px 15px; color: #fff; font-weight: bold; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+    .hud-card { background: rgba(0, 0, 0, 0.65); border: 2px solid rgba(255, 255, 255, 0.25); backdrop-filter: blur(5px); border-radius: 12px; padding: 8px 15px; color: #fff; font-weight: bold; font-size: 15px; display: flex; align-items: center; gap: 8px; }
     
-    /* Fuel & Nitro Bar */
-    .bar-container { width: 150px; height: 16px; background: rgba(0, 0, 0, 0.5); border: 2px solid #fff; border-radius: 8px; overflow: hidden; position: relative; }
+    /* Bars */
+    .bar-container { width: 130px; height: 16px; background: rgba(0, 0, 0, 0.5); border: 2px solid #fff; border-radius: 8px; overflow: hidden; }
     .fuel-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ff4e50, #f9d423); transition: width 0.1s linear; }
     
-    /* Nitro Center Bar */
-    .nitro-card { background: rgba(0, 0, 0, 0.7); border: 2px solid #00d2ff; backdrop-filter: blur(5px); border-radius: 12px; padding: 6px 16px; color: #00d2ff; font-weight: bold; font-size: 14px; display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: 0 0 10px rgba(0,210,255,0.3); }
-    .nitro-bar-container { width: 180px; height: 14px; background: rgba(0, 0, 0, 0.6); border: 1.5px solid #00d2ff; border-radius: 7px; overflow: hidden; }
+    .nitro-card { background: rgba(0, 0, 0, 0.75); border: 2px solid #00d2ff; backdrop-filter: blur(5px); border-radius: 12px; padding: 6px 16px; color: #00d2ff; font-weight: bold; font-size: 13px; display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: 0 0 10px rgba(0,210,255,0.3); }
+    .nitro-bar-container { width: 160px; height: 14px; background: rgba(0, 0, 0, 0.6); border: 1.5px solid #00d2ff; border-radius: 7px; overflow: hidden; }
     .nitro-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #00d2ff, #0055ff); transition: width 0.05s linear; }
 
     /* Speedometer */
-    .speedometer { position: relative; width: 75px; height: 75px; background: rgba(0, 0, 0, 0.6); border-radius: 50%; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; }
-    .speed-needle { position: absolute; width: 2px; height: 32px; background: #ff3333; top: 5px; transform-origin: bottom center; transform: rotate(-120deg); transition: transform 0.05s linear; }
-    .speed-text { position: absolute; bottom: 10px; color: #fff; font-size: 11px; font-weight: bold; }
+    .speedometer { position: relative; width: 70px; height: 70px; background: rgba(0, 0, 0, 0.65); border-radius: 50%; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; }
+    .speed-needle { position: absolute; width: 2px; height: 30px; background: #ff3333; top: 5px; transform-origin: bottom center; transform: rotate(-120deg); transition: transform 0.05s linear; }
+    .speed-text { position: absolute; bottom: 8px; color: #fff; font-size: 10px; font-weight: bold; }
     
     /* Countdown Overlay */
     #countdown-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 15; display: flex; justify-content: center; align-items: center; pointer-events: none; }
@@ -36,23 +35,33 @@
     /* Controls */
     .controls { display: flex; justify-content: space-between; align-items: flex-end; width: 100%; pointer-events: auto; padding-bottom: 10px; }
     .btn-group { display: flex; gap: 12px; }
-    .btn-ctrl { width: 85px; height: 85px; border-radius: 50%; background: rgba(255, 255, 255, 0.2); border: 3px solid rgba(255, 255, 255, 0.5); color: #fff; font-size: 18px; font-weight: bold; display: flex; justify-content: center; align-items: center; touch-action: manipulation; cursor: pointer; }
+    .btn-ctrl { width: 80px; height: 80px; border-radius: 50%; background: rgba(255, 255, 255, 0.2); border: 3px solid rgba(255, 255, 255, 0.5); color: #fff; font-size: 16px; font-weight: bold; display: flex; justify-content: center; align-items: center; touch-action: manipulation; cursor: pointer; }
     .btn-ctrl:active { background: rgba(255, 255, 255, 0.5); transform: scale(0.95); }
     .btn-nitro { background: rgba(0, 210, 255, 0.3); border-color: #00d2ff; color: #00d2ff; }
-    .btn-nitro:active { background: rgba(0, 210, 255, 0.7); }
 
-    /* Modals */
+    /* Modals & Upgrade Menu */
     .modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; }
-    .modal-content { background: #222; border: 2px solid #444; border-radius: 16px; padding: 25px; width: 90%; max-width: 420px; color: #fff; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-    .btn { background: linear-gradient(135deg, #ff8c00, #e52d27); border: none; padding: 12px 24px; color: #fff; font-weight: bold; border-radius: 8px; cursor: pointer; font-size: 16px; margin-top: 15px; width: 100%; pointer-events: auto; }
-    .btn:active { transform: scale(0.98); }
+    .modal-content { background: #1e1e24; border: 2px solid #333; border-radius: 16px; padding: 20px; width: 92%; max-width: 480px; color: #fff; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.8); max-height: 90vh; overflow-y: auto; }
+    
+    .upgrade-list { display: flex; flex-direction: column; gap: 10px; margin: 15px 0; text-align: left; }
+    .upgrade-item { background: #2a2a32; border: 1px solid #444; border-radius: 10px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; }
+    .upgrade-info h4 { margin: 0 0 4px 0; font-size: 15px; color: #ffd34e; }
+    .upgrade-info p { margin: 0; font-size: 12px; color: #aaa; }
+    .btn-up { background: #28a745; border: none; padding: 8px 14px; color: #fff; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 13px; }
+    .btn-up:disabled { background: #555; cursor: not-allowed; opacity: 0.6; }
+
+    .leaderboard { background: #25252e; border-radius: 10px; padding: 10px; margin: 15px 0; font-size: 13px; text-align: left; }
+    .lb-row { display: flex; justify-content: space-between; padding: 6px 8px; border-bottom: 1px solid #333; }
+    .lb-row.me { background: rgba(0, 210, 255, 0.15); border-radius: 6px; font-weight: bold; color: #00d2ff; }
+
+    .btn { background: linear-gradient(135deg, #ff8c00, #e52d27); border: none; padding: 12px 24px; color: #fff; font-weight: bold; border-radius: 8px; cursor: pointer; font-size: 16px; margin-top: 10px; width: 100%; pointer-events: auto; }
   </style>
 </head>
 <body>
 
   <div id="game-container"></div>
 
-  <!-- COUNTDOWN OVERLAY -->
+  <!-- COUNTDOWN -->
   <div id="countdown-overlay">
     <div id="countdown-text"></div>
   </div>
@@ -97,13 +106,43 @@
     </div>
   </div>
 
-  <!-- GAME OVER MODAL -->
+  <!-- GAME OVER & GARAGE MODAL -->
   <div id="game-over-modal" class="modal" style="display: none;">
     <div class="modal-content">
-      <h2>HẾT NHIÊN LIỆU!</h2>
-      <p>Quãng đường: <span id="final-dist">0</span>m</p>
-      <p>Tiền thu được: 🪙 <span id="final-coins">0</span></p>
-      <button class="btn" onclick="restartGame()">CHƠI LẠI</button>
+      <h2 style="margin: 0; color: #ff4e50;">HẾT NHIÊN LIỆU!</h2>
+      <p style="margin: 5px 0;">Quãng đường: <b><span id="final-dist">0</span>m</b> | Tiền kiếm được: 🪙 <b><span id="session-coins">0</span></b></p>
+      <p style="color: #ffd34e; margin-bottom: 10px;">Tổng tiền khả dụng: 🪙 <b><span id="total-coins">0</span></b></p>
+
+      <!-- SHOP NÂNG CẤP -->
+      <div class="upgrade-list">
+        <div class="upgrade-item">
+          <div class="upgrade-info">
+            <h4>🏎️ Động cơ (Lực kéo)</h4>
+            <p>Level <span id="lvl-engine">1</span>/3</p>
+          </div>
+          <button id="btn-up-engine" class="btn-up" onclick="buyUpgrade('engine')"></button>
+        </div>
+        <div class="upgrade-item">
+          <div class="upgrade-info">
+            <h4>🛞 Bánh xe (Độ bám)</h4>
+            <p>Level <span id="lvl-wheels">1</span>/3</p>
+          </div>
+          <button id="btn-up-wheels" class="btn-up" onclick="buyUpgrade('wheels')"></button>
+        </div>
+        <div class="upgrade-item">
+          <div class="upgrade-info">
+            <h4>⛽ Bình xăng (Dung tích)</h4>
+            <p>Level <span id="lvl-fuel">1</span>/3</p>
+          </div>
+          <button id="btn-up-fuel" class="btn-up" onclick="buyUpgrade('fuel')"></button>
+        </div>
+      </div>
+
+      <!-- BẢNG XẾP HẠNG THẾ GIỚI -->
+      <h3 style="margin: 10px 0 5px 0; font-size: 15px; color: #00d2ff;">🏆 WORLD LEADERBOARD</h3>
+      <div class="leaderboard" id="leaderboard-list"></div>
+
+      <button class="btn" onclick="restartGame()">TIẾP TỤC CHƠI</button>
     </div>
   </div>
 
@@ -113,7 +152,6 @@
     const container = document.getElementById("game-container");
     const engine = Engine.create({ gravity: { x: 0, y: 1.2 } });
 
-    // RENDER SYSTEM
     const render = Render.create({
       element: container,
       engine: engine,
@@ -128,50 +166,42 @@
     });
 
     Render.run(render);
-
     const runner = Runner.create({ delta: 1000 / 60 });
     Runner.run(runner, engine);
 
-    // GAME VARIABLES
+    // GAME STATE & SAVED DATA
     let car, rearWheel, frontWheel;
-    let gasPressed = false;
-    let brakePressed = false;
-    let nitroPressed = false;
+    let gasPressed = false, brakePressed = false, nitroPressed = false;
 
-    let distance = 0;
-    let coins = 0;
-    let fuel = 100;
-    let nitro = 100;
-    let cameraShake = 0;
-    let lastX = 0;
-    let startY = 400;
-
+    let distance = 0, sessionCoins = 0, totalCoins = 1000;
+    let maxFuel = 100, fuel = 100, nitro = 100;
+    let cameraShake = 0, lastX = 0, startY = 400;
     let isGameReady = false;
 
-    let profile = { name: "PLAYER", country: "VN" };
-    let upgrades = { engine: 1, wheels: 1 };
+    let bestDistance = localStorage.getItem("best_dist") ? parseInt(localStorage.getItem("best_dist")) : 0;
+
+    // UPGRADE PRICING SYSTEM
+    let upgrades = {
+      engine: { lvl: 1, max: 3, costs: [500, 1000, 2000] },
+      wheels: { lvl: 1, max: 3, costs: [400, 900, 1800] },
+      fuel:   { lvl: 1, max: 3, costs: [300, 800, 1500] }
+    };
 
     const BASE_MAX_SPEED_KMH = 65;
     const NITRO_MAX_SPEED_KMH = 110;
 
     let throttleAmount = 0;
-    const THROTTLE_ACCELERATION = 2.0;
+    const THROTTLE_ACCELERATION = 2.2;
     const THROTTLE_RELEASE = 3.5;
 
     // CAMERA SYSTEM
-    let cameraX = 100;
-    let cameraY = startY;
-    let cameraTargetX = 100;
-    let cameraTargetY = startY;
-
-    const CAMERA_FOLLOW_X = 0.10;
-    const CAMERA_FOLLOW_Y = 0.075;
-    const CAMERA_PLAYER_SCREEN_X = 0.38;
-    const CAMERA_PLAYER_SCREEN_Y = 0.55;
+    let cameraX = 100, cameraY = startY;
+    let cameraTargetX = 100, cameraTargetY = startY;
+    const CAMERA_FOLLOW_X = 0.10, CAMERA_FOLLOW_Y = 0.075;
+    const CAMERA_PLAYER_SCREEN_X = 0.38, CAMERA_PLAYER_SCREEN_Y = 0.55;
 
     function updateCamera(){
       if(!car) return;
-
       const viewWidth = render.options.width;
       const viewHeight = render.options.height;
       const velocityX = car.velocity.x;
@@ -183,9 +213,7 @@
       cameraY += (cameraTargetY - cameraY) * CAMERA_FOLLOW_Y;
 
       const minimumCameraY = startY - 80;
-      if(cameraY > minimumCameraY){
-        cameraY += (minimumCameraY - cameraY) * 0.08;
-      }
+      if(cameraY > minimumCameraY) cameraY += (minimumCameraY - cameraY) * 0.08;
 
       const minX = cameraX - viewWidth * CAMERA_PLAYER_SCREEN_X;
       const minY = cameraY - viewHeight * CAMERA_PLAYER_SCREEN_Y;
@@ -202,11 +230,9 @@
       render.options.height = window.innerHeight;
       if(car) updateCamera();
     }
-
     window.addEventListener("resize", resizeGame);
-    window.addEventListener("orientationchange", () => setTimeout(resizeGame, 150));
 
-    // ĐẾM NGƯỢC
+    // COUNTDOWN
     function startCountdown(onComplete) {
       isGameReady = false;
       let count = 3;
@@ -236,25 +262,26 @@
       tick();
     }
 
-    // TẠO XE
+    // VEHICLE CREATION
     function createVehicle(x, y) {
       car = Bodies.rectangle(x, y, 130, 36, {
         density: 0.004,
         friction: 0.5,
         frictionAir: 0.005,
         restitution: 0.01,
-        slop: 0.01,
         collisionFilter: { group: -1 },
         render: { visible: false }
       });
 
+      // Độ bám đường tăng theo cấp độ Bánh Xe
+      const wheelFriction = 1.6 + (upgrades.wheels.lvl - 1) * 0.4;
+
       const wheelOptions = {
-        friction: 1.5 + upgrades.wheels * 0.2, // Ma sát cao để bánh sau bám đường tốt
-        frictionStatic: 2.0,
+        friction: wheelFriction,
+        frictionStatic: wheelFriction * 1.3,
         density: 0.008,
         restitution: 0.01,
         frictionAir: 0.01,
-        slop: 0.01,
         collisionFilter: { group: -1 },
         render: { visible: false }
       };
@@ -262,19 +289,16 @@
       rearWheel = Bodies.circle(x - 42, y + 20, 28, wheelOptions);
       frontWheel = Bodies.circle(x + 42, y + 20, 28, wheelOptions);
 
-      const axleRear = Matter.Constraint.create({
-        bodyA: car, bodyB: rearWheel, pointA: { x: -42, y: 20 }, stiffness: 0.45, damping: 0.15
-      });
-
-      const axleFront = Matter.Constraint.create({
-        bodyA: car, bodyB: frontWheel, pointA: { x: 42, y: 20 }, stiffness: 0.45, damping: 0.15
-      });
+      const axleRear = Matter.Constraint.create({ bodyA: car, bodyB: rearWheel, pointA: { x: -42, y: 20 }, stiffness: 0.45, damping: 0.15 });
+      const axleFront = Matter.Constraint.create({ bodyA: car, bodyB: frontWheel, pointA: { x: 42, y: 20 }, stiffness: 0.45, damping: 0.15 });
 
       Composite.add(engine.world, [car, rearWheel, frontWheel, axleRear, axleFront]);
     }
 
-    // TẠO ĐỊA HÌNH
+    // TERRAIN & COIN GENERATION
     let terrainPoints = [];
+    let coinsList = [];
+
     function generateTerrain(toX) {
       if (lastX >= toX) return;
       let currX = lastX;
@@ -293,6 +317,15 @@
         Body.setAngle(body, Math.atan2(nextY - currY, nextX - currX));
         Composite.add(engine.world, body);
 
+        // Sinh Đồng Xu (Coins) trên đường đi
+        if (currX > 400 && Math.random() < 0.45) {
+          coinsList.push({
+            x: currX,
+            y: currY - 35,
+            collected: false
+          });
+        }
+
         terrainPoints.push({ x: currX, y: currY });
         currX = nextX;
         currY = nextY;
@@ -300,10 +333,33 @@
       lastX = currX;
     }
 
+    // BACKGROUND BẦU TRỜI & MÂY
+    function drawBackground(ctx, w, h) {
+      // Sky Gradient
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, h);
+      skyGrad.addColorStop(0, "#1a2a6c");
+      skyGrad.addColorStop(0.5, "#b21f1f");
+      skyGrad.addColorStop(1, "#fdbb2d");
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, w, h);
+
+      // Clouds (Trôi nhẹ theo camera)
+      ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
+      const offset = (cameraX * 0.2) % w;
+      for (let i = -1; i < 3; i++) {
+        let cx = i * 400 - offset;
+        ctx.beginPath();
+        ctx.arc(cx, 100, 30, 0, Math.PI * 2);
+        ctx.arc(cx + 25, 80, 35, 0, Math.PI * 2);
+        ctx.arc(cx + 55, 100, 25, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
     function drawTerrain(ctx) {
       if (terrainPoints.length < 2) return;
-      ctx.fillStyle = "#8b5a2b";
-      ctx.strokeStyle = "#5c3a1e";
+      ctx.fillStyle = "#6d4c41";
+      ctx.strokeStyle = "#3e2723";
       ctx.lineWidth = 6;
 
       ctx.beginPath();
@@ -318,16 +374,43 @@
       ctx.stroke();
     }
 
-    function drawItems(ctx) {}
+    // VẼ VÀ XỬ LÝ NHẶT ĐỒNG XU
+    function updateAndDrawCoins(ctx) {
+      for (let coin of coinsList) {
+        if (coin.collected) continue;
 
-    function drawBackground(ctx, w, h, camX) {
-      ctx.fillStyle = "#1a0033";
-      ctx.fillRect(0, 0, w, h);
+        // Vẽ đồng xu
+        ctx.save();
+        ctx.translate(coin.x, coin.y);
+        ctx.fillStyle = "#ffd700";
+        ctx.strokeStyle = "#ff8c00";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, 10, 0, Math.PI * 2);
+        ctx.fill(); ctx.stroke();
+
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 10px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("🪙", 0, 0);
+        ctx.restore();
+
+        // Kiểm tra khoảng cách để nhặt
+        if (car) {
+          const dist = Math.hypot(car.position.x - coin.x, car.position.y - coin.y);
+          if (dist < 45) {
+            coin.collected = true;
+            sessionCoins += 10;
+            totalCoins += 10;
+            document.getElementById("coin-val").textContent = sessionCoins;
+          }
+        }
+      }
     }
 
     Events.on(render, "beforeRender", () => {
       const ctx = render.context;
-
       if(car){
         updateCamera();
         if(car.position.x + render.options.width > lastX){
@@ -339,29 +422,26 @@
       if(cameraShake > 0){
         shakeX = (Math.random() - 0.5) * cameraShake;
         shakeY = (Math.random() - 0.5) * cameraShake;
-        render.bounds.min.x += shakeX;
-        render.bounds.max.x += shakeX;
-        render.bounds.min.y += shakeY;
-        render.bounds.max.y += shakeY;
+        render.bounds.min.x += shakeX; render.bounds.max.x += shakeX;
+        render.bounds.min.y += shakeY; render.bounds.max.y += shakeY;
         cameraShake *= 0.9;
       }
 
-      drawBackground(ctx, render.canvas.width, render.canvas.height, cameraX);
+      drawBackground(ctx, render.canvas.width, render.canvas.height);
     });
 
     Events.on(render, "afterRender", () => {
       const ctx = render.context;
       Render.startViewTransform(render);
       drawTerrain(ctx);
-      drawItems(ctx);
+      updateAndDrawCoins(ctx);
       drawCar(ctx);
       Render.endViewTransform(render);
     });
 
-    // GAME LOOP / VẬT LÝ ENGINE
+    // GAME LOOP
     Events.on(engine, "beforeUpdate", (event) => {
       if (!car) return;
-
       const delta = event.delta / 1000;
 
       // NITRO
@@ -377,18 +457,14 @@
       if (!isGameReady) {
         Body.setVelocity(car, { x: 0, y: car.velocity.y });
         Body.setAngularVelocity(car, 0);
-        Body.setAngularVelocity(rearWheel, 0);
-        Body.setAngularVelocity(frontWheel, 0);
         return;
       }
 
-      // GA & THROTTLE
+      // THROTTLE
       if(gasPressed){
-        throttleAmount += delta * THROTTLE_ACCELERATION;
-        throttleAmount = Math.min(1, throttleAmount);
+        throttleAmount = Math.min(1, throttleAmount + delta * THROTTLE_ACCELERATION);
       } else {
-        throttleAmount -= delta * THROTTLE_RELEASE;
-        throttleAmount = Math.max(0, throttleAmount);
+        throttleAmount = Math.max(0, throttleAmount - delta * THROTTLE_RELEASE);
       }
 
       const velocity = Body.getVelocity(car);
@@ -396,96 +472,141 @@
       const currentMaxKmh = isUsingNitro ? NITRO_MAX_SPEED_KMH : BASE_MAX_SPEED_KMH;
       const currentMaxSpeed = currentMaxKmh / 3.6;
 
-      // 1. TẠO MÔ-MEN XOẮN QUAY BÁNH SAU (MÂU THUẪN MA SÁT VỚI ĐẤT ĐỂ ĐẨY XE)
+      // 1. TĂNG MÔ-MEN XOẮN LỚN CHO BÁNH SAU ĐỂ XE CHẠY KHỎE
       if ((gasPressed || isUsingNitro) && currentSpeed < currentMaxSpeed) {
-        let engineTorque = 0.25 + (upgrades.engine - 1) * 0.05;
-        if (isUsingNitro) engineTorque *= 2.2;
+        let engineTorque = 0.45 + (upgrades.engine.lvl - 1) * 0.15; // Tăng mô-men xoắn bánh sau
+        if (isUsingNitro) engineTorque *= 2.0;
 
-        // Áp dụng mô-men xoắn vào bánh xe sau
         rearWheel.torque = engineTorque * throttleAmount;
       }
 
-      // 2. PHANH TÁC DỤNG VÀO BÁNH SAU & BÁNH TRƯỚC
+      // 2. PHANH
       if (brakePressed) {
         Body.setAngularVelocity(rearWheel, rearWheel.angularVelocity * 0.85);
         Body.setAngularVelocity(frontWheel, frontWheel.angularVelocity * 0.85);
       }
 
-      // 3. XOAY / NGHIÊNG TRỰC TIẾP TẠI THÂN XE (CAR BODY)
-      const ROTATION_TORQUE = 0.12; // Lực xoay nghiêng xe
-      if (gasPressed) {
-        car.torque = ROTATION_TORQUE; // Xoay ngửa xe ra sau khi nhấn Ga
-      } else if (brakePressed) {
-        car.torque = -ROTATION_TORQUE; // Xoay chúi đầu xe xuống khi nhấn Phanh
-      }
+      // 3. XOAY THÂN XE TỰ DO
+      const ROTATION_TORQUE = 0.14;
+      if (gasPressed) car.torque = ROTATION_TORQUE;
+      else if (brakePressed) car.torque = -ROTATION_TORQUE;
 
-      // GIỚI HẠN TỐC ĐỘ CỦA XE
-      if (currentSpeed > currentMaxSpeed) {
-        const ratio = currentMaxSpeed / currentSpeed;
-        Body.setVelocity(car, {
-          x: velocity.x * ratio,
-          y: velocity.y * ratio
-        });
-      }
-
-      // ĐỒNG HỒ TỐC ĐỘ
+      // SPEED DISPLAY
       const realSpeed = Math.hypot(car.velocity.x, car.velocity.y);
       const speedDisplay = Math.max(0, Math.floor(realSpeed * 3.6));
-
       document.getElementById("speed-val").textContent = speedDisplay;
-      document.getElementById("speed-needle").style.transform =
-        `rotate(${-120 + Math.min(speedDisplay / NITRO_MAX_SPEED_KMH, 1) * 240}deg)`;
+      document.getElementById("speed-needle").style.transform = `rotate(${-120 + Math.min(speedDisplay / NITRO_MAX_SPEED_KMH, 1) * 240}deg)`;
 
-      // NHIÊN LIỆU & QUÃNG ĐƯỜNG
-      if (gasPressed || isUsingNitro) fuel -= 0.05;
-      document.getElementById("fuel-fill").style.width = Math.max(0, fuel) + "%";
+      // NHIÊN LIỆU (Tốc độ tiêu hao phụ thuộc vào Level Bình Xăng)
+      const fuelDepletionRate = 0.05 / (1 + (upgrades.fuel.lvl - 1) * 0.3);
+      if (gasPressed || isUsingNitro) fuel -= fuelDepletionRate;
       
+      document.getElementById("fuel-fill").style.width = Math.max(0, (fuel / maxFuel) * 100) + "%";
+
       distance = Math.max(distance, Math.floor((car.position.x - 100) / 10));
       document.getElementById("dist-val").textContent = distance;
 
-      if (fuel <= 0) {
-        document.getElementById("final-dist").textContent = distance;
-        document.getElementById("final-coins").textContent = coins;
-        document.getElementById("game-over-modal").style.display = "flex";
-      }
+      if (fuel <= 0) triggerGameOver();
     });
 
-    // VẼ XE
+    // GAME OVER & LEADERBOARD
+    function triggerGameOver() {
+      if (distance > bestDistance) {
+        bestDistance = distance;
+        localStorage.setItem("best_dist", bestDistance);
+      }
+
+      document.getElementById("final-dist").textContent = distance;
+      document.getElementById("session-coins").textContent = sessionCoins;
+      document.getElementById("total-coins").textContent = totalCoins;
+
+      updateUpgradeUI();
+      renderLeaderboard();
+
+      document.getElementById("game-over-modal").style.display = "flex";
+    }
+
+    function renderLeaderboard() {
+      const globalBoard = [
+        { name: "NguyenBao", country: "🇻🇳", score: 12450 },
+        { name: "Alex", country: "🇺🇸", score: 11920 },
+        { name: "Ken", country: "🇯🇵", score: 10840 },
+        { name: "Carlos", country: "🇧🇷", score: 8500 }
+      ];
+
+      // Thêm người chơi vào danh sách
+      let myData = { name: "Bạn (Player)", country: "🇻🇳", score: bestDistance, isMe: true };
+      let fullBoard = [...globalBoard, myData].sort((a, b) => b.score - a.score);
+
+      let myRank = fullBoard.findIndex(item => item.isMe) + 1;
+
+      let html = "";
+      fullBoard.slice(0, 3).forEach((item, idx) => {
+        const medals = ["🥇", "🥈", "🥉"];
+        html += `<div class="lb-row ${item.isMe ? 'me' : ''}">
+          <span>${medals[idx]} ${item.name} ${item.country}</span>
+          <span>${item.score.toLocaleString()} m</span>
+        </div>`;
+      });
+
+      if (myRank > 3) {
+        html += `<div class="lb-row me">
+          <span>#${myRank} ${myData.name} ${myData.country}</span>
+          <span>${myData.score.toLocaleString()} m</span>
+        </div>`;
+      }
+
+      document.getElementById("leaderboard-list").innerHTML = html;
+    }
+
+    // UPGRADE MECHANIC
+    function updateUpgradeUI() {
+      for (let key in upgrades) {
+        const item = upgrades[key];
+        document.getElementById(`lvl-${key}`).textContent = item.lvl;
+        const btn = document.getElementById(`btn-up-${key}`);
+        
+        if (item.lvl >= item.max) {
+          btn.textContent = "MAX";
+          btn.disabled = true;
+        } else {
+          const cost = item.costs[item.lvl - 1];
+          btn.textContent = `🪙 ${cost}`;
+          btn.disabled = totalCoins < cost;
+        }
+      }
+    }
+
+    function buyUpgrade(type) {
+      const item = upgrades[type];
+      if (item.lvl < item.max) {
+        const cost = item.costs[item.lvl - 1];
+        if (totalCoins >= cost) {
+          totalCoins -= cost;
+          item.lvl++;
+          
+          if (type === 'fuel') maxFuel = 100 + (item.lvl - 1) * 30;
+
+          document.getElementById("total-coins").textContent = totalCoins;
+          updateUpgradeUI();
+        }
+      }
+    }
+
+    // DRAW CAR
     function drawCar(ctx){
       if(!car) return;
 
       drawWheel(ctx, rearWheel);
       drawWheel(ctx, frontWheel);
 
-      const x = car.position.x;
-      const y = car.position.y;
-
       ctx.save();
-      ctx.translate(x, y);
+      ctx.translate(car.position.x, car.position.y);
       ctx.rotate(car.angle);
-
-      // SHADOW
-      ctx.save();
-      ctx.translate(0, 25);
-      ctx.fillStyle = "rgba(0,0,0,0.25)";
-      ctx.beginPath();
-      ctx.ellipse(0, 0, 68, 10, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-
-      // REAR BUMPER
-      ctx.fillStyle = "#202020";
-      ctx.strokeStyle = "#080808";
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.moveTo(-67, 8); ctx.lineTo(-77, 14); ctx.lineTo(-73, 22); ctx.lineTo(-52, 22); ctx.lineTo(-48, 13);
-      ctx.closePath();
-      ctx.fill(); ctx.stroke();
 
       // MAIN BODY
       const bodyGradient = ctx.createLinearGradient(0, -25, 0, 28);
       bodyGradient.addColorStop(0, "#ff5555");
-      bodyGradient.addColorStop(0.45, "#e62e2e");
       bodyGradient.addColorStop(1, "#9e1515");
 
       ctx.fillStyle = bodyGradient;
@@ -496,173 +617,53 @@
       ctx.closePath();
       ctx.fill(); ctx.stroke();
 
-      // SIDE PANEL
-      ctx.fillStyle = "#b91f1f";
-      ctx.beginPath();
-      ctx.moveTo(-43, -5); ctx.lineTo(-17, -17); ctx.lineTo(20, -17); ctx.lineTo(42, -5); ctx.lineTo(36, 10); ctx.lineTo(-38, 10);
-      ctx.closePath();
-      ctx.fill();
-
       // ROLL CAGE
-      ctx.strokeStyle = "#252525";
-      ctx.lineWidth = 6;
-      ctx.lineCap = "round";
-      ctx.beginPath();
-      ctx.moveTo(-38, 4); ctx.lineTo(-28, -42); ctx.lineTo(22, -42); ctx.lineTo(43, -4);
-      ctx.stroke();
+      ctx.strokeStyle = "#252525"; ctx.lineWidth = 5; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(-38, 4); ctx.lineTo(-28, -42); ctx.lineTo(22, -42); ctx.lineTo(43, -4); ctx.stroke();
 
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.moveTo(-5, -42); ctx.lineTo(-2, -10);
-      ctx.stroke();
-
-      // WINDSHIELD
-      const glass = ctx.createLinearGradient(0, -42, 0, -17);
-      glass.addColorStop(0, "#9fe7ff");
-      glass.addColorStop(1, "#287da5");
-
-      ctx.fillStyle = glass;
-      ctx.strokeStyle = "#111";
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(-23, -38); ctx.lineTo(19, -38); ctx.lineTo(32, -20); ctx.lineTo(-18, -20);
-      ctx.closePath();
-      ctx.fill(); ctx.stroke();
-
-      // DRIVER
-      ctx.fillStyle = "#d98c61";
-      ctx.fillRect(-7, -21, 12, 10);
-
-      ctx.fillStyle = "#f2b17d";
-      ctx.beginPath();
-      ctx.arc(-1, -43, 13, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = "#171717";
-      ctx.beginPath();
-      ctx.arc(-1, -47, 14, Math.PI, 0);
-      ctx.fill();
-
-      ctx.fillStyle = "#42d6ff";
-      ctx.fillRect(4, -46, 9, 4);
-
-      // HEADLIGHTS
-      ctx.fillStyle = "#fff6a0";
-      ctx.shadowColor = "#ffe66d";
-      ctx.shadowBlur = 12;
-      ctx.beginPath();
-      ctx.arc(55, 2, 5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.shadowBlur = 0;
-
-      // EXHAUST
-      ctx.strokeStyle = "#444";
-      ctx.lineWidth = 6;
-      ctx.beginPath();
-      ctx.moveTo(-53, 7); ctx.lineTo(-72, 1);
-      ctx.stroke();
-
+      // EXHAUST FLAME
       if (nitroPressed && nitro > 0 && isGameReady) {
         ctx.fillStyle = "#00d2ff";
-        ctx.shadowColor = "#0055ff";
-        ctx.shadowBlur = 15;
         ctx.beginPath();
-        ctx.arc(-82 - Math.random() * 8, 1, 7 + Math.random() * 4, 0, Math.PI * 2);
+        ctx.arc(-82 - Math.random() * 8, 1, 8 + Math.random() * 4, 0, Math.PI * 2);
         ctx.fill();
-        ctx.shadowBlur = 0;
       }
-
-      // PLAYER NAME
-      ctx.fillStyle = "rgba(0,0,0,0.75)";
-      ctx.fillRect(-45, -72, 90, 18);
-      ctx.strokeStyle = "#ffd34e";
-      ctx.lineWidth = 2;
-      ctx.strokeRect(-45, -72, 90, 18);
-
-      ctx.fillStyle = "#fff";
-      ctx.font = "bold 10px Arial";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(profile.name || "PLAYER", 0, -63);
 
       ctx.restore();
     }
 
-    // VẼ BÁNH XE
     function drawWheel(ctx, w){
       if(!w) return;
-
       ctx.save();
       ctx.translate(w.position.x, w.position.y);
       ctx.rotate(w.angle);
-
       ctx.fillStyle = "#111";
-      ctx.beginPath();
-      ctx.arc(0, 0, 28, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.strokeStyle = "#333";
-      ctx.lineWidth = 5;
-      ctx.stroke();
-
-      const rim = ctx.createRadialGradient(0, 0, 2, 0, 0, 13);
-      rim.addColorStop(0, "#ddd");
-      rim.addColorStop(1, "#555");
-
-      ctx.fillStyle = rim;
-      ctx.beginPath();
-      ctx.arc(0, 0, 13, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.strokeStyle = "#222";
-      ctx.lineWidth = 3;
-      for(let i = 0; i < 5; i++){
-        const angle = i * Math.PI * 2 / 5;
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(Math.cos(angle) * 11, Math.sin(angle) * 11);
-        ctx.stroke();
-      }
-
-      ctx.fillStyle = "#bbb";
-      ctx.beginPath();
-      ctx.arc(0, 0, 4, 0, Math.PI * 2);
-      ctx.fill();
-
+      ctx.beginPath(); ctx.arc(0, 0, 28, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = "#444"; ctx.lineWidth = 4; ctx.stroke();
+      ctx.fillStyle = "#888";
+      ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI * 2); ctx.fill();
       ctx.restore();
     }
 
-    // RESET GAME
+    // RESTART
     function restartGame() {
       document.getElementById("game-over-modal").style.display = "none";
-      
-      if (car) {
-        Composite.remove(engine.world, [car, rearWheel, frontWheel]);
-      }
+      if (car) Composite.remove(engine.world, [car, rearWheel, frontWheel]);
 
-      fuel = 100;
+      fuel = maxFuel;
       nitro = 100;
       distance = 0;
+      sessionCoins = 0;
+      document.getElementById("coin-val").textContent = "0";
 
       createVehicle(100, startY - 60);
 
-      cameraX = 100; cameraY = startY;
-      cameraTargetX = 100; cameraTargetY = startY;
-
-      render.bounds.min.x = cameraX - render.options.width * CAMERA_PLAYER_SCREEN_X;
-      render.bounds.min.y = cameraY - render.options.height * CAMERA_PLAYER_SCREEN_Y;
-      render.bounds.max.x = render.bounds.min.x + render.options.width;
-      render.bounds.max.y = render.bounds.min.y + render.options.height;
-
       throttleAmount = 0;
-      gasPressed = false;
-      brakePressed = false;
-      nitroPressed = false;
-
+      gasPressed = false; brakePressed = false; nitroPressed = false;
       startCountdown();
     }
 
-    // INPUT CONTROLS
+    // CONTROLS
     window.addEventListener("keydown", (e) => {
       if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") gasPressed = true;
       if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") brakePressed = true;
@@ -679,18 +680,10 @@
     const btnBrake = document.getElementById("btn-brake");
     const btnNitro = document.getElementById("btn-nitro");
 
-    btnGas.addEventListener("touchstart", (e) => { e.preventDefault(); gasPressed = true; });
-    btnGas.addEventListener("touchend", (e) => { e.preventDefault(); gasPressed = false; });
     btnGas.addEventListener("mousedown", () => gasPressed = true);
     btnGas.addEventListener("mouseup", () => gasPressed = false);
-
-    btnBrake.addEventListener("touchstart", (e) => { e.preventDefault(); brakePressed = true; });
-    btnBrake.addEventListener("touchend", (e) => { e.preventDefault(); brakePressed = false; });
     btnBrake.addEventListener("mousedown", () => brakePressed = true);
     btnBrake.addEventListener("mouseup", () => brakePressed = false);
-
-    btnNitro.addEventListener("touchstart", (e) => { e.preventDefault(); nitroPressed = true; });
-    btnNitro.addEventListener("touchend", (e) => { e.preventDefault(); nitroPressed = false; });
     btnNitro.addEventListener("mousedown", () => nitroPressed = true);
     btnNitro.addEventListener("mouseup", () => nitroPressed = false);
 
