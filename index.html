@@ -1,1030 +1,759 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Dune Buggy • Hill Climb Pro</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
-<style>
-*{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-user-select:none}
-html,body{width:100%;height:100%;overflow:hidden;font-family:Arial,Helvetica,sans-serif;background:#79c7f5}
-button,input,select{font:inherit}
-#game-container{position:relative;width:100vw;height:100vh;overflow:hidden}
-canvas{display:block;width:100%;height:100%}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Dune Buggy Racing</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+  <style>
+    * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+    body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #111; }
+    #game-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+    
+    /* HUD Overlay */
+    #hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 15px; }
+    .hud-top { display: flex; justify-content: space-between; width: 100%; }
+    .hud-card { background: rgba(0, 0, 0, 0.6); border: 2px solid rgba(255, 255, 255, 0.2); backdrop-filter: blur(5px); border-radius: 12px; padding: 8px 15px; color: #fff; font-weight: bold; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+    
+    /* Fuel Bar */
+    .fuel-container { width: 180px; height: 16px; background: rgba(0, 0, 0, 0.5); border: 2px solid #fff; border-radius: 8px; overflow: hidden; position: relative; }
+    .fuel-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ff4e50, #f9d423); transition: width 0.1s linear; }
+    
+    /* Speedometer */
+    .speedometer { position: relative; width: 80px; height: 80px; background: rgba(0, 0, 0, 0.6); border-radius: 50%; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; }
+    .speed-needle { position: absolute; width: 2px; height: 35px; background: #ff3333; top: 5px; transform-origin: bottom center; transform: rotate(-120deg); transition: transform 0.05s linear; }
+    .speed-text { position: absolute; bottom: 12px; color: #fff; font-size: 12px; font-weight: bold; }
+    
+    /* Controls */
+    .controls { display: flex; justify-content: space-between; width: 100%; pointer-events: auto; padding-bottom: 10px; }
+    .btn-ctrl { width: 90px; height: 90px; border-radius: 50%; background: rgba(255, 255, 255, 0.2); border: 3px solid rgba(255, 255, 255, 0.5); color: #fff; font-size: 20px; font-weight: bold; display: flex; justify-content: center; align-items: center; touch-action: manipulation; }
+    .btn-ctrl:active { background: rgba(255, 255, 255, 0.5); transform: scale(0.95); }
 
-/* PROFILE SCREEN */
-#profile-screen{
-  position:absolute;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(180deg,rgba(18,34,48,.92),rgba(0,0,0,.85));padding:18px;
-}
-.profile-card{
-  width:min(460px,94vw);padding:24px;border:3px solid #f5c542;border-radius:22px;
-  background:rgba(30,30,30,.95);color:#fff;box-shadow:0 15px 50px rgba(0,0,0,.5)
-}
-.profile-card h1{text-align:center;color:#ffd34e;font-size:30px;margin-bottom:8px}
-.profile-card p{text-align:center;color:#ccc;margin-bottom:20px}
-.field{margin:12px 0}.field label{display:block;margin-bottom:6px;color:#ffd34e;font-weight:800}
-.field input,.field select{
-  width:100%;padding:13px;border-radius:11px;border:2px solid #555;background:#161616;color:#fff;outline:none
-}
-.field input:focus,.field select:focus{border-color:#ffd34e}
-.start-btn{
-  width:100%;margin-top:10px;padding:14px;border:0;border-radius:12px;background:#2ecc71;color:#fff;
-  font-weight:900;font-size:20px;cursor:pointer;box-shadow:0 5px 0 #208e4f
-}
-.start-btn:active{transform:translateY(3px);box-shadow:0 2px 0 #208e4f}
-.profile-error{height:20px;color:#ff6b6b;text-align:center;font-weight:700}
-
-/* COUNTDOWN OVERLAY */
-#countdown-overlay{
-  position:absolute;inset:0;z-index:90;display:none;align-items:center;justify-content:center;
-  pointer-events:none;background:rgba(0,0,0,0.2)
-}
-#countdown-text{
-  font-size:110px;font-weight:900;color:#ffd34e;text-shadow:0 0 20px #000, 4px 4px 0 #e67e22;
-  animation:pop 0.4s ease-out;
-}
-@keyframes pop{ 0%{transform:scale(0.3);opacity:0} 80%{transform:scale(1.2)} 100%{transform:scale(1);opacity:1} }
-
-/* HUD TOP BAR */
-.top-bar{
-  position:absolute;top:12px;left:14px;right:14px;z-index:20;
-  display:flex;gap:8px;align-items:center;justify-content:space-between;pointer-events:none;
-  flex-wrap:wrap;
-}
-.badge{background:rgba(0,0,0,.65);border:2px solid #f5c542;border-radius:12px;padding:6px 12px;color:#fff;font-weight:800;text-shadow:1px 1px #000;font-size:14px}
-.badge span{color:#ffd34e}
-.player-badge{border-color:#fff;max-width:35vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.refill-badge{border-color:#2ecc71}
-.coin-badge{border-color:#f1c40f;color:#ffd34e}
-.record-badge{border-color:#e67e22}
-#fuel-val.low{color:#ff4d4d}
-
-/* COMBO FEEDBACK TEXT */
-#combo-toast{
-  position:absolute;top:22%;left:50%;transform:translateX(-50%);z-index:35;
-  pointer-events:none;text-align:center;font-size:26px;font-weight:900;color:#00ffcc;
-  text-shadow:0 0 10px #000, 2px 2px 0 #000;opacity:0;transition:opacity 0.2s ease, transform 0.2s ease;
-}
-#combo-toast.show{opacity:1;transform:translateX(-50%) translateY(-10px) scale(1.1)}
-
-/* DASHBOARD GAUGES */
-.dashboard{
-  position:absolute;left:50%;bottom:12px;transform:translateX(-50%);z-index:20;
-  display:flex;gap:10px;pointer-events:none
-}
-.gauge{
-  width:82px;height:82px;border-radius:50%;background:#151515;border:3px solid #444;
-  box-shadow:inset 0 0 12px #000,0 5px 14px rgba(0,0,0,.5);position:relative
-}
-.gauge .ring{position:absolute;inset:6px;border:2px solid #555;border-radius:50%}
-.needle{position:absolute;width:3px;height:28px;left:50%;bottom:50%;background:#f33;transform-origin:50% 100%;transform:rotate(-120deg);border-radius:3px}
-.gauge .val{position:absolute;left:0;right:0;bottom:20px;text-align:center;color:#00ffcc;font-weight:900;font-size:11px}
-.gauge .title{position:absolute;left:0;right:0;bottom:7px;text-align:center;color:#aaa;font-size:8px;font-weight:800;letter-spacing:1px}
-
-/* CONTROLS */
-.pedal{
-  position:absolute;bottom:20px;z-index:30;width:95px;height:140px;border-radius:18px;
-  background:linear-gradient(135deg,#444,#1c1c1c);border:4px solid #666;color:#fff;
-  box-shadow:0 7px 15px rgba(0,0,0,.6);display:flex;flex-direction:column;align-items:center;justify-content:center;
-  cursor:pointer;touch-action:none
-}
-.pedal:active,.pedal.active{transform:translateY(5px);filter:brightness(.8)}
-.pedal-brake{left:20px;border-color:#e74c3c}
-.pedal-gas{right:20px;border-color:#2ecc71}
-.grip{width:60%;height:8px;margin:4px;background:#111;border-radius:4px}
-.pedal-label{font-size:13px;font-weight:900;margin-top:6px}
-
-/* GAME OVER MODAL */
-#game-over-modal{
-  position:absolute;inset:0;z-index:100;display:none;align-items:center;justify-content:center;
-  background:rgba(0,0,0,.86);color:#fff;padding:15px
-}
-.over-card{width:min(500px,94vw);background:#202020;border:3px solid #ffd34e;border-radius:20px;padding:22px;text-align:center}
-.over-card h1{color:#ff4d4d;font-size:36px;margin-bottom:4px}
-.over-card .user-title{color:#aaa;font-size:15px;margin-bottom:12px}
-.over-card .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;background:#151515;padding:12px;border-radius:12px;margin-bottom:14px;text-align:left}
-.stats-item{font-size:14px;color:#ddd}.stats-item b{color:#ffd34e}
-.over-card .reason{color:#ff6b6b;margin-bottom:14px;font-weight:bold;font-size:15px}
-.action-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
-.action-btn{padding:12px 16px;border:0;border-radius:10px;font-weight:900;cursor:pointer;font-size:13px}
-.restart-btn{background:#2ecc71;color:#fff}.board-btn{background:#3498db;color:#fff}.shop-btn{background:#f39c12;color:#fff}
-
-/* GARAGE / SHOP MODAL */
-#shop-modal{
-  position:absolute;inset:0;z-index:140;display:none;align-items:center;justify-content:center;
-  background:rgba(0,0,0,.88);padding:15px
-}
-.shop-card{width:min(520px,94vw);background:#1a1a1a;color:#fff;border:3px solid #f39c12;border-radius:20px;padding:22px}
-.shop-card h2{text-align:center;color:#f39c12;margin-bottom:6px;font-size:26px}
-.shop-card .coin-summary{text-align:center;font-weight:800;color:#ffd34e;font-size:18px;margin-bottom:16px}
-.upgrade-list{display:flex;flex-direction:column;gap:12px;margin-bottom:18px}
-.upgrade-item{display:flex;align-items:center;justify-content:space-between;background:#262626;padding:12px 16px;border-radius:12px;border:1px solid #444}
-.upgrade-info div:first-child{font-weight:800;color:#fff;font-size:15px}
-.upgrade-info div:last-child{font-size:12px;color:#aaa}
-.buy-btn{padding:8px 14px;border:0;border-radius:8px;background:#2ecc71;color:#fff;font-weight:800;cursor:pointer}
-.buy-btn:disabled{background:#555;cursor:not-allowed}
-
-/* LEADERBOARD PANEL */
-#leaderboard-panel{
-  position:absolute;inset:0;z-index:150;display:none;align-items:center;justify-content:center;
-  background:rgba(0,0,0,.88);padding:15px
-}
-.board-card{width:min(560px,94vw);max-height:85vh;overflow:auto;background:#1e1e1e;color:#fff;border:3px solid #ffd34e;border-radius:18px;padding:20px}
-.board-card h2{text-align:center;color:#ffd34e;margin-bottom:12px}
-.tab-row{display:flex;gap:6px;margin-bottom:12px;justify-content:center}
-.tab-btn{padding:8px 14px;background:#333;color:#ccc;border:0;border-radius:8px;font-weight:800;cursor:pointer}
-.tab-btn.active{background:#ffd34e;color:#111}
-.board-row{display:grid;grid-template-columns:45px 1fr 100px 80px;gap:8px;padding:9px 6px;border-bottom:1px solid #444;align-items:center;font-size:14px}
-.board-head{color:#aaa;font-weight:800;font-size:12px}
-.board-row.me{background:rgba(46,204,113,.18);border-radius:8px}
-.board-btn-group{display:flex;gap:10px;margin-top:15px}
-.reset-btn{flex:1;padding:11px;border:0;border-radius:10px;background:#e74c3c;color:#fff;font-weight:900;cursor:pointer}
-.close-btn{flex:1;padding:11px;border:0;border-radius:10px;background:#555;color:#fff;font-weight:900;cursor:pointer}
-
-@media(max-width:600px){
-  .top-bar{top:8px;left:8px;right:8px}.badge{font-size:11px;padding:4px 8px}
-  .dashboard{bottom:8px;gap:4px}.gauge{width:64px;height:64px}
-  .gauge .needle{height:20px}.gauge .val{bottom:15px;font-size:9px}.gauge .title{bottom:5px;font-size:7px}
-  .pedal{width:80px;height:120px;bottom:12px}.pedal-label{font-size:11px}
-  .pedal-brake{left:10px}.pedal-gas{right:10px}
-  #countdown-text{font-size:70px}
-}
-</style>
+    /* Modals & Menus */
+    .modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; }
+    .modal-content { background: #222; border: 2px solid #444; border-radius: 16px; padding: 25px; width: 90%; max-width: 420px; color: #fff; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    .btn { background: linear-gradient(135deg, #ff8c00, #e52d27); border: none; padding: 12px 24px; color: #fff; font-weight: bold; border-radius: 8px; cursor: pointer; font-size: 16px; margin-top: 15px; width: 100%; pointer-events: auto; }
+    .btn:active { transform: scale(0.98); }
+    
+    /* Leaderboard / Shop Tabs */
+    .tab-btn { background: #333; color: #888; border: none; padding: 8px 16px; cursor: pointer; border-radius: 6px; font-weight: bold; }
+    .tab-btn.active { background: #ff8c00; color: #fff; }
+  </style>
 </head>
 <body>
-<div id="game-container">
 
-  <!-- PROFILE SCREEN -->
-  <div id="profile-screen">
-    <form class="profile-card" id="profile-form">
-      <h1>🏁 DUNE BUGGY</h1>
-      <p>Tạo hồ sơ tay đua trước khi khởi hành.</p>
-      <div class="field">
-        <label for="player-name">Tên người chơi</label>
-        <input id="player-name" maxlength="18" placeholder="Ví dụ: NguyenBao" autocomplete="off" required>
+  <div id="game-container"></div>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-top">
+      <div class="hud-card">
+        🪙 <span id="coin-val">0</span>
       </div>
-      <div class="field">
-        <label for="player-country">Quốc gia</label>
-        <select id="player-country" required>
-          <option value="">-- Chọn quốc gia --</option>
-          <option>🇻🇳 Việt Nam</option><option>🇺🇸 Hoa Kỳ</option><option>🇯🇵 Nhật Bản</option>
-          <option>🇰🇷 Hàn Quốc</option><option>🇨🇳 Trung Quốc</option><option>🇬🇧 Vương quốc Anh</option>
-          <option>🇫🇷 Pháp</option><option>🇩🇪 Đức</option><option>🇦🇺 Úc</option>
-          <option>🇨🇦 Canada</option><option>🇸🇬 Singapore</option><option>🇹🇭 Thái Lan</option>
-          <option>🌍 Khác</option>
-        </select>
+      <div class="hud-card">
+        ⛽
+        <div class="fuel-container">
+          <div id="fuel-fill" class="fuel-fill"></div>
+        </div>
       </div>
-      <div class="profile-error" id="profile-error"></div>
-      <button class="start-btn" type="submit">BẮT ĐẦU CHƠI</button>
-    </form>
-  </div>
+      <div class="hud-card">
+        📏 <span id="dist-val">0</span>m
+      </div>
+      <div class="speedometer">
+        <div id="speed-needle" class="speed-needle"></div>
+        <div class="speed-text"><span id="speed-val">0</span> km/h</div>
+      </div>
+    </div>
 
-  <!-- COUNTDOWN OVERLAY -->
-  <div id="countdown-overlay">
-    <div id="countdown-text">5</div>
-  </div>
-
-  <!-- COMBO TOAST -->
-  <div id="combo-toast">🔥 PERFECT LANDING +10</div>
-
-  <!-- HUD TOP BAR -->
-  <div class="top-bar">
-    <div class="badge">📏 <span id="dist-val">0</span> m</div>
-    <div class="badge record-badge">🏆 Best: <span id="best-val">0</span> m</div>
-    <div class="badge coin-badge">🪙 <span id="coins-val">0</span></div>
-    <div class="badge refill-badge">⛽ <span id="refill-val">300</span> m</div>
-    <div class="badge player-badge" id="player-badge">👤 Khách</div>
-  </div>
-
-  <!-- DASHBOARD GAUGES -->
-  <div class="dashboard">
-    <div class="gauge"><div class="ring"></div><div class="needle" id="rpm-needle"></div><div class="val" id="rpm-val">0</div><div class="title">RPM</div></div>
-    <div class="gauge"><div class="ring"></div><div class="needle" id="fuel-needle"></div><div class="val" id="fuel-val">100%</div><div class="title">FUEL</div></div>
-    <div class="gauge"><div class="ring"></div><div class="needle" id="speed-needle"></div><div class="val" id="speed-val">0</div><div class="title">SPEED</div></div>
-  </div>
-
-  <!-- CONTROLS -->
-  <div class="pedal pedal-brake" id="btn-brake">
-    <div class="grip"></div><div class="grip"></div><div class="grip"></div><div class="pedal-label">LÙI / PHANH</div>
-  </div>
-  <div class="pedal pedal-gas" id="btn-gas">
-    <div class="grip"></div><div class="grip"></div><div class="grip"></div><div class="pedal-label">GA</div>
+    <div class="controls">
+      <div id="btn-brake" class="btn-ctrl">PHANH</div>
+      <div id="btn-gas" class="btn-ctrl">GA</div>
+    </div>
   </div>
 
   <!-- GAME OVER MODAL -->
-  <div id="game-over-modal">
-    <div class="over-card">
-      <h1>💥 GAME OVER</h1>
-      <div class="user-title" id="go-user-title">🇻🇳 NguyenBao</div>
-      <div class="reason" id="game-over-reason">Xe bị lật úp!</div>
+  <div id="game-over-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <h2>HẾT NHIÊN LIỆU!</h2>
+      <p>Quãng đường: <span id="final-dist">0</span>m</p>
+      <p>Tiền thu được: 🪙 <span id="final-coins">0</span></p>
+      <button class="btn" onclick="restartGame()">CHƠI LẠI</button>
+    </div>
+  </div>
+
+  <script>
+    const { Engine, Render, Runner, Bodies, Composite, Body, Events, Vector } = Matter;
+
+    const container = document.getElementById("game-container");
+    const engine = Engine.create({ gravity: { x: 0, y: 1.2 } });
+
+    // 1. SỬA PHẦN TẠO RENDER
+    const render = Render.create({
+      element: container,
+      engine: engine,
+      options: {
+        width: innerWidth,
+        height: innerHeight,
+        wireframes: false,
+        background: "transparent",
+        pixelRatio: Math.min(window.devicePixelRatio || 1, 2),
+        hasBounds: true
+      }
+    });
+
+    Render.run(render);
+
+    const runner = Runner.create({
+      delta: 1000 / 60
+    });
+
+    Runner.run(runner, engine);
+
+    // GAME VARIABLES
+    let car, rearWheel, frontWheel;
+    let gasPressed = false;
+    let brakePressed = false;
+    let distance = 0;
+    let coins = 0;
+    let fuel = 100;
+    let cameraShake = 0;
+    let lastX = 0;
+    let startY = 400;
+
+    let profile = { name: "PLAYER", country: "VN" };
+    let upgrades = { engine: 1, wheels: 1 };
+
+    // ================= VEHICLE SPEED CONTROL =================
+    const MAX_SPEED_KMH = 65;
+    const MAX_SPEED = MAX_SPEED_KMH / 3.6;
+
+    let throttleAmount = 0;
+    const THROTTLE_ACCELERATION = 1.8;
+    const THROTTLE_RELEASE = 3.0;
+    const BRAKE_POWER = 0.10;
+
+    // 2. THÊM HỆ THỐNG CAMERA MỚI
+    let camX = 0, camY = 0;
+    let currentTab = 'world';
+
+    // ================= CAMERA SYSTEM =================
+    let cameraX = 100;
+    let cameraY = startY;
+    let cameraTargetX = 100;
+    let cameraTargetY = startY;
+
+    const CAMERA_FOLLOW_X = 0.10;
+    const CAMERA_FOLLOW_Y = 0.075;
+
+    const CAMERA_PLAYER_SCREEN_X = 0.38;
+    const CAMERA_PLAYER_SCREEN_Y = 0.55;
+
+    function updateCamera(){
+      if(!car) return;
+
+      const viewWidth = render.options.width;
+      const viewHeight = render.options.height;
+
+      const velocityX = car.velocity.x;
+
+      cameraTargetX =
+        car.position.x +
+        Math.max(-80, Math.min(180, velocityX * 18));
+
+      cameraTargetY =
+        car.position.y + 20;
+
+      cameraX += (cameraTargetX - cameraX) * CAMERA_FOLLOW_X;
+      cameraY += (cameraTargetY - cameraY) * CAMERA_FOLLOW_Y;
+
+      const minimumCameraY = startY - 80;
+
+      if(cameraY > minimumCameraY){
+        cameraY += (minimumCameraY - cameraY) * 0.08;
+      }
+
+      const minX = cameraX - viewWidth * CAMERA_PLAYER_SCREEN_X;
+      const minY = cameraY - viewHeight * CAMERA_PLAYER_SCREEN_Y;
+
+      render.bounds.min.x = minX;
+      render.bounds.min.y = minY;
+
+      render.bounds.max.x = minX + viewWidth;
+      render.bounds.max.y = minY + viewHeight;
+    }
+
+    function resizeGame(){
+      Render.setSize(
+        render,
+        window.innerWidth,
+        window.innerHeight
+      );
+
+      render.options.width = window.innerWidth;
+      render.options.height = window.innerHeight;
+
+      if(car){
+        updateCamera();
+      }
+    }
+
+    window.addEventListener("resize", resizeGame);
+    window.addEventListener("orientationchange", () => {
+      setTimeout(resizeGame, 150);
+    });
+
+    // 11. SỬA CREATEVEHICLE()
+    function createVehicle(x, y) {
+      car = Bodies.rectangle(x, y, 130, 36, {
+        density: 0.004,
+        friction: 0.75,
+        frictionAir: 0.008,
+        restitution: 0.02,
+        slop: 0.01,
+        collisionFilter: { group: -1 },
+        render: { visible: false }
+      });
+
+      const wheelOptions = {
+        friction: 1.15 + upgrades.wheels * 0.12,
+        frictionStatic: 1.2,
+        density: 0.005,
+        restitution: 0.03,
+        frictionAir: 0.01,
+        slop: 0.01,
+        collisionFilter: { group: -1 },
+        render: { visible: false }
+      };
+
+      rearWheel = Bodies.circle(x - 42, y + 20, 28, wheelOptions);
+      frontWheel = Bodies.circle(x + 42, y + 20, 28, wheelOptions);
+
+      const axleRear = Matter.Constraint.create({
+        bodyA: car,
+        bodyB: rearWheel,
+        pointA: { x: -42, y: 20 },
+        stiffness: 0.4,
+        damping: 0.15
+      });
+
+      const axleFront = Matter.Constraint.create({
+        bodyA: car,
+        bodyB: frontWheel,
+        pointA: { x: 42, y: 20 },
+        stiffness: 0.4,
+        damping: 0.15
+      });
+
+      Composite.add(engine.world, [car, rearWheel, frontWheel, axleRear, axleFront]);
+    }
+
+    // TERRAIN GENERATION
+    let terrainPoints = [];
+    function generateTerrain(toX) {
+      if (lastX >= toX) return;
+      let currX = lastX;
+      let currY = terrainPoints.length ? terrainPoints[terrainPoints.length - 1].y : startY;
+
+      while (currX < toX) {
+        let nextX = currX + 60 + Math.random() * 40;
+        let nextY = currY + (Math.random() - 0.5) * 80;
+        if (currX < 500) nextY = startY; // Đoạn đầu phẳng
+
+        let body = Bodies.rectangle((currX + nextX) / 2, (currY + nextY) / 2 + 300, nextX - currX, 600, {
+          isStatic: true,
+          friction: 0.9,
+          render: { visible: false }
+        });
+        Body.setAngle(body, Math.atan2(nextY - currY, nextX - currX));
+        Composite.add(engine.world, body);
+
+        terrainPoints.push({ x: currX, y: currY });
+        currX = nextX;
+        currY = nextY;
+      }
+      lastX = currX;
+    }
+
+    function drawTerrain(ctx) {
+      if (terrainPoints.length < 2) return;
+      ctx.fillStyle = "#8b5a2b";
+      ctx.strokeStyle = "#5c3a1e";
+      ctx.lineWidth = 6;
+
+      ctx.beginPath();
+      ctx.moveTo(terrainPoints[0].x, terrainPoints[0].y);
+      for (let i = 1; i < terrainPoints.length; i++) {
+        ctx.lineTo(terrainPoints[i].x, terrainPoints[i].y);
+      }
+      ctx.lineTo(lastX, 2000);
+      ctx.lineTo(terrainPoints[0].x, 2000);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    function drawItems(ctx) {
+      // Logic vẽ Coin / Fuel items nếu có
+    }
+
+    function drawBackground(ctx, w, h, camX) {
+      ctx.fillStyle = "#1a0033";
+      ctx.fillRect(0, 0, w, h);
+    }
+
+    // 3. SỬA PHẦN CAMERA HIỆN TẠI (BEFORE RENDER)
+    Events.on(render, "beforeRender", () => {
+      const ctx = render.context;
+
+      if(car){
+        updateCamera();
+
+        if(car.position.x + render.options.width > lastX){
+          generateTerrain(
+            car.position.x +
+            render.options.width +
+            1000
+          );
+        }
+      }
+
+      let shakeX = 0;
+      let shakeY = 0;
+
+      if(cameraShake > 0){
+        shakeX = (Math.random() - 0.5) * cameraShake;
+        shakeY = (Math.random() - 0.5) * cameraShake;
+
+        render.bounds.min.x += shakeX;
+        render.bounds.max.x += shakeX;
+
+        render.bounds.min.y += shakeY;
+        render.bounds.max.y += shakeY;
+        cameraShake *= 0.9;
+      }
+
+      drawBackground(
+        ctx,
+        render.canvas.width,
+        render.canvas.height,
+        cameraX
+      );
+    });
+
+    // 4. SỬA AFTERRENDER
+    Events.on(render, "afterRender", () => {
+      const ctx = render.context;
+
+      Render.startViewTransform(render);
+
+      drawTerrain(ctx);
+      drawItems(ctx);
+      drawCar(ctx);
+
+      Render.endViewTransform(render);
+    });
+
+    // 6. THAY PHẦN ĐIỀU KHIỂN ĐỘNG CƠ & 7. GIA TỐC PHẦN BAY & 8. ĐỒNG HỒ SPEED & 13. SỬA TÍNH FLIP
+    let accumRotation = 0;
+    let lastAngle = 0;
+
+    Events.on(engine, "beforeUpdate", (event) => {
+      if (!car) return;
+
+      const delta = event.delta / 1000;
+
+      // ================= SMOOTH ACCELERATION =================
+      if(gasPressed){
+        throttleAmount += delta * THROTTLE_ACCELERATION;
+        throttleAmount = Math.min(1, throttleAmount);
+      } else {
+        throttleAmount -= delta * THROTTLE_RELEASE;
+        throttleAmount = Math.max(0, throttleAmount);
+      }
+
+      const velocity = Body.getVelocity(car);
+      const currentSpeed = Math.hypot(velocity.x, velocity.y);
+      const engineLevel = upgrades.engine || 1;
+      const enginePower = 0.00065 + (engineLevel - 1) * 0.00012;
+      const driveForce = enginePower * throttleAmount;
+
+      const forward = {
+        x: Math.cos(car.angle),
+        y: Math.sin(car.angle)
+      };
+
+      if(gasPressed && currentSpeed < MAX_SPEED){
+        Body.applyForce(
+          rearWheel,
+          rearWheel.position,
+          {
+            x: forward.x * driveForce,
+            y: forward.y * driveForce
+          }
+        );
+      }
+
+      // ================= PHANH =================
+      if(brakePressed){
+        const brakeFactor = Math.min(1, currentSpeed / 3);
+        Body.setVelocity(
+          car,
+          {
+            x: car.velocity.x * (1 - BRAKE_POWER * brakeFactor),
+            y: car.velocity.y
+          }
+        );
+        Body.setAngularVelocity(
+          rearWheel,
+          rearWheel.angularVelocity * 0.90
+        );
+      }
+
+      // ================= SPEED LIMIT =================
+      const limitedVelocity = Body.getVelocity(car);
+      const limitedSpeed = Math.hypot(limitedVelocity.x, limitedVelocity.y);
+
+      if(limitedSpeed > MAX_SPEED){
+        const ratio = MAX_SPEED / limitedSpeed;
+        Body.setVelocity(
+          car,
+          {
+            x: limitedVelocity.x * ratio,
+            y: limitedVelocity.y * ratio
+          }
+        );
+      }
+
+      // 7. CHO BÁNH XE TĂNG TỐC TỪ TỪ KHU BAY (ĐIỀU CHỈNH XOAY XE)
+      if(gasPressed){
+        Body.setAngularVelocity(car, car.angularVelocity + 0.012);
+      } else if(brakePressed){
+        Body.setAngularVelocity(car, car.angularVelocity - 0.012);
+      }
+
+      // 8. SỬA ĐỒNG HỒ SPEED
+      const realSpeed = Math.hypot(car.velocity.x, car.velocity.y);
+      const speedDisplay = Math.max(0, Math.floor(realSpeed * 3.6));
+
+      document.getElementById("speed-val").textContent = speedDisplay;
+      document.getElementById("speed-needle").style.transform =
+        `rotate(${-120 + Math.min(speedDisplay / MAX_SPEED_KMH, 1) * 240}deg)`;
+
+      // 13. SỬA TÍNH FLIP CHÍNH XÁC (360 DEG)
+      let da = car.angle - lastAngle;
+      if (da > Math.PI) da -= Math.PI * 2;
+      if (da < -Math.PI) da += Math.PI * 2;
+      accumRotation += da;
+      lastAngle = car.angle;
+
+      const fullFlips = Math.floor(Math.abs(accumRotation) / (Math.PI * 2));
+
+      // FUEL & DISTANCE LOGIC
+      if (gasPressed) fuel -= 0.05;
+      document.getElementById("fuel-fill").style.width = Math.max(0, fuel) + "%";
       
-      <div class="stats-grid">
-        <div class="stats-item">🏁 Quãng đường: <b id="go-distance">0 m</b></div>
-        <div class="stats-item">🏆 Kỷ lục cá nhân: <b id="go-best">0 m</b></div>
-        <div class="stats-item">🪙 Coins nhận được: <b id="go-coins">+0</b></div>
-        <div class="stats-item">📈 Còn cách Top 1: <b id="go-top1-gap">0 m</b></div>
-      </div>
+      distance = Math.max(distance, Math.floor((car.position.x - 100) / 10));
+      document.getElementById("dist-val").textContent = distance;
 
-      <div class="action-row">
-        <button class="action-btn restart-btn" onclick="restartGame()">CHƠI LẠI</button>
-        <button class="action-btn shop-btn" onclick="openShop()">NÂNG CẤP XE</button>
-        <button class="action-btn board-btn" onclick="showLeaderboard()">BẢNG XẾP HẠNG</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- GARAGE SHOP MODAL -->
-  <div id="shop-modal">
-    <div class="shop-card">
-      <h2>🛠️ NÂNG CẤP XE</h2>
-      <div class="coin-summary">Số dư: 🪙 <span id="shop-coin-count">0</span></div>
-      <div class="upgrade-list">
-        <div class="upgrade-item">
-          <div class="upgrade-info">
-            <div>🏎️ Động cơ (Sức mạnh)</div>
-            <div id="lvl-engine">Level 1</div>
-          </div>
-          <button class="buy-btn" id="btn-up-engine" onclick="buyUpgrade('engine')">Nâng Cấp</button>
-        </div>
-        <div class="upgrade-item">
-          <div class="upgrade-info">
-            <div>🛞 Bánh xe (Độ bám)</div>
-            <div id="lvl-wheels">Level 1</div>
-          </div>
-          <button class="buy-btn" id="btn-up-wheels" onclick="buyUpgrade('wheels')">Nâng Cấp</button>
-        </div>
-        <div class="upgrade-item">
-          <div class="upgrade-info">
-            <div>🪂 Giảm xóc (Độ nảy)</div>
-            <div id="lvl-shocks">Level 1</div>
-          </div>
-          <button class="buy-btn" id="btn-up-shocks" onclick="buyUpgrade('shocks')">Nâng Cấp</button>
-        </div>
-        <div class="upgrade-item">
-          <div class="upgrade-info">
-            <div>⛽ Bình xăng (Dung tích)</div>
-            <div id="lvl-tank">Level 1</div>
-          </div>
-          <button class="buy-btn" id="btn-up-tank" onclick="buyUpgrade('tank')">Nâng Cấp</button>
-        </div>
-      </div>
-      <button class="close-btn" style="width:100%" onclick="closeShop()">XONG</button>
-    </div>
-  </div>
-
-  <!-- LEADERBOARD PANEL -->
-  <div id="leaderboard-panel">
-    <div class="board-card">
-      <h2>🏆 WORLD LEADERBOARD</h2>
-      <div class="tab-row">
-        <button class="tab-btn active" id="tab-world" onclick="setLeaderboardTab('world')">🌎 THẾ GIỚI</button>
-        <button class="tab-btn" id="tab-vn" onclick="setLeaderboardTab('vn')">🇻🇳 VIỆT NAM</button>
-        <button class="tab-btn" id="tab-me" onclick="setLeaderboardTab('me')">👤 BẠN</button>
-      </div>
-      <div class="board-row board-head"><div>#</div><div>Người chơi</div><div>Quốc gia</div><div>Kỷ lục</div></div>
-      <div id="leaderboard-list"></div>
-      <div class="board-btn-group">
-        <button class="reset-btn" onclick="resetLeaderboard()">RESET BXH</button>
-        <button class="close-btn" onclick="closeLeaderboard()">ĐÓNG</button>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-<script>
-const {Engine,Render,Runner,Bodies,Composite,Constraint,Body,Events,Vector}=Matter;
-
-// ================= UPGRADES & STATS CONFIG =================
-const UPGRADE_COSTS = {
-  engine: [500, 1000, 2000, 4000],
-  wheels: [400, 900, 1800, 3500],
-  shocks: [600, 1200, 2500, 5000],
-  tank:   [300, 800, 1500, 3000]
-};
-
-let upgrades = JSON.parse(localStorage.getItem("dune_upgrades") || '{"engine":1,"wheels":1,"shocks":1,"tank":1}');
-
-function saveUpgrades(){
-  localStorage.setItem("dune_upgrades", JSON.stringify(upgrades));
-}
-
-// Config cơ bản
-let FUEL_MAX_TIME = 30 + (upgrades.tank - 1) * 8;
-const REFILL_DISTANCE = 300;
-const COIN_SPACING = 45;
-
-let profile = {name:"", country:""};
-let totalCoins = parseInt(localStorage.getItem("dune_coins") || "0");
-let personalBest = parseInt(localStorage.getItem("dune_best") || "0");
-
-document.getElementById("coins-val").textContent = totalCoins;
-document.getElementById("best-val").textContent = personalBest;
-
-// Profile Load
-const savedProfile = JSON.parse(localStorage.getItem("dune_profile") || "null");
-if(savedProfile){
-  profile = savedProfile;
-  document.getElementById("player-name").value = profile.name;
-  document.getElementById("player-country").value = profile.country;
-}
-
-const form = document.getElementById("profile-form");
-form.addEventListener("submit", e => {
-  e.preventDefault();
-  const name = document.getElementById("player-name").value.trim();
-  const country = document.getElementById("player-country").value;
-  if(!name || !country){
-    document.getElementById("profile-error").textContent="Hãy nhập tên và chọn quốc gia.";
-    return;
-  }
-  profile = {name, country};
-  localStorage.setItem("dune_profile", JSON.stringify(profile));
-  document.getElementById("player-badge").textContent=`👤 ${name}`;
-  document.getElementById("profile-screen").style.display="none";
-  resetGame();
-});
-
-// ================= MATTER.JS ENGINE =================
-const container=document.getElementById("game-container");
-const engine=Engine.create({
-  enableSleeping: false,
-  positionIterations: 16,
-  velocityIterations: 16
-});
-engine.world.gravity.y = 1.35;
-
-const render=Render.create({
-  element:container,engine,
-  options:{width:innerWidth,height:innerHeight,wireframes:false,background:"transparent",pixelRatio:devicePixelRatio}
-});
-Render.run(render);
-const runner=Runner.create();
-Runner.run(runner,engine);
-
-let car, rearWheel, frontWheel, driverHead;
-let terrainPoints=[], terrainSegments=[];
-let fuelCans=[], coinsList=[], obstaclesList=[];
-const segmentWidth = 35;
-let lastX = -400;
-let startY = innerHeight * .65, lastY = startY;
-
-let distance = 0;
-let sessionCoins = 0;
-let nextRefill = REFILL_DISTANCE;
-let fuelTimeLeft = FUEL_MAX_TIME;
-let isGameOver = false;
-let isCrashPending = false;
-let crashTimer = 0;
-let gasPressed = false, brakePressed = false;
-let lastTimestamp = performance.now();
-let cameraShake = 0;
-
-// Combo Tricks
-let isInAir = false;
-let airTime = 0;
-let accumRotation = 0;
-let lastCarAngle = 0;
-
-// Countdown & Flight
-let countdownActive = false;
-let countdownTimer = 5;
-let hasStartedMoving = false;
-let camX = 0, camY = 0;
-let currentTab = 'world';
-
-// ================= TERRAIN GENERATION (Dốc biến thiên, Cầu, Đá) =================
-function clearTerrain(){
-  terrainSegments.forEach(b => Composite.remove(engine.world, b));
-  terrainSegments = []; terrainPoints = [];
-  lastX = -400; lastY = startY;
-}
-
-function generateTerrain(toX){
-  if(!terrainPoints.length) terrainPoints.push({x:lastX, y:lastY});
-  while(lastX < toX){
-    const nextX = lastX + segmentWidth;
-    let nextY;
-    if(nextX < 500) {
-      nextY = startY;
-    } else {
-      const hx = nextX - 500;
-      nextY = startY 
-            + Math.sin(hx * 0.005) * 110 
-            + Math.cos(hx * 0.012) * 55 
-            + Math.sin(hx * 0.03) * 20;
-    }
-    terrainPoints.push({x:nextX, y:nextY});
-    
-    const ground = Bodies.rectangle((lastX+nextX)/2, (lastY+nextY)/2 + 700, segmentWidth + 10, 1400, {
-      isStatic: true,
-      friction: 0.8 + upgrades.wheels * 0.08,
-      restitution: 0.01,
-      slop: 0,
-      render:{visible:false}
-    });
-    Body.setAngle(ground, Math.atan2(nextY - lastY, nextX - lastX));
-    Composite.add(engine.world, ground);
-    terrainSegments.push(ground);
-    
-    if(nextX > 700 && Math.random() < 0.08){
-      spawnRockAt(nextX, nextY - 15);
-    }
-
-    if(nextX > 600 && Math.random() < 0.35 && (nextX % COIN_SPACING < segmentWidth)){
-      spawnCoinAt(nextX, nextY - 45);
-    }
-
-    lastX = nextX; lastY = nextY;
-  }
-}
-
-function spawnRockAt(x, y){
-  const rock = Bodies.polygon(x, y, 5, 16, {
-    isStatic: true, friction: 0.9, render: {visible: false}
-  });
-  Composite.add(engine.world, rock);
-  obstaclesList.push(rock);
-}
-
-function terrainYAt(x){
-  if(x < 500) return startY;
-  const hx = x - 500;
-  return startY + Math.sin(hx * 0.005) * 110 + Math.cos(hx * 0.012) * 55 + Math.sin(hx * 0.03) * 20;
-}
-
-// ================= FUEL & COINS =================
-function clearItems(){
-  fuelCans.forEach(c => Composite.remove(engine.world, c.body));
-  coinsList.forEach(c => Composite.remove(engine.world, c.body));
-  obstaclesList.forEach(o => Composite.remove(engine.world, o));
-  fuelCans = []; coinsList = []; obstaclesList = [];
-}
-
-function spawnFuelCanAt(distMeters){
-  const worldX = 100 + distMeters * 10;
-  const y = terrainYAt(worldX) - 50;
-  const body = Bodies.rectangle(worldX, y, 24, 32, {isStatic:true, isSensor:true, render:{visible:false}});
-  Composite.add(engine.world, body);
-  fuelCans.push({body, collected:false});
-}
-
-function spawnCoinAt(x, y){
-  const body = Bodies.circle(x, y, 12, {isStatic:true, isSensor:true, render:{visible:false}});
-  Composite.add(engine.world, body);
-  coinsList.push({body, collected:false});
-}
-
-function updateItems(){
-  if(!car) return;
-  for(const c of fuelCans){
-    if(c.collected) continue;
-    if(Math.hypot(car.position.x - c.body.position.x, car.position.y - c.body.position.y) < 50){
-      c.collected = true;
-      fuelTimeLeft = FUEL_MAX_TIME;
-      Composite.remove(engine.world, c.body);
-      document.getElementById("fuel-val").textContent = "100%";
-      flashRefill();
-    }
-  }
-  for(const coin of coinsList){
-    if(coin.collected) continue;
-    if(Math.hypot(car.position.x - coin.body.position.x, car.position.y - coin.body.position.y) < 45){
-      coin.collected = true;
-      addCoins(1);
-      Composite.remove(engine.world, coin.body);
-    }
-  }
-}
-
-function addCoins(amount){
-  sessionCoins += amount;
-  totalCoins += amount;
-  localStorage.setItem("dune_coins", totalCoins);
-  document.getElementById("coins-val").textContent = totalCoins;
-}
-
-function flashRefill(){
-  const el = document.getElementById("refill-val");
-  el.textContent = "100%";
-  setTimeout(() => { if(!isGameOver) el.textContent = Math.max(0, nextRefill - distance) + " m"; }, 900);
-}
-
-// ================= VEHICLE CREATION =================
-function createVehicle(x, y){
-  FUEL_MAX_TIME = 30 + (upgrades.tank - 1) * 8;
-  
-  car = Bodies.rectangle(x, y, 130, 36, {
-    density: 0.003, friction: 0.8, restitution: 0.05, slop: 0, collisionFilter: {group:-1}, render:{visible:false}
-  });
-  driverHead = Bodies.circle(x - 10, y - 35, 15, {
-    density: 0.001, collisionFilter: {group:-1}, render:{visible:false}
-  });
-  const neckJoint = Constraint.create({
-    bodyA: car, bodyB: driverHead, pointA: {x:-10, y:-26}, pointB: {x:0, y:0},
-    stiffness: 0.8, length: 0, render:{visible:false}
-  });
-  
-  const wheelFriction = 1.0 + upgrades.wheels * 0.15;
-  const wheelOptions = {friction: wheelFriction, density: 0.004, restitution: 0.05, slop: 0, collisionFilter: {group:-1}, render:{visible:false}};
-  rearWheel = Bodies.circle(x - 45, y + 25, 27, wheelOptions);
-  frontWheel = Bodies.circle(x + 45, y + 25, 27, wheelOptions);
-  
-  const shockStiffness = 0.15 + upgrades.shocks * 0.05;
-  const rearAxle = Constraint.create({bodyA: car, bodyB: rearWheel, pointA: {x:-45, y:18}, stiffness: shockStiffness, damping: 0.08, render:{visible:false}});
-  const frontAxle = Constraint.create({bodyA: car, bodyB: frontWheel, pointA: {x:45, y:18}, stiffness: shockStiffness, damping: 0.08, render:{visible:false}});
-
-  Composite.add(engine.world, [car, driverHead, neckJoint, rearWheel, frontWheel, rearAxle, frontAxle]);
-  camX = x; camY = y;
-  lastCarAngle = car.angle;
-  accumRotation = 0;
-}
-
-function removeVehicle(){
-  [car, driverHead, rearWheel, frontWheel].forEach(b => { if(b) Composite.remove(engine.world, b); });
-  car = driverHead = rearWheel = frontWheel = null;
-}
-
-// ================= GRAPHICS DRAWING =================
-function drawBackground(ctx, width, height, camX){
-  const g = ctx.createLinearGradient(0,0,0,height);
-  g.addColorStop(0,"#4ba3e3"); g.addColorStop(0.6,"#92d0f8"); g.addColorStop(1,"#e3f4ff");
-  ctx.fillStyle = g; ctx.fillRect(0,0,width,height);
-
-  ctx.fillStyle = "rgba(255,255,255,0.85)";
-  for(let i = -2; i < 10; i++){
-    const x = i*400 - (camX * 0.1 % 400);
-    ctx.beginPath(); ctx.arc(x, 80, 40, 0, Math.PI*2); ctx.arc(x+30, 65, 50, 0, Math.PI*2); ctx.arc(x+70, 80, 35, 0, Math.PI*2); ctx.fill();
-  }
-  ctx.fillStyle = "#73bd8c";
-  for(let i = -2; i < 8; i++){
-    const x = i*600 - (camX * 0.25 % 600);
-    ctx.beginPath(); ctx.moveTo(x-200, height); ctx.quadraticCurveTo(x, height-340, x+250, height); ctx.fill();
-  }
-}
-
-function drawTerrain(ctx){
-  if(terrainPoints.length < 2) return;
-  ctx.save();
-  const layers = [
-    ["#2e5218", 35, 2000],
-    ["#c9af34", 8, 35],
-    ["#4e9e27", -3, 8]
-  ];
-  for(const [color, top, bottom] of layers){
-    ctx.fillStyle = color; ctx.beginPath();
-    ctx.moveTo(terrainPoints[0].x, terrainPoints[0].y + top);
-    for(let i = 1; i < terrainPoints.length; i++) ctx.lineTo(terrainPoints[i].x, terrainPoints[i].y + top);
-    for(let i = terrainPoints.length - 1; i >= 0; i--) ctx.lineTo(terrainPoints[i].x, terrainPoints[i].y + bottom);
-    ctx.closePath(); ctx.fill();
-  }
-  ctx.restore();
-}
-
-function drawItems(ctx){
-  for(const c of fuelCans){
-    if(c.collected) continue;
-    const x = c.body.position.x, y = c.body.position.y;
-    ctx.save(); ctx.translate(x, y);
-    ctx.fillStyle = "#e74c3c"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2;
-    ctx.fillRect(-12, -16, 24, 32); ctx.strokeRect(-12, -16, 24, 32);
-    ctx.fillStyle = "#ffd34e"; ctx.font = "bold 13px Arial"; ctx.textAlign = "center"; ctx.fillText("F", 0, 6);
-    ctx.restore();
-  }
-  for(const coin of coinsList){
-    if(coin.collected) continue;
-    const x = coin.body.position.x, y = coin.body.position.y;
-    ctx.save(); ctx.translate(x, y);
-    ctx.fillStyle = "#f1c40f"; ctx.strokeStyle = "#b7950b"; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(0, 0, 11, 0, Math.PI*2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = "#fff"; ctx.font = "bold 11px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("$", 0, 1);
-    ctx.restore();
-  }
-  for(const rock of obstaclesList){
-    ctx.save(); ctx.translate(rock.position.x, rock.position.y);
-    ctx.fillStyle = "#7f8c8d"; ctx.strokeStyle = "#2c3e50"; ctx.lineWidth = 2;
-    ctx.beginPath();
-    const pts = rock.vertices;
-    ctx.moveTo(pts[0].x - rock.position.x, pts[0].y - rock.position.y);
-    for(let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x - rock.position.x, pts[i].y - rock.position.y);
-    ctx.closePath(); ctx.fill(); ctx.stroke();
-    ctx.restore();
-  }
-}
-
-function drawWheel(ctx, w){
-  if(!w) return;
-  ctx.save(); ctx.translate(w.position.x, w.position.y); ctx.rotate(w.angle);
-  ctx.fillStyle = "#1a1a1a"; ctx.beginPath(); ctx.arc(0, 0, 27, 0, Math.PI*2); ctx.fill();
-  ctx.strokeStyle = "#444"; ctx.lineWidth = 4; ctx.stroke();
-  ctx.fillStyle = "#888"; ctx.beginPath(); ctx.arc(0, 0, 11, 0, Math.PI*2); ctx.fill();
-  ctx.strokeStyle = "#222"; ctx.lineWidth = 3;
-  for(let i = 0; i < 5; i++){
-    const a = i * Math.PI * 0.4;
-    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(Math.cos(a)*10, Math.sin(a)*10); ctx.stroke();
-  }
-  ctx.restore();
-}
-
-function drawCar(ctx){
-  if(!car) return;
-  drawWheel(ctx, rearWheel); drawWheel(ctx, frontWheel);
-
-  const x = car.position.x, y = car.position.y;
-  ctx.save(); ctx.translate(x, y); ctx.rotate(car.angle);
-  
-  ctx.fillStyle = "#e43b3b"; ctx.strokeStyle = "#111"; ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.moveTo(-60,6); ctx.lineTo(-48,-16); ctx.lineTo(16,-18); ctx.lineTo(58,-3);
-  ctx.lineTo(50,22); ctx.lineTo(-54,22); ctx.closePath(); ctx.fill(); ctx.stroke();
-
-  ctx.strokeStyle = "#222"; ctx.lineWidth = 4;
-  ctx.beginPath(); ctx.moveTo(-50,-8); ctx.lineTo(-20,-48); ctx.lineTo(25,-48); ctx.lineTo(58,-5); ctx.stroke();
-
-  ctx.fillStyle = "#f2b17d"; ctx.beginPath(); ctx.arc(-2,-38,12,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle = "#c72c2c"; ctx.beginPath(); ctx.arc(-2,-43,13,Math.PI,0); ctx.fill();
-
-  ctx.fillStyle = "#e74c3c"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2;
-  ctx.fillRect(-45, -72, 90, 18); ctx.strokeRect(-45, -72, 90, 18);
-  ctx.fillStyle = "#fff"; ctx.font = "bold 11px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  ctx.fillText(profile.name || "PLAYER", 0, -62);
-
-  ctx.restore();
-}
-
-// Render Hooks & CAMERA BÁM THEO XE MƯỢT MÀ
-Events.on(render, "beforeRender", () => {
-  const ctx = render.context;
-  if(car){
-    // Camera di chuyển theo xe trên cả trục X lẫn Y mượt mà
-    camX += (car.position.x - camX) * 0.12;
-    camY += (car.position.y - camY) * 0.12;
-    
-    let offsetX = (Math.random() - 0.5) * cameraShake;
-    let offsetY = (Math.random() - 0.5) * cameraShake;
-
-    Render.lookAt(render, {
-      min: { x: camX - innerWidth * 0.4 + offsetX, y: camY - innerHeight * 0.55 + offsetY },
-      max: { x: camX + innerWidth * 0.6 + offsetX, y: camY + innerHeight * 0.45 + offsetY }
-    });
-    if(car.position.x + innerWidth > lastX) generateTerrain(car.position.x + innerWidth + 800);
-  }
-
-  drawBackground(ctx, render.canvas.width, render.canvas.height, camX);
-});
-
-Events.on(render, "afterRender", () => {
-  const ctx = render.context;
-  drawTerrain(ctx);
-  drawItems(ctx);
-  drawCar(ctx);
-});
-
-// ================= MAIN GAME LOOP =================
-Events.on(engine, "beforeUpdate", () => {
-  if(!car) return;
-  const now = performance.now();
-  const delta = Math.min(0.05, (now - lastTimestamp) / 1000);
-  lastTimestamp = now;
-
-  // Countdown Phase
-  if(countdownActive){
-    countdownTimer -= delta;
-    const cdText = document.getElementById("countdown-text");
-    if(countdownTimer > 0){
-      const sec = Math.ceil(countdownTimer);
-      if(cdText.textContent !== String(sec)){
-        cdText.textContent = sec;
-        cdText.style.animation = 'none';
-        cdText.offsetHeight;
-        cdText.style.animation = 'pop 0.4s ease-out';
+      if (fuel <= 0) {
+        document.getElementById("final-dist").textContent = distance;
+        document.getElementById("final-coins").textContent = coins;
+        document.getElementById("game-over-modal").style.display = "flex";
       }
-    } else {
-      countdownActive = false;
-      document.getElementById("countdown-overlay").style.display = "none";
+    });
+
+    // 9. CẢI THIỆN NGOẠI HÌNH XE
+    function drawCar(ctx){
+      if(!car) return;
+
+      // WHEELS
+      drawWheel(ctx, rearWheel);
+      drawWheel(ctx, frontWheel);
+
+      const x = car.position.x;
+      const y = car.position.y;
+
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(car.angle);
+
+      // SHADOW
+      ctx.save();
+      ctx.translate(0, 25);
+      ctx.fillStyle = "rgba(0,0,0,0.25)";
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 68, 10, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // REAR BUMPER
+      ctx.fillStyle = "#202020";
+      ctx.strokeStyle = "#080808";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(-67, 8);
+      ctx.lineTo(-77, 14);
+      ctx.lineTo(-73, 22);
+      ctx.lineTo(-52, 22);
+      ctx.lineTo(-48, 13);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // MAIN BODY
+      const bodyGradient = ctx.createLinearGradient(0, -25, 0, 28);
+      bodyGradient.addColorStop(0, "#ff5555");
+      bodyGradient.addColorStop(0.45, "#e62e2e");
+      bodyGradient.addColorStop(1, "#9e1515");
+
+      ctx.fillStyle = bodyGradient;
+      ctx.strokeStyle = "#111";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(-62, 8);
+      ctx.lineTo(-51, -17);
+      ctx.lineTo(-18, -23);
+      ctx.lineTo(27, -21);
+      ctx.lineTo(56, -7);
+      ctx.lineTo(63, 13);
+      ctx.lineTo(48, 23);
+      ctx.lineTo(-52, 23);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // SIDE PANEL
+      ctx.fillStyle = "#b91f1f";
+      ctx.beginPath();
+      ctx.moveTo(-43, -5);
+      ctx.lineTo(-17, -17);
+      ctx.lineTo(20, -17);
+      ctx.lineTo(42, -5);
+      ctx.lineTo(36, 10);
+      ctx.lineTo(-38, 10);
+      ctx.closePath();
+      ctx.fill();
+
+      // ROLL CAGE
+      ctx.strokeStyle = "#252525";
+      ctx.lineWidth = 6;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(-38, 4);
+      ctx.lineTo(-28, -42);
+      ctx.lineTo(22, -42);
+      ctx.lineTo(43, -4);
+      ctx.stroke();
+
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(-5, -42);
+      ctx.lineTo(-2, -10);
+      ctx.stroke();
+
+      // WINDSHIELD
+      const glass = ctx.createLinearGradient(0, -42, 0, -17);
+      glass.addColorStop(0, "#9fe7ff");
+      glass.addColorStop(1, "#287da5");
+
+      ctx.fillStyle = glass;
+      ctx.strokeStyle = "#111";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(-23, -38);
+      ctx.lineTo(19, -38);
+      ctx.lineTo(32, -20);
+      ctx.lineTo(-18, -20);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // DRIVER
+      ctx.fillStyle = "#d98c61";
+      ctx.fillRect(-7, -21, 12, 10);
+
+      ctx.fillStyle = "#f2b17d";
+      ctx.beginPath();
+      ctx.arc(-1, -43, 13, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#171717";
+      ctx.beginPath();
+      ctx.arc(-1, -47, 14, Math.PI, 0);
+      ctx.fill();
+
+      ctx.fillStyle = "#42d6ff";
+      ctx.fillRect(4, -46, 9, 4);
+
+      // HEADLIGHTS
+      ctx.fillStyle = "#fff6a0";
+      ctx.shadowColor = "#ffe66d";
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      ctx.arc(55, 2, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // FRONT BUMPER
+      ctx.strokeStyle = "#222";
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(52, 16);
+      ctx.lineTo(70, 20);
+      ctx.lineTo(66, 27);
+      ctx.stroke();
+
+      // EXHAUST
+      ctx.strokeStyle = "#444";
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(-53, 7);
+      ctx.lineTo(-72, 1);
+      ctx.stroke();
+
+      ctx.fillStyle = "#777";
+      ctx.beginPath();
+      ctx.arc(-73, 1, 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // PLAYER NAME
+      ctx.fillStyle = "rgba(0,0,0,0.75)";
+      ctx.fillRect(-45, -72, 90, 18);
+
+      ctx.strokeStyle = "#ffd34e";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(-45, -72, 90, 18);
+
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 10px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(profile.name || "PLAYER", 0, -63);
+
+      ctx.restore();
     }
-    return;
-  }
 
-  // Crash animation delay
-  if(isCrashPending){
-    crashTimer += delta;
-    cameraShake = Math.max(0, 15 - crashTimer * 20);
-    if(crashTimer >= 0.5){
-      isCrashPending = false;
-      showGameOverModal();
+    // 10. CẢI THIỆN BÁNH XE
+    function drawWheel(ctx, w){
+      if(!w) return;
+
+      ctx.save();
+      ctx.translate(w.position.x, w.position.y);
+      ctx.rotate(w.angle);
+
+      // Lốp
+      ctx.fillStyle = "#111";
+      ctx.beginPath();
+      ctx.arc(0, 0, 28, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Viền lốp
+      ctx.strokeStyle = "#333";
+      ctx.lineWidth = 5;
+      ctx.stroke();
+
+      // Mâm
+      const rim = ctx.createRadialGradient(0, 0, 2, 0, 0, 13);
+      rim.addColorStop(0, "#ddd");
+      rim.addColorStop(1, "#555");
+
+      ctx.fillStyle = rim;
+      ctx.beginPath();
+      ctx.arc(0, 0, 13, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 5 nan hoa
+      ctx.strokeStyle = "#222";
+      ctx.lineWidth = 3;
+
+      for(let i = 0; i < 5; i++){
+        const angle = i * Math.PI * 2 / 5;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(
+          Math.cos(angle) * 11,
+          Math.sin(angle) * 11
+        );
+        ctx.stroke();
+      }
+
+      // Tâm bánh
+      ctx.fillStyle = "#bbb";
+      ctx.beginPath();
+      ctx.arc(0, 0, 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
     }
-    return;
-  }
 
-  if(isGameOver) return;
+    // 12. SỬA RESETGAME()
+    function restartGame() {
+      document.getElementById("game-over-modal").style.display = "none";
+      
+      // Xóa xe cũ khỏi world
+      if (car) {
+        Composite.remove(engine.world, [car, rearWheel, frontWheel]);
+      }
 
-  const speedVec = Body.getVelocity(car);
-  const currentSpeed = Math.hypot(speedVec.x, speedVec.y);
-  if(!hasStartedMoving && (currentSpeed > 0.1 || gasPressed || brakePressed)){
-    hasStartedMoving = true;
-  }
-
-  if(hasStartedMoving){
-    fuelTimeLeft = Math.max(0, fuelTimeLeft - delta);
-  }
-
-  const fuelPercent = Math.floor(fuelTimeLeft / FUEL_MAX_TIME * 100);
-  document.getElementById("fuel-val").textContent = fuelPercent + "%";
-  document.getElementById("fuel-val").classList.toggle("low", fuelPercent < 20);
-  document.getElementById("fuel-needle").style.transform = `rotate(${-120 + fuelPercent * 2.4}deg)`;
-
-  if(fuelTimeLeft <= 0){
-    triggerCrash("Hết nhiên liệu giữa đường!");
-    return;
-  }
-
-  // KIỂM TRA TRẠNG THÁI BAY TRÊN KHÔNG (AIR TIME & AIR TILT CONTROL)
-  const isRearGround = Matter.Query.collides(rearWheel, terrainSegments).length > 0;
-  const isFrontGround = Matter.Query.collides(frontWheel, terrainSegments).length > 0;
-  const grounded = isRearGround || isFrontGround;
-
-  if(!grounded){
-    if(!isInAir){
-      isInAir = true;
-      airTime = 0;
+      fuel = 100;
+      distance = 0;
       accumRotation = 0;
-    }
-    airTime += delta;
 
-    let deltaAngle = car.angle - lastCarAngle;
-    if(deltaAngle > Math.PI) deltaAngle -= Math.PI * 2;
-    if(deltaAngle < -Math.PI) deltaAngle += Math.PI * 2;
-    accumRotation += deltaAngle;
+      createVehicle(100, startY - 60);
 
-    // ĐIỀU KHIỂN XOAY XE TRÊN KHÔNG
-    if(gasPressed){
-      Body.setAngularVelocity(car, car.angularVelocity + 0.035);
-    } else if(brakePressed){
-      Body.setAngularVelocity(car, car.angularVelocity - 0.035);
-    }
-  } else {
-    // VỪA ĐÁP ĐẤT -> ĐIỂM THƯỞNG COMBO GIẢM 10 LẦN
-    if(isInAir){
-      isInAir = false;
+      // Reset camera về vị trí xuất phát
+      cameraX = 100;
+      cameraY = startY;
 
-      const fullFlips = Math.floor(Math.abs(accumRotation) / (Math.PI * 1.8));
-      if(fullFlips > 0){
-        const isBackflip = accumRotation < 0;
-        const flipName = isBackflip ? "BACKFLIP" : "FRONTFLIP";
-        const reward = fullFlips * 20; // Giảm 10 lần (từ 200 -> 20)
-        addCoins(reward);
-        showComboToast(`🔄 ${flipName} ${fullFlips > 1 ? 'x'+fullFlips : ''} +${reward}`);
-      } else if(airTime > 1.2){
-        addCoins(5); // Giảm 10 lần (từ 50 -> 5)
-        showComboToast(`🚀 AIR TIME +5`);
-      } else if(Math.abs(car.angle) < 0.25){
-        addCoins(10); // Giảm 10 lần (từ 100 -> 10)
-        showComboToast(`🔥 PERFECT LANDING +10`);
-      }
+      cameraTargetX = 100;
+      cameraTargetY = startY;
+
+      render.bounds.min.x =
+        cameraX -
+        render.options.width * CAMERA_PLAYER_SCREEN_X;
+
+      render.bounds.min.y =
+        cameraY -
+        render.options.height * CAMERA_PLAYER_SCREEN_Y;
+
+      render.bounds.max.x =
+        render.bounds.min.x +
+        render.options.width;
+
+      render.bounds.max.y =
+        render.bounds.min.y +
+        render.options.height;
+
+      throttleAmount = 0;
     }
 
-    // BÁNH SAU LÀ LỰC ĐẨY CHÍNH (REAR WHEEL DRIVE)
-    const motorPower = 0.0035 + (upgrades.engine - 1) * 0.0008;
-    if(gasPressed){
-      // Động cơ xoay bánh sau & tác dụng lực đẩy chính vào bánh sau
-      Body.setAngularVelocity(rearWheel, 0.45);
-      Body.applyForce(rearWheel, rearWheel.position, {x: motorPower, y: 0});
-    } else if(brakePressed){
-      // Phanh tác động bánh sau
-      Body.setAngularVelocity(rearWheel, -0.3);
-      Body.applyForce(rearWheel, rearWheel.position, {x: -motorPower * 0.6, y: 0});
-    }
-  }
+    // INPUT CONTROLS (14. BÀN PHÍM: Right/D = Ga, Left/A = Phanh)
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") gasPressed = true;
+      if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") brakePressed = true;
+    });
 
-  lastCarAngle = car.angle;
+    window.addEventListener("keyup", (e) => {
+      if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") gasPressed = false;
+      if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") brakePressed = false;
+    });
 
-  // Gauges
-  const speedDisplay = Math.max(0, Math.floor(speedVec.x * 3.6));
-  document.getElementById("speed-val").textContent = speedDisplay;
-  document.getElementById("speed-needle").style.transform = `rotate(${-120 + Math.min(speedDisplay * 3, 240)}deg)`;
+    const btnGas = document.getElementById("btn-gas");
+    const btnBrake = document.getElementById("btn-brake");
 
-  const rpm = Math.min(8000, Math.floor(Math.abs(rearWheel ? rearWheel.angularVelocity : 0) * 1200 + (gasPressed ? 1800 : 200)));
-  document.getElementById("rpm-val").textContent = rpm;
-  document.getElementById("rpm-needle").style.transform = `rotate(${-120 + (rpm / 8000) * 240}deg)`;
+    btnGas.addEventListener("touchstart", (e) => { e.preventDefault(); gasPressed = true; });
+    btnGas.addEventListener("touchend", (e) => { e.preventDefault(); gasPressed = false; });
+    btnGas.addEventListener("mousedown", () => gasPressed = true);
+    btnGas.addEventListener("mouseup", () => gasPressed = false);
 
-  // Quãng đường
-  distance = Math.max(0, Math.floor((car.position.x - 100) / 10));
-  document.getElementById("dist-val").textContent = distance;
+    btnBrake.addEventListener("touchstart", (e) => { e.preventDefault(); brakePressed = true; });
+    btnBrake.addEventListener("touchend", (e) => { e.preventDefault(); brakePressed = false; });
+    btnBrake.addEventListener("mousedown", () => brakePressed = true);
+    btnBrake.addEventListener("mouseup", () => brakePressed = false);
 
-  if(distance >= nextRefill){
-    spawnFuelCanAt(nextRefill);
-    nextRefill += REFILL_DISTANCE;
-  }
-  document.getElementById("refill-val").textContent = Math.max(0, nextRefill - distance) + " m";
-
-  updateItems();
-
-  // Kiểm tra Lật xe
-  const up = Vector.rotate({x:0, y:-1}, car.angle);
-  if(up.y > 0.45 && Math.abs(car.angularVelocity) < 0.08){
-    triggerCrash("Xe bị lật úp!");
-  }
-});
-
-function showComboToast(msg){
-  const toast = document.getElementById("combo-toast");
-  toast.textContent = msg;
-  toast.classList.add("show");
-  setTimeout(() => toast.classList.remove("show"), 1200);
-}
-
-// ================= CONTROLS =================
-function bindPedal(el, onStart, onEnd){
-  const start = e => { e.preventDefault(); if(countdownActive) return; el.classList.add("active"); onStart(); };
-  const end = e => { e.preventDefault(); el.classList.remove("active"); onEnd(); };
-  el.addEventListener("mousedown", start); el.addEventListener("mouseup", end); el.addEventListener("mouseleave", end);
-  el.addEventListener("touchstart", start); el.addEventListener("touchend", end);
-}
-
-bindPedal(document.getElementById("btn-gas"), () => gasPressed = true, () => gasPressed = false);
-bindPedal(document.getElementById("btn-brake"), () => brakePressed = true, () => brakePressed = false);
-
-window.addEventListener("keydown", e => {
-  if(countdownActive) return;
-  if(e.key === "ArrowRight" || e.key === "d") gasPressed = true;
-  if(e.key === "ArrowLeft" || e.key === "a") brakePressed = true;
-});
-window.addEventListener("keyup", e => {
-  if(e.key === "ArrowRight" || e.key === "d") gasPressed = false;
-  if(e.key === "ArrowLeft" || e.key === "a") brakePressed = false;
-});
-
-// ================= SHOP & UPGRADES =================
-function openShop(){
-  document.getElementById("game-over-modal").style.display = "none";
-  document.getElementById("shop-coin-count").textContent = totalCoins;
-  updateShopUI();
-  document.getElementById("shop-modal").style.display = "flex";
-}
-
-function closeShop(){
-  document.getElementById("shop-modal").style.display = "none";
-  document.getElementById("game-over-modal").style.display = "flex";
-}
-
-function updateShopUI(){
-  const keys = ["engine", "wheels", "shocks", "tank"];
-  keys.forEach(k => {
-    const lvl = upgrades[k];
-    const cost = UPGRADE_COSTS[k][lvl - 1];
-    document.getElementById(`lvl-${k}`).textContent = lvl >= 4 ? "LEVEL MAX" : `Lvl ${lvl} (Giá: 🪙 ${cost})`;
-    const btn = document.getElementById(`btn-up-${k}`);
-    if(lvl >= 4){
-      btn.disabled = true; btn.textContent = "MAX";
-    } else {
-      btn.disabled = totalCoins < cost;
-      btn.textContent = "Nâng Cấp";
-    }
-  });
-}
-
-function buyUpgrade(type){
-  const lvl = upgrades[type];
-  if(lvl >= 4) return;
-  const cost = UPGRADE_COSTS[type][lvl - 1];
-  if(totalCoins >= cost){
-    totalCoins -= cost;
-    upgrades[type]++;
-    localStorage.setItem("dune_coins", totalCoins);
-    saveUpgrades();
-    document.getElementById("coins-val").textContent = totalCoins;
-    document.getElementById("shop-coin-count").textContent = totalCoins;
-    updateShopUI();
-  }
-}
-
-// ================= GAME LIFECYCLE =================
-function startCountdown(){
-  countdownActive = true;
-  countdownTimer = 5;
-  hasStartedMoving = false;
-  const overlay = document.getElementById("countdown-overlay");
-  const text = document.getElementById("countdown-text");
-  text.textContent = "5";
-  overlay.style.display = "flex";
-}
-
-function resetGame(){
-  isGameOver = false;
-  isCrashPending = false;
-  crashTimer = 0;
-  cameraShake = 0;
-  fuelTimeLeft = FUEL_MAX_TIME;
-  nextRefill = REFILL_DISTANCE;
-  distance = 0;
-  sessionCoins = 0;
-  lastTimestamp = performance.now();
-  
-  document.getElementById("game-over-modal").style.display = "none";
-  clearVehicleAndTerrain();
-  generateTerrain(2000);
-  createVehicle(100, startY - 60);
-  startCountdown();
-}
-
-function clearVehicleAndTerrain(){
-  removeVehicle(); clearTerrain(); clearItems();
-}
-
-function triggerCrash(reason){
-  if(isGameOver || isCrashPending) return;
-  isCrashPending = true;
-  crashTimer = 0;
-  cameraShake = 12;
-  document.getElementById("game-over-reason").textContent = reason;
-}
-
-function showGameOverModal(){
-  isGameOver = true;
-  if(distance > personalBest){
-    personalBest = distance;
-    localStorage.setItem("dune_best", personalBest);
-    document.getElementById("best-val").textContent = personalBest;
-  }
-
-  document.getElementById("go-user-title").textContent = `${profile.country || "🌍"} ${profile.name || "Player"}`;
-  document.getElementById("go-distance").textContent = `${distance} m`;
-  document.getElementById("go-best").textContent = `${personalBest} m`;
-  document.getElementById("go-coins").textContent = `+${sessionCoins}`;
-
-  const board = JSON.parse(localStorage.getItem("dune_buggy_scores") || "[]");
-  const top1 = board.length > 0 ? board[0].meters : 1500;
-  const gap = Math.max(0, top1 - distance);
-  document.getElementById("go-top1-gap").textContent = gap > 0 ? `${gap} m` : "Bạn đã đứng Top 1!";
-
-  document.getElementById("game-over-modal").style.display = "flex";
-  saveScore(profile.name, profile.country, distance);
-}
-
-function restartGame(){ resetGame(); }
-
-function saveScore(name, country, meters){
-  if(!meters || meters <= 0) return;
-  const board = JSON.parse(localStorage.getItem("dune_buggy_scores") || "[]");
-  board.push({ name, country, meters, date: new Date().toISOString() });
-  board.sort((a, b) => b.meters - a.meters);
-  localStorage.setItem("dune_buggy_scores", JSON.stringify(board.slice(0, 30)));
-}
-
-// ================= LEADERBOARD WITH TABS =================
-function setLeaderboardTab(tab){
-  currentTab = tab;
-  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-  document.getElementById(`tab-${tab}`).classList.add('active');
-  renderLeaderboardList();
-}
-
-function showLeaderboard(){
-  renderLeaderboardList();
-  document.getElementById("leaderboard-panel").style.display = "flex";
-}
-
-function renderLeaderboardList(){
-  let board = JSON.parse(localStorage.getItem("dune_buggy_scores") || "[]");
-  
-  if(board.length === 0){
-    board = [
-      {name: "Alex", country: "🇺🇸 Hoa Kỳ", meters: 12450},
-      {name: "Bao", country: "🇻🇳 Việt Nam", meters: 11920},
-      {name: "Ken", country: "🇯🇵 Nhật Bản", meters: 10840}
-    ];
-  }
-
-  if(currentTab === 'vn'){
-    board = board.filter(item => item.country && item.country.includes("Việt Nam"));
-  } else if(currentTab === 'me'){
-    board = board.filter(item => item.name === profile.name);
-  }
-
-  const list = document.getElementById("leaderboard-list");
-  list.innerHTML = board.length ? "" : "<div style='text-align:center;padding:15px;color:#aaa'>Không tìm thấy dữ liệu.</div>";
-  
-  board.forEach((item, idx) => {
-    const isMe = item.name === profile.name && item.country === profile.country;
-    const rankBadge = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `#${idx + 1}`;
-    const row = document.createElement("div");
-    row.className = `board-row ${isMe ? "me" : ""}`;
-    row.innerHTML = `<div>${rankBadge}</div><div>${item.name}</div><div>${item.country}</div><div>${item.meters}m</div>`;
-    list.appendChild(row);
-  });
-}
-
-function resetLeaderboard(){
-  if(confirm("Bạn có chắc chắn muốn xóa tất cả kỷ lục trên bảng xếp hạng?")){
-    localStorage.removeItem("dune_buggy_scores");
-    renderLeaderboardList();
-  }
-}
-
-function closeLeaderboard(){
-  document.getElementById("leaderboard-panel").style.display = "none";
-}
-</script>
+    // INITIALIZE GAME
+    generateTerrain(2000);
+    createVehicle(100, startY - 60);
+  </script>
 </body>
 </html>
