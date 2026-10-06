@@ -186,7 +186,7 @@ canvas{display:block;width:100%;height:100%}
   </div>
 
   <!-- COMBO TOAST -->
-  <div id="combo-toast">🔥 PERFECT LANDING +300</div>
+  <div id="combo-toast">🔥 PERFECT LANDING +10</div>
 
   <!-- HUD TOP BAR -->
   <div class="top-bar">
@@ -410,7 +410,6 @@ function generateTerrain(toX){
       nextY = startY;
     } else {
       const hx = nextX - 500;
-      // Địa hình ngẫu nhiên nhiều nhịp dốc cao thấp xen kẽ
       nextY = startY 
             + Math.sin(hx * 0.005) * 110 
             + Math.cos(hx * 0.012) * 55 
@@ -418,7 +417,6 @@ function generateTerrain(toX){
     }
     terrainPoints.push({x:nextX, y:nextY});
     
-    // Tấm mặt đất chống lún
     const ground = Bodies.rectangle((lastX+nextX)/2, (lastY+nextY)/2 + 700, segmentWidth + 10, 1400, {
       isStatic: true,
       friction: 0.8 + upgrades.wheels * 0.08,
@@ -430,12 +428,10 @@ function generateTerrain(toX){
     Composite.add(engine.world, ground);
     terrainSegments.push(ground);
     
-    // Đá chướng ngại vật ngẫu nhiên
     if(nextX > 700 && Math.random() < 0.08){
       spawnRockAt(nextX, nextY - 15);
     }
 
-    // Coin ngẫu nhiên
     if(nextX > 600 && Math.random() < 0.35 && (nextX % COIN_SPACING < segmentWidth)){
       spawnCoinAt(nextX, nextY - 45);
     }
@@ -587,7 +583,6 @@ function drawTerrain(ctx){
 }
 
 function drawItems(ctx){
-  // Fuel
   for(const c of fuelCans){
     if(c.collected) continue;
     const x = c.body.position.x, y = c.body.position.y;
@@ -597,7 +592,6 @@ function drawItems(ctx){
     ctx.fillStyle = "#ffd34e"; ctx.font = "bold 13px Arial"; ctx.textAlign = "center"; ctx.fillText("F", 0, 6);
     ctx.restore();
   }
-  // Coins
   for(const coin of coinsList){
     if(coin.collected) continue;
     const x = coin.body.position.x, y = coin.body.position.y;
@@ -607,7 +601,6 @@ function drawItems(ctx){
     ctx.fillStyle = "#fff"; ctx.font = "bold 11px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("$", 0, 1);
     ctx.restore();
   }
-  // Obstacles (Rocks)
   for(const rock of obstaclesList){
     ctx.save(); ctx.translate(rock.position.x, rock.position.y);
     ctx.fillStyle = "#7f8c8d"; ctx.strokeStyle = "#2c3e50"; ctx.lineWidth = 2;
@@ -659,18 +652,20 @@ function drawCar(ctx){
   ctx.restore();
 }
 
-// Render Hooks
+// Render Hooks & CAMERA BÁM THEO XE MƯỢT MÀ
 Events.on(render, "beforeRender", () => {
   const ctx = render.context;
   if(car){
-    camX += (car.position.x - camX) * 0.1;
-    camY += (car.position.y - camY) * 0.1;
+    // Camera di chuyển theo xe trên cả trục X lẫn Y mượt mà
+    camX += (car.position.x - camX) * 0.12;
+    camY += (car.position.y - camY) * 0.12;
+    
     let offsetX = (Math.random() - 0.5) * cameraShake;
     let offsetY = (Math.random() - 0.5) * cameraShake;
 
     Render.lookAt(render, {
-      min: { x: camX - innerWidth * 0.35 + offsetX, y: camY - innerHeight * 0.5 + offsetY },
-      max: { x: camX + innerWidth * 0.65 + offsetX, y: camY + innerHeight * 0.5 + offsetY }
+      min: { x: camX - innerWidth * 0.4 + offsetX, y: camY - innerHeight * 0.55 + offsetY },
+      max: { x: camX + innerWidth * 0.6 + offsetX, y: camY + innerHeight * 0.45 + offsetY }
     });
     if(car.position.x + innerWidth > lastX) generateTerrain(car.position.x + innerWidth + 800);
   }
@@ -724,14 +719,12 @@ Events.on(engine, "beforeUpdate", () => {
 
   if(isGameOver) return;
 
-  // Kiểm tra di chuyển
   const speedVec = Body.getVelocity(car);
   const currentSpeed = Math.hypot(speedVec.x, speedVec.y);
   if(!hasStartedMoving && (currentSpeed > 0.1 || gasPressed || brakePressed)){
     hasStartedMoving = true;
   }
 
-  // Tiêu hao nhiên liệu
   if(hasStartedMoving){
     fuelTimeLeft = Math.max(0, fuelTimeLeft - delta);
   }
@@ -759,50 +752,48 @@ Events.on(engine, "beforeUpdate", () => {
     }
     airTime += delta;
 
-    // Tính góc xoay tích lũy
     let deltaAngle = car.angle - lastCarAngle;
     if(deltaAngle > Math.PI) deltaAngle -= Math.PI * 2;
     if(deltaAngle < -Math.PI) deltaAngle += Math.PI * 2;
     accumRotation += deltaAngle;
 
-    // ĐIỀU KHIỂN XOAY XE TRÊN KHÔNG (TILT CONTROL)
+    // ĐIỀU KHIỂN XOAY XE TRÊN KHÔNG
     if(gasPressed){
-      Body.setAngularVelocity(car, car.angularVelocity + 0.035); // Ngửa đầu
+      Body.setAngularVelocity(car, car.angularVelocity + 0.035);
     } else if(brakePressed){
-      Body.setAngularVelocity(car, car.angularVelocity - 0.035); // Chúc đầu
+      Body.setAngularVelocity(car, car.angularVelocity - 0.035);
     }
   } else {
-    // VỪA ĐÁP ĐẤT (LANDING)
+    // VỪA ĐÁP ĐẤT -> ĐIỂM THƯỞNG COMBO GIẢM 10 LẦN
     if(isInAir){
       isInAir = false;
 
-      // Xử lý Flip
       const fullFlips = Math.floor(Math.abs(accumRotation) / (Math.PI * 1.8));
       if(fullFlips > 0){
         const isBackflip = accumRotation < 0;
         const flipName = isBackflip ? "BACKFLIP" : "FRONTFLIP";
-        const reward = fullFlips * 200;
+        const reward = fullFlips * 20; // Giảm 10 lần (từ 200 -> 20)
         addCoins(reward);
         showComboToast(`🔄 ${flipName} ${fullFlips > 1 ? 'x'+fullFlips : ''} +${reward}`);
       } else if(airTime > 1.2){
-        addCoins(50);
-        showComboToast(`🚀 AIR TIME +50`);
+        addCoins(5); // Giảm 10 lần (từ 50 -> 5)
+        showComboToast(`🚀 AIR TIME +5`);
       } else if(Math.abs(car.angle) < 0.25){
-        addCoins(100);
-        showComboToast(`🔥 PERFECT LANDING +100`);
+        addCoins(10); // Giảm 10 lần (từ 100 -> 10)
+        showComboToast(`🔥 PERFECT LANDING +10`);
       }
     }
 
-    // ĐIỀU KHIỂN LÁI DƯỚI ĐẤT
-    const motorPower = 0.0024 + (upgrades.engine - 1) * 0.0006;
+    // BÁNH SAU LÀ LỰC ĐẨY CHÍNH (REAR WHEEL DRIVE)
+    const motorPower = 0.0035 + (upgrades.engine - 1) * 0.0008;
     if(gasPressed){
-      Body.setAngularVelocity(rearWheel, 0.35);
-      Body.setAngularVelocity(frontWheel, 0.35);
-      Body.applyForce(car, car.position, {x: motorPower, y: 0});
+      // Động cơ xoay bánh sau & tác dụng lực đẩy chính vào bánh sau
+      Body.setAngularVelocity(rearWheel, 0.45);
+      Body.applyForce(rearWheel, rearWheel.position, {x: motorPower, y: 0});
     } else if(brakePressed){
-      Body.setAngularVelocity(rearWheel, -0.25);
-      Body.setAngularVelocity(frontWheel, -0.25);
-      Body.applyForce(car, car.position, {x: -motorPower * 0.7, y: 0});
+      // Phanh tác động bánh sau
+      Body.setAngularVelocity(rearWheel, -0.3);
+      Body.applyForce(rearWheel, rearWheel.position, {x: -motorPower * 0.6, y: 0});
     }
   }
 
@@ -998,7 +989,6 @@ function renderLeaderboardList(){
   let board = JSON.parse(localStorage.getItem("dune_buggy_scores") || "[]");
   
   if(board.length === 0){
-    // Dummy Data ban đầu cho phong phú
     board = [
       {name: "Alex", country: "🇺🇸 Hoa Kỳ", meters: 12450},
       {name: "Bao", country: "🇻🇳 Việt Nam", meters: 11920},
