@@ -12,37 +12,50 @@
     
     /* HUD Overlay */
     #hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 15px; }
-    .hud-top { display: flex; justify-content: space-between; width: 100%; }
+    .hud-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
     .hud-card { background: rgba(0, 0, 0, 0.6); border: 2px solid rgba(255, 255, 255, 0.2); backdrop-filter: blur(5px); border-radius: 12px; padding: 8px 15px; color: #fff; font-weight: bold; font-size: 16px; display: flex; align-items: center; gap: 8px; }
     
-    /* Fuel Bar */
-    .fuel-container { width: 180px; height: 16px; background: rgba(0, 0, 0, 0.5); border: 2px solid #fff; border-radius: 8px; overflow: hidden; position: relative; }
+    /* Fuel & Nitro Bar */
+    .bar-container { width: 150px; height: 16px; background: rgba(0, 0, 0, 0.5); border: 2px solid #fff; border-radius: 8px; overflow: hidden; position: relative; }
     .fuel-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ff4e50, #f9d423); transition: width 0.1s linear; }
     
-    /* Speedometer */
-    .speedometer { position: relative; width: 80px; height: 80px; background: rgba(0, 0, 0, 0.6); border-radius: 50%; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; }
-    .speed-needle { position: absolute; width: 2px; height: 35px; background: #ff3333; top: 5px; transform-origin: bottom center; transform: rotate(-120deg); transition: transform 0.05s linear; }
-    .speed-text { position: absolute; bottom: 12px; color: #fff; font-size: 12px; font-weight: bold; }
-    
-    /* Controls */
-    .controls { display: flex; justify-content: space-between; width: 100%; pointer-events: auto; padding-bottom: 10px; }
-    .btn-ctrl { width: 90px; height: 90px; border-radius: 50%; background: rgba(255, 255, 255, 0.2); border: 3px solid rgba(255, 255, 255, 0.5); color: #fff; font-size: 20px; font-weight: bold; display: flex; justify-content: center; align-items: center; touch-action: manipulation; }
-    .btn-ctrl:active { background: rgba(255, 255, 255, 0.5); transform: scale(0.95); }
+    /* Nitro Center Bar */
+    .nitro-card { background: rgba(0, 0, 0, 0.7); border: 2px solid #00d2ff; backdrop-filter: blur(5px); border-radius: 12px; padding: 6px 16px; color: #00d2ff; font-weight: bold; font-size: 14px; display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: 0 0 10px rgba(0,210,255,0.3); }
+    .nitro-bar-container { width: 180px; height: 14px; background: rgba(0, 0, 0, 0.6); border: 1.5px solid #00d2ff; border-radius: 7px; overflow: hidden; }
+    .nitro-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #00d2ff, #0055ff); transition: width 0.05s linear; }
 
-    /* Modals & Menus */
+    /* Speedometer */
+    .speedometer { position: relative; width: 75px; height: 75px; background: rgba(0, 0, 0, 0.6); border-radius: 50%; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; }
+    .speed-needle { position: absolute; width: 2px; height: 32px; background: #ff3333; top: 5px; transform-origin: bottom center; transform: rotate(-120deg); transition: transform 0.05s linear; }
+    .speed-text { position: absolute; bottom: 10px; color: #fff; font-size: 11px; font-weight: bold; }
+    
+    /* Countdown Overlay */
+    #countdown-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 15; display: flex; justify-content: center; align-items: center; pointer-events: none; }
+    #countdown-text { font-size: 90px; font-weight: 900; color: #ffd34e; text-shadow: 0 0 20px rgba(255, 211, 78, 0.8), 4px 4px 0px #000; font-family: sans-serif; transition: transform 0.1s ease-out; }
+
+    /* Controls */
+    .controls { display: flex; justify-content: space-between; align-items: flex-end; width: 100%; pointer-events: auto; padding-bottom: 10px; }
+    .btn-group { display: flex; gap: 12px; }
+    .btn-ctrl { width: 85px; height: 85px; border-radius: 50%; background: rgba(255, 255, 255, 0.2); border: 3px solid rgba(255, 255, 255, 0.5); color: #fff; font-size: 18px; font-weight: bold; display: flex; justify-content: center; align-items: center; touch-action: manipulation; cursor: pointer; }
+    .btn-ctrl:active { background: rgba(255, 255, 255, 0.5); transform: scale(0.95); }
+    .btn-nitro { background: rgba(0, 210, 255, 0.3); border-color: #00d2ff; color: #00d2ff; }
+    .btn-nitro:active { background: rgba(0, 210, 255, 0.7); }
+
+    /* Modals */
     .modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; }
     .modal-content { background: #222; border: 2px solid #444; border-radius: 16px; padding: 25px; width: 90%; max-width: 420px; color: #fff; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
     .btn { background: linear-gradient(135deg, #ff8c00, #e52d27); border: none; padding: 12px 24px; color: #fff; font-weight: bold; border-radius: 8px; cursor: pointer; font-size: 16px; margin-top: 15px; width: 100%; pointer-events: auto; }
     .btn:active { transform: scale(0.98); }
-    
-    /* Leaderboard / Shop Tabs */
-    .tab-btn { background: #333; color: #888; border: none; padding: 8px 16px; cursor: pointer; border-radius: 6px; font-weight: bold; }
-    .tab-btn.active { background: #ff8c00; color: #fff; }
   </style>
 </head>
 <body>
 
   <div id="game-container"></div>
+
+  <!-- COUNTDOWN OVERLAY -->
+  <div id="countdown-overlay">
+    <div id="countdown-text"></div>
+  </div>
 
   <!-- HUD -->
   <div id="hud">
@@ -50,15 +63,26 @@
       <div class="hud-card">
         🪙 <span id="coin-val">0</span>
       </div>
+
+      <!-- THANH NITRO Ở GIỮA MÀN HÌNH -->
+      <div class="nitro-card">
+        ⚡ NITRO (SHIFT)
+        <div class="nitro-bar-container">
+          <div id="nitro-fill" class="nitro-fill"></div>
+        </div>
+      </div>
+
       <div class="hud-card">
         ⛽
-        <div class="fuel-container">
+        <div class="bar-container">
           <div id="fuel-fill" class="fuel-fill"></div>
         </div>
       </div>
+
       <div class="hud-card">
         📏 <span id="dist-val">0</span>m
       </div>
+
       <div class="speedometer">
         <div id="speed-needle" class="speed-needle"></div>
         <div class="speed-text"><span id="speed-val">0</span> km/h</div>
@@ -67,7 +91,10 @@
 
     <div class="controls">
       <div id="btn-brake" class="btn-ctrl">PHANH</div>
-      <div id="btn-gas" class="btn-ctrl">GA</div>
+      <div class="btn-group">
+        <div id="btn-nitro" class="btn-ctrl btn-nitro">⚡ NITRO</div>
+        <div id="btn-gas" class="btn-ctrl">GA</div>
+      </div>
     </div>
   </div>
 
@@ -82,12 +109,12 @@
   </div>
 
   <script>
-    const { Engine, Render, Runner, Bodies, Composite, Body, Events, Vector } = Matter;
+    const { Engine, Render, Runner, Bodies, Composite, Body, Events } = Matter;
 
     const container = document.getElementById("game-container");
     const engine = Engine.create({ gravity: { x: 0, y: 1.2 } });
 
-    // 1. SỬA PHẦN TẠO RENDER
+    // RENDER SYSTEM
     const render = Render.create({
       element: container,
       engine: engine,
@@ -103,40 +130,38 @@
 
     Render.run(render);
 
-    const runner = Runner.create({
-      delta: 1000 / 60
-    });
-
+    const runner = Runner.create({ delta: 1000 / 60 });
     Runner.run(runner, engine);
 
     // GAME VARIABLES
     let car, rearWheel, frontWheel;
     let gasPressed = false;
     let brakePressed = false;
+    let nitroPressed = false;
+
     let distance = 0;
     let coins = 0;
     let fuel = 100;
+    let nitro = 100; // 0 - 100%
     let cameraShake = 0;
     let lastX = 0;
     let startY = 400;
 
+    let isGameReady = false; // Trạng thái sẵn sàng (sau khi đếm ngược)
+
     let profile = { name: "PLAYER", country: "VN" };
     let upgrades = { engine: 1, wheels: 1 };
 
-    // ================= VEHICLE SPEED CONTROL =================
-    const MAX_SPEED_KMH = 65;
-    const MAX_SPEED = MAX_SPEED_KMH / 3.6;
+    // SPEED CONTROL
+    const BASE_MAX_SPEED_KMH = 65;
+    const NITRO_MAX_SPEED_KMH = 110;
 
     let throttleAmount = 0;
     const THROTTLE_ACCELERATION = 1.8;
     const THROTTLE_RELEASE = 3.0;
     const BRAKE_POWER = 0.10;
 
-    // 2. THÊM HỆ THỐNG CAMERA MỚI
-    let camX = 0, camY = 0;
-    let currentTab = 'world';
-
-    // ================= CAMERA SYSTEM =================
+    // CAMERA SYSTEM
     let cameraX = 100;
     let cameraY = startY;
     let cameraTargetX = 100;
@@ -144,7 +169,6 @@
 
     const CAMERA_FOLLOW_X = 0.10;
     const CAMERA_FOLLOW_Y = 0.075;
-
     const CAMERA_PLAYER_SCREEN_X = 0.38;
     const CAMERA_PLAYER_SCREEN_Y = 0.55;
 
@@ -153,21 +177,15 @@
 
       const viewWidth = render.options.width;
       const viewHeight = render.options.height;
-
       const velocityX = car.velocity.x;
 
-      cameraTargetX =
-        car.position.x +
-        Math.max(-80, Math.min(180, velocityX * 18));
-
-      cameraTargetY =
-        car.position.y + 20;
+      cameraTargetX = car.position.x + Math.max(-80, Math.min(180, velocityX * 18));
+      cameraTargetY = car.position.y + 20;
 
       cameraX += (cameraTargetX - cameraX) * CAMERA_FOLLOW_X;
       cameraY += (cameraTargetY - cameraY) * CAMERA_FOLLOW_Y;
 
       const minimumCameraY = startY - 80;
-
       if(cameraY > minimumCameraY){
         cameraY += (minimumCameraY - cameraY) * 0.08;
       }
@@ -177,32 +195,51 @@
 
       render.bounds.min.x = minX;
       render.bounds.min.y = minY;
-
       render.bounds.max.x = minX + viewWidth;
       render.bounds.max.y = minY + viewHeight;
     }
 
     function resizeGame(){
-      Render.setSize(
-        render,
-        window.innerWidth,
-        window.innerHeight
-      );
-
+      Render.setSize(render, window.innerWidth, window.innerHeight);
       render.options.width = window.innerWidth;
       render.options.height = window.innerHeight;
-
-      if(car){
-        updateCamera();
-      }
+      if(car) updateCamera();
     }
 
     window.addEventListener("resize", resizeGame);
-    window.addEventListener("orientationchange", () => {
-      setTimeout(resizeGame, 150);
-    });
+    window.addEventListener("orientationchange", () => setTimeout(resizeGame, 150));
 
-    // 11. SỬA CREATEVEHICLE()
+    // ĐẾM NGƯỢC 3 GIÂY CHUẨN BỊ
+    function startCountdown(onComplete) {
+      isGameReady = false;
+      let count = 3;
+      const el = document.getElementById("countdown-text");
+      el.style.display = "block";
+
+      function tick() {
+        if (count > 0) {
+          el.textContent = count;
+          el.style.transform = "scale(1.3)";
+          setTimeout(() => el.style.transform = "scale(1)", 150);
+          count--;
+          setTimeout(tick, 1000);
+        } else if (count === 0) {
+          el.textContent = "GO!";
+          el.style.color = "#00ff66";
+          el.style.transform = "scale(1.4)";
+          count--;
+          setTimeout(tick, 800);
+        } else {
+          el.style.display = "none";
+          el.style.color = "#ffd34e";
+          isGameReady = true;
+          if (onComplete) onComplete();
+        }
+      }
+      tick();
+    }
+
+    // VEHICLE CREATION
     function createVehicle(x, y) {
       car = Bodies.rectangle(x, y, 130, 36, {
         density: 0.004,
@@ -229,19 +266,11 @@
       frontWheel = Bodies.circle(x + 42, y + 20, 28, wheelOptions);
 
       const axleRear = Matter.Constraint.create({
-        bodyA: car,
-        bodyB: rearWheel,
-        pointA: { x: -42, y: 20 },
-        stiffness: 0.4,
-        damping: 0.15
+        bodyA: car, bodyB: rearWheel, pointA: { x: -42, y: 20 }, stiffness: 0.4, damping: 0.15
       });
 
       const axleFront = Matter.Constraint.create({
-        bodyA: car,
-        bodyB: frontWheel,
-        pointA: { x: 42, y: 20 },
-        stiffness: 0.4,
-        damping: 0.15
+        bodyA: car, bodyB: frontWheel, pointA: { x: 42, y: 20 }, stiffness: 0.4, damping: 0.15
       });
 
       Composite.add(engine.world, [car, rearWheel, frontWheel, axleRear, axleFront]);
@@ -257,7 +286,7 @@
       while (currX < toX) {
         let nextX = currX + 60 + Math.random() * 40;
         let nextY = currY + (Math.random() - 0.5) * 80;
-        if (currX < 500) nextY = startY; // Đoạn đầu phẳng
+        if (currX < 500) nextY = startY;
 
         let body = Bodies.rectangle((currX + nextX) / 2, (currY + nextY) / 2 + 300, nextX - currX, 600, {
           isStatic: true,
@@ -292,77 +321,78 @@
       ctx.stroke();
     }
 
-    function drawItems(ctx) {
-      // Logic vẽ Coin / Fuel items nếu có
-    }
+    function drawItems(ctx) {}
 
     function drawBackground(ctx, w, h, camX) {
       ctx.fillStyle = "#1a0033";
       ctx.fillRect(0, 0, w, h);
     }
 
-    // 3. SỬA PHẦN CAMERA HIỆN TẠI (BEFORE RENDER)
+    // BEFORE RENDER
     Events.on(render, "beforeRender", () => {
       const ctx = render.context;
 
       if(car){
         updateCamera();
-
         if(car.position.x + render.options.width > lastX){
-          generateTerrain(
-            car.position.x +
-            render.options.width +
-            1000
-          );
+          generateTerrain(car.position.x + render.options.width + 1000);
         }
       }
 
-      let shakeX = 0;
-      let shakeY = 0;
-
+      let shakeX = 0, shakeY = 0;
       if(cameraShake > 0){
         shakeX = (Math.random() - 0.5) * cameraShake;
         shakeY = (Math.random() - 0.5) * cameraShake;
-
         render.bounds.min.x += shakeX;
         render.bounds.max.x += shakeX;
-
         render.bounds.min.y += shakeY;
         render.bounds.max.y += shakeY;
         cameraShake *= 0.9;
       }
 
-      drawBackground(
-        ctx,
-        render.canvas.width,
-        render.canvas.height,
-        cameraX
-      );
+      drawBackground(ctx, render.canvas.width, render.canvas.height, cameraX);
     });
 
-    // 4. SỬA AFTERRENDER
+    // AFTER RENDER
     Events.on(render, "afterRender", () => {
       const ctx = render.context;
-
       Render.startViewTransform(render);
-
       drawTerrain(ctx);
       drawItems(ctx);
       drawCar(ctx);
-
       Render.endViewTransform(render);
     });
 
-    // 6. THAY PHẦN ĐIỀU KHIỂN ĐỘNG CƠ & 7. GIA TỐC PHẦN BAY & 8. ĐỒNG HỒ SPEED & 13. SỬA TÍNH FLIP
+    // GAME LOOP / ENGINE UPDATE
     let accumRotation = 0;
     let lastAngle = 0;
 
     Events.on(engine, "beforeUpdate", (event) => {
       if (!car) return;
 
-      const delta = event.delta / 1000;
+      const delta = event.delta / 1000; // Giây
 
-      // ================= SMOOTH ACCELERATION =================
+      // CƠ CHẾ NẠP VÀ SỬ DỤNG NITRO
+      // 5s dùng hết -> tiêu tốn 20%/s
+      // 10s nạp đầy -> hồi 10%/s
+      const isUsingNitro = isGameReady && nitroPressed && nitro > 0;
+
+      if (isUsingNitro) {
+        nitro = Math.max(0, nitro - 20 * delta); // Dùng hết trong 5s
+        cameraShake = 3; // Rung nhẹ khi dùng Nitro
+      } else {
+        nitro = Math.min(100, nitro + 10 * delta); // Nạp lại đầy trong 10s
+      }
+      document.getElementById("nitro-fill").style.width = nitro + "%";
+
+      // NẾU CHƯA SẴN SÀNG (ĐANG ĐẾM NGƯỢC) -> GIỮ XE DỪNG YÊN
+      if (!isGameReady) {
+        Body.setVelocity(car, { x: 0, y: car.velocity.y });
+        Body.setAngularVelocity(car, 0);
+        return;
+      }
+
+      // ACCELERATION & THROTTLE
       if(gasPressed){
         throttleAmount += delta * THROTTLE_ACCELERATION;
         throttleAmount = Math.min(1, throttleAmount);
@@ -374,82 +404,71 @@
       const velocity = Body.getVelocity(car);
       const currentSpeed = Math.hypot(velocity.x, velocity.y);
       const engineLevel = upgrades.engine || 1;
-      const enginePower = 0.00065 + (engineLevel - 1) * 0.00012;
+      
+      // Sức mạnh động cơ (x2 nếu bật Nitro)
+      let enginePower = 0.00065 + (engineLevel - 1) * 0.00012;
+      if (isUsingNitro) enginePower *= 2.2;
+
       const driveForce = enginePower * throttleAmount;
+      const forward = { x: Math.cos(car.angle), y: Math.sin(car.angle) };
 
-      const forward = {
-        x: Math.cos(car.angle),
-        y: Math.sin(car.angle)
-      };
+      // Tốc độ tối đa (tăng lên khi dùng Nitro)
+      const currentMaxKmh = isUsingNitro ? NITRO_MAX_SPEED_KMH : BASE_MAX_SPEED_KMH;
+      const currentMaxSpeed = currentMaxKmh / 3.6;
 
-      if(gasPressed && currentSpeed < MAX_SPEED){
-        Body.applyForce(
-          rearWheel,
-          rearWheel.position,
-          {
-            x: forward.x * driveForce,
-            y: forward.y * driveForce
-          }
-        );
+      if((gasPressed || isUsingNitro) && currentSpeed < currentMaxSpeed){
+        Body.applyForce(rearWheel, rearWheel.position, {
+          x: forward.x * driveForce,
+          y: forward.y * driveForce
+        });
       }
 
-      // ================= PHANH =================
+      // PHANH
       if(brakePressed){
         const brakeFactor = Math.min(1, currentSpeed / 3);
-        Body.setVelocity(
-          car,
-          {
-            x: car.velocity.x * (1 - BRAKE_POWER * brakeFactor),
-            y: car.velocity.y
-          }
-        );
-        Body.setAngularVelocity(
-          rearWheel,
-          rearWheel.angularVelocity * 0.90
-        );
+        Body.setVelocity(car, {
+          x: car.velocity.x * (1 - BRAKE_POWER * brakeFactor),
+          y: car.velocity.y
+        });
+        Body.setAngularVelocity(rearWheel, rearWheel.angularVelocity * 0.90);
       }
 
-      // ================= SPEED LIMIT =================
+      // GIỚI HẠN TỐC ĐỘ TOÀN CỤC
       const limitedVelocity = Body.getVelocity(car);
       const limitedSpeed = Math.hypot(limitedVelocity.x, limitedVelocity.y);
 
-      if(limitedSpeed > MAX_SPEED){
-        const ratio = MAX_SPEED / limitedSpeed;
-        Body.setVelocity(
-          car,
-          {
-            x: limitedVelocity.x * ratio,
-            y: limitedVelocity.y * ratio
-          }
-        );
+      if(limitedSpeed > currentMaxSpeed){
+        const ratio = currentMaxSpeed / limitedSpeed;
+        Body.setVelocity(car, {
+          x: limitedVelocity.x * ratio,
+          y: limitedVelocity.y * ratio
+        });
       }
 
-      // 7. CHO BÁNH XE TĂNG TỐC TỪ TỪ KHU BAY (ĐIỀU CHỈNH XOAY XE)
+      // NGHIÊNG XE KHU BAY
       if(gasPressed){
         Body.setAngularVelocity(car, car.angularVelocity + 0.012);
       } else if(brakePressed){
         Body.setAngularVelocity(car, car.angularVelocity - 0.012);
       }
 
-      // 8. SỬA ĐỒNG HỒ SPEED
+      // ĐỒNG HỒ SPEED
       const realSpeed = Math.hypot(car.velocity.x, car.velocity.y);
       const speedDisplay = Math.max(0, Math.floor(realSpeed * 3.6));
 
       document.getElementById("speed-val").textContent = speedDisplay;
       document.getElementById("speed-needle").style.transform =
-        `rotate(${-120 + Math.min(speedDisplay / MAX_SPEED_KMH, 1) * 240}deg)`;
+        `rotate(${-120 + Math.min(speedDisplay / NITRO_MAX_SPEED_KMH, 1) * 240}deg)`;
 
-      // 13. SỬA TÍNH FLIP CHÍNH XÁC (360 DEG)
+      // FLIP LOGIC
       let da = car.angle - lastAngle;
       if (da > Math.PI) da -= Math.PI * 2;
       if (da < -Math.PI) da += Math.PI * 2;
       accumRotation += da;
       lastAngle = car.angle;
 
-      const fullFlips = Math.floor(Math.abs(accumRotation) / (Math.PI * 2));
-
-      // FUEL & DISTANCE LOGIC
-      if (gasPressed) fuel -= 0.05;
+      // NHIÊN LIỆU & QUÃNG ĐƯỜNG
+      if (gasPressed || isUsingNitro) fuel -= 0.05;
       document.getElementById("fuel-fill").style.width = Math.max(0, fuel) + "%";
       
       distance = Math.max(distance, Math.floor((car.position.x - 100) / 10));
@@ -462,11 +481,10 @@
       }
     });
 
-    // 9. CẢI THIỆN NGOẠI HÌNH XE
+    // VẼ XE
     function drawCar(ctx){
       if(!car) return;
 
-      // WHEELS
       drawWheel(ctx, rearWheel);
       drawWheel(ctx, frontWheel);
 
@@ -491,14 +509,9 @@
       ctx.strokeStyle = "#080808";
       ctx.lineWidth = 4;
       ctx.beginPath();
-      ctx.moveTo(-67, 8);
-      ctx.lineTo(-77, 14);
-      ctx.lineTo(-73, 22);
-      ctx.lineTo(-52, 22);
-      ctx.lineTo(-48, 13);
+      ctx.moveTo(-67, 8); ctx.lineTo(-77, 14); ctx.lineTo(-73, 22); ctx.lineTo(-52, 22); ctx.lineTo(-48, 13);
       ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
+      ctx.fill(); ctx.stroke();
 
       // MAIN BODY
       const bodyGradient = ctx.createLinearGradient(0, -25, 0, 28);
@@ -510,27 +523,14 @@
       ctx.strokeStyle = "#111";
       ctx.lineWidth = 4;
       ctx.beginPath();
-      ctx.moveTo(-62, 8);
-      ctx.lineTo(-51, -17);
-      ctx.lineTo(-18, -23);
-      ctx.lineTo(27, -21);
-      ctx.lineTo(56, -7);
-      ctx.lineTo(63, 13);
-      ctx.lineTo(48, 23);
-      ctx.lineTo(-52, 23);
+      ctx.moveTo(-62, 8); ctx.lineTo(-51, -17); ctx.lineTo(-18, -23); ctx.lineTo(27, -21); ctx.lineTo(56, -7); ctx.lineTo(63, 13); ctx.lineTo(48, 23); ctx.lineTo(-52, 23);
       ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
+      ctx.fill(); ctx.stroke();
 
       // SIDE PANEL
       ctx.fillStyle = "#b91f1f";
       ctx.beginPath();
-      ctx.moveTo(-43, -5);
-      ctx.lineTo(-17, -17);
-      ctx.lineTo(20, -17);
-      ctx.lineTo(42, -5);
-      ctx.lineTo(36, 10);
-      ctx.lineTo(-38, 10);
+      ctx.moveTo(-43, -5); ctx.lineTo(-17, -17); ctx.lineTo(20, -17); ctx.lineTo(42, -5); ctx.lineTo(36, 10); ctx.lineTo(-38, 10);
       ctx.closePath();
       ctx.fill();
 
@@ -539,16 +539,12 @@
       ctx.lineWidth = 6;
       ctx.lineCap = "round";
       ctx.beginPath();
-      ctx.moveTo(-38, 4);
-      ctx.lineTo(-28, -42);
-      ctx.lineTo(22, -42);
-      ctx.lineTo(43, -4);
+      ctx.moveTo(-38, 4); ctx.lineTo(-28, -42); ctx.lineTo(22, -42); ctx.lineTo(43, -4);
       ctx.stroke();
 
       ctx.lineWidth = 4;
       ctx.beginPath();
-      ctx.moveTo(-5, -42);
-      ctx.lineTo(-2, -10);
+      ctx.moveTo(-5, -42); ctx.lineTo(-2, -10);
       ctx.stroke();
 
       // WINDSHIELD
@@ -560,13 +556,9 @@
       ctx.strokeStyle = "#111";
       ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.moveTo(-23, -38);
-      ctx.lineTo(19, -38);
-      ctx.lineTo(32, -20);
-      ctx.lineTo(-18, -20);
+      ctx.moveTo(-23, -38); ctx.lineTo(19, -38); ctx.lineTo(32, -20); ctx.lineTo(-18, -20);
       ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
+      ctx.fill(); ctx.stroke();
 
       // DRIVER
       ctx.fillStyle = "#d98c61";
@@ -594,32 +586,26 @@
       ctx.fill();
       ctx.shadowBlur = 0;
 
-      // FRONT BUMPER
-      ctx.strokeStyle = "#222";
-      ctx.lineWidth = 5;
-      ctx.beginPath();
-      ctx.moveTo(52, 16);
-      ctx.lineTo(70, 20);
-      ctx.lineTo(66, 27);
-      ctx.stroke();
-
-      // EXHAUST
+      // EXHAUST (LỬA NITRO KHU BẬT)
       ctx.strokeStyle = "#444";
       ctx.lineWidth = 6;
       ctx.beginPath();
-      ctx.moveTo(-53, 7);
-      ctx.lineTo(-72, 1);
+      ctx.moveTo(-53, 7); ctx.lineTo(-72, 1);
       ctx.stroke();
 
-      ctx.fillStyle = "#777";
-      ctx.beginPath();
-      ctx.arc(-73, 1, 4, 0, Math.PI * 2);
-      ctx.fill();
+      if (nitroPressed && nitro > 0 && isGameReady) {
+        ctx.fillStyle = "#00d2ff";
+        ctx.shadowColor = "#0055ff";
+        ctx.shadowBlur = 15;
+        ctx.beginPath();
+        ctx.arc(-82 - Math.random() * 8, 1, 7 + Math.random() * 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
 
       // PLAYER NAME
       ctx.fillStyle = "rgba(0,0,0,0.75)";
       ctx.fillRect(-45, -72, 90, 18);
-
       ctx.strokeStyle = "#ffd34e";
       ctx.lineWidth = 2;
       ctx.strokeRect(-45, -72, 90, 18);
@@ -633,7 +619,7 @@
       ctx.restore();
     }
 
-    // 10. CẢI THIỆN BÁNH XE
+    // VẼ BÁNH XE
     function drawWheel(ctx, w){
       if(!w) return;
 
@@ -641,18 +627,15 @@
       ctx.translate(w.position.x, w.position.y);
       ctx.rotate(w.angle);
 
-      // Lốp
       ctx.fillStyle = "#111";
       ctx.beginPath();
       ctx.arc(0, 0, 28, 0, Math.PI * 2);
       ctx.fill();
 
-      // Viền lốp
       ctx.strokeStyle = "#333";
       ctx.lineWidth = 5;
       ctx.stroke();
 
-      // Mâm
       const rim = ctx.createRadialGradient(0, 0, 2, 0, 0, 13);
       rim.addColorStop(0, "#ddd");
       rim.addColorStop(1, "#555");
@@ -662,22 +645,16 @@
       ctx.arc(0, 0, 13, 0, Math.PI * 2);
       ctx.fill();
 
-      // 5 nan hoa
       ctx.strokeStyle = "#222";
       ctx.lineWidth = 3;
-
       for(let i = 0; i < 5; i++){
         const angle = i * Math.PI * 2 / 5;
         ctx.beginPath();
         ctx.moveTo(0, 0);
-        ctx.lineTo(
-          Math.cos(angle) * 11,
-          Math.sin(angle) * 11
-        );
+        ctx.lineTo(Math.cos(angle) * 11, Math.sin(angle) * 11);
         ctx.stroke();
       }
 
-      // Tâm bánh
       ctx.fillStyle = "#bbb";
       ctx.beginPath();
       ctx.arc(0, 0, 4, 0, Math.PI * 2);
@@ -686,60 +663,56 @@
       ctx.restore();
     }
 
-    // 12. SỬA RESETGAME()
+    // RESET GAME & KHỞI ĐỘNG LẠI ĐẾM NGƯỢC
     function restartGame() {
       document.getElementById("game-over-modal").style.display = "none";
       
-      // Xóa xe cũ khỏi world
       if (car) {
         Composite.remove(engine.world, [car, rearWheel, frontWheel]);
       }
 
       fuel = 100;
+      nitro = 100;
       distance = 0;
       accumRotation = 0;
 
       createVehicle(100, startY - 60);
 
-      // Reset camera về vị trí xuất phát
-      cameraX = 100;
-      cameraY = startY;
+      // Reset camera
+      cameraX = 100; cameraY = startY;
+      cameraTargetX = 100; cameraTargetY = startY;
 
-      cameraTargetX = 100;
-      cameraTargetY = startY;
-
-      render.bounds.min.x =
-        cameraX -
-        render.options.width * CAMERA_PLAYER_SCREEN_X;
-
-      render.bounds.min.y =
-        cameraY -
-        render.options.height * CAMERA_PLAYER_SCREEN_Y;
-
-      render.bounds.max.x =
-        render.bounds.min.x +
-        render.options.width;
-
-      render.bounds.max.y =
-        render.bounds.min.y +
-        render.options.height;
+      render.bounds.min.x = cameraX - render.options.width * CAMERA_PLAYER_SCREEN_X;
+      render.bounds.min.y = cameraY - render.options.height * CAMERA_PLAYER_SCREEN_Y;
+      render.bounds.max.x = render.bounds.min.x + render.options.width;
+      render.bounds.max.y = render.bounds.min.y + render.options.height;
 
       throttleAmount = 0;
+      gasPressed = false;
+      brakePressed = false;
+      nitroPressed = false;
+
+      // Chạy lại đếm ngược
+      startCountdown();
     }
 
-    // INPUT CONTROLS (14. BÀN PHÍM: Right/D = Ga, Left/A = Phanh)
+    // BÀN PHÍM: Shift = Nitro, Right/D = Ga, Left/A = Phanh
     window.addEventListener("keydown", (e) => {
       if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") gasPressed = true;
       if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") brakePressed = true;
+      if (e.key === "Shift") nitroPressed = true;
     });
 
     window.addEventListener("keyup", (e) => {
       if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") gasPressed = false;
       if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") brakePressed = false;
+      if (e.key === "Shift") nitroPressed = false;
     });
 
+    // NÚT ĐIỀU KHIỂN CẢM ỨNG
     const btnGas = document.getElementById("btn-gas");
     const btnBrake = document.getElementById("btn-brake");
+    const btnNitro = document.getElementById("btn-nitro");
 
     btnGas.addEventListener("touchstart", (e) => { e.preventDefault(); gasPressed = true; });
     btnGas.addEventListener("touchend", (e) => { e.preventDefault(); gasPressed = false; });
@@ -751,9 +724,15 @@
     btnBrake.addEventListener("mousedown", () => brakePressed = true);
     btnBrake.addEventListener("mouseup", () => brakePressed = false);
 
-    // INITIALIZE GAME
+    btnNitro.addEventListener("touchstart", (e) => { e.preventDefault(); nitroPressed = true; });
+    btnNitro.addEventListener("touchend", (e) => { e.preventDefault(); nitroPressed = false; });
+    btnNitro.addEventListener("mousedown", () => nitroPressed = true);
+    btnNitro.addEventListener("mouseup", () => nitroPressed = false);
+
+    // KÍCH HOẠT GAME BAN ĐẦU
     generateTerrain(2000);
     createVehicle(100, startY - 60);
+    startCountdown();
   </script>
 </body>
 </html>
