@@ -45,6 +45,10 @@ input[type=number]{width:105px;border:2px solid #dfe5ee;border-radius:14px;paddi
 </style>
 </head>
 <body>
+
+<!-- Thẻ audio âm thanh chiến thắng -->
+<audio id="winSound" src="win.mp3"></audio>
+
 <div class="wrap">
   <h1>GỌI TÊN NGẪU NHIÊN</h1>
 
@@ -156,12 +160,22 @@ function startRace(){
   }
   timer=requestAnimationFrame(frame);
 }
+
 function finishRace(){
   running=false; $("start").disabled=false; $("start").style.opacity=1;
   const winner=ducks.slice().sort((a,b)=>b.progress-a.progress)[0];
   $("result").textContent=`🏆 ${winner.name} thắng cuộc!`;
+  
+  // Phát âm thanh chiến thắng
+  const winSound = document.getElementById("winSound");
+  if(winSound){
+    winSound.currentTime = 0;
+    winSound.play().catch(e => console.log("Lỗi phát âm thanh:", e));
+  }
+
   confetti();
 }
+
 function resetRace(){
   if(timer)cancelAnimationFrame(timer);
   running=false;$("start").disabled=false;$("start").style.opacity=1;
