@@ -43,10 +43,11 @@ input[type=number]{width:105px;border:2px solid #dfe5ee;border-radius:14px;paddi
 .leaderboard-list{list-style:none;padding:0;margin:0;max-height:300px;overflow-y:auto}
 .leaderboard-item{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#fff;border-radius:12px;margin-bottom:8px;box-shadow:0 2px 5px rgba(0,0,0,0.05);font-weight:700}
 .leaderboard-item:last-child{margin-bottom:0}
-.rank{font-size:18px;width:70px;color:#64748b}
+.rank{font-size:18px;width:80px;color:#64748b}
 .rank-1{color:#d97706;font-size:20px}
 .rank-2{color:#475569;font-size:20px}
 .rank-3{color:#b45309;font-size:20px}
+.time-tag{background:#e2e8f0;color:#334155;padding:4px 8px;border-radius:8px;font-size:14px;font-weight:800}
 
 @media(max-width:600px){
  .wrap{padding:12px 8px 35px}.card{border-radius:20px;padding:13px}
@@ -96,7 +97,7 @@ Vịt Xanh</textarea>
 
     <!-- Bảng Xếp Hạng -->
     <div id="leaderboard" class="leaderboard">
-      <h3>🏆 BẢNG XẾP HẠNG THỨ TỰ VỀ ĐÍCH</h3>
+      <h3>🏆 BẢNG XẾP HẠNG VỀ ĐÍCH</h3>
       <ul id="leaderboard-list" class="leaderboard-list"></ul>
     </div>
   </section>
@@ -129,7 +130,13 @@ function buildTrack(){
       <span class="name"><i class="dot" style="background:${colors[i%colors.length]}"></i>${escapeHtml(name)}</span>`;
     lane.appendChild(duck); 
     track.appendChild(lane);
-    ducks.push({el:duck,name,progress:0,color:colors[i%colors.length],finished:false});
+    ducks.push({
+      el:duck,
+      name,
+      progress:0,
+      color:colors[i%colors.length],
+      finishedTime: null
+    });
   });
   hideLeaderboard();
 }
@@ -191,20 +198,37 @@ function startRace(){
   const finishX=()=> $("track").clientWidth-115;
 
   function frame(now){
-    const t=Math.min(1,(now-start)/(duration*1000));
+    const elapsedSeconds = (now - start) / 1000;
+    const t = Math.min(1, elapsedSeconds / duration);
+
+    let allFinished = true;
+
     ducks.forEach((d,i)=>{
-      if(d.finished)return;
-      const noise=Math.sin(now/170+i*2.3)*.012 + (Math.random()-.5)*.018;
-      d.progress=Math.max(d.progress, t*(0.90+((i*37)%17)/100)+noise);
-      d.progress=Math.min(1,d.progress);
+      if(d.finishedTime === null){
+        const noise=Math.sin(now/170+i*2.3)*.012 + (Math.random()-.5)*.018;
+        d.progress=Math.max(d.progress, t*(0.90+((i*37)%17)/100)+noise);
+        d.progress=Math.min(1,d.progress);
+
+        // Ghi lại thời điểm con vịt chạm mốc tiến độ 100%
+        if(d.progress >= 1 || t >= 1){
+          d.progress = 1;
+          d.finishedTime = Math.min(elapsedSeconds, duration);
+        } else {
+          allFinished = false;
+        }
+      }
+      
       const x=Math.max(0, d.progress*(finishX()-15));
       d.el.style.left=x+"px";
     });
-    if(t<1){
+
+    if(!allFinished && t < 1){
       timer=requestAnimationFrame(frame);
     }else{
-      ducks.forEach(d=>d.progress=Math.min(1,d.progress));
-      ducks.sort((a,b)=>b.progress-a.progress);
+      // Gán thời gian cho các vịt chưa hoàn thành
+      ducks.forEach(d => {
+        if(d.finishedTime === null) d.finishedTime = duration;
+      });
       finishRace();
     }
   }
@@ -217,9 +241,11 @@ function finishRace(){
   $("start").style.opacity=1;
   clearTimeout(duckSoundTimeout);
   
-  const sortedDucks = ducks.slice().sort((a,b)=>b.progress-a.progress);
+  // Sắp xếp theo thời gian hoàn thành (ngắn nhất đứng đầu)
+  const sortedDucks = ducks.slice().sort((a,b) => a.finishedTime - b.finishedTime);
   const winner = sortedDucks[0];
-  $("result").textContent=`🏆 ${winner.name} thắng cuộc!`;
+  
+  $("result").textContent=`🏆 ${winner.name} thắng cuộc! (${winner.finishedTime.toFixed(2)}s)`;
   
   renderLeaderboard(sortedDucks);
 
@@ -250,6 +276,7 @@ function renderLeaderboard(sortedDucks){
     li.innerHTML = `
       <span class="rank ${rankClass}">${rankBadge}</span>
       <span><i class="dot" style="background:${d.color}"></i>${escapeHtml(d.name)}</span>
+      <span class="time-tag">⏱️ ${d.finishedTime.toFixed(2)}s</span>
     `;
     list.appendChild(li);
   });
