@@ -22,7 +22,7 @@ button:hover{filter:brightness(.97)}
 .titleRow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px}
 .titleRow h2{margin:0;font-size:27px}
 .badge{background:#fff3bf;color:#9a6800;border:1px solid #ffe27b;border-radius:999px;padding:9px 14px;font-weight:800;white-space:nowrap}
-.track{position:relative;overflow:hidden;border:8px solid #2866e9;border-radius:30px;min-height:430px;background:linear-gradient(180deg,#08b9ef,#1689ed);padding:12px 82px 12px 8px;max-height: 600px;overflow-y: auto;}
+.track{position:relative;overflow:hidden;border:8px solid #2866e9;border-radius:30px;min-height:430px;background:linear-gradient(180deg,#08b9ef,#1689ed);padding:12px 82px 12px 8px;max-height:600px;overflow-y:auto}
 .finish{position:absolute;right:0;top:0;width:70px;height:100%;background:repeating-linear-gradient(135deg,#111 0 14px,#fff 14px 28px);border-left:3px solid #fff;z-index:3}
 .finish span{position:absolute;top:8px;right:4px;background:#ef2020;color:white;padding:9px 8px;border-radius:10px;font-weight:900}
 .lane{position:relative;height:65px;border-bottom:2px dashed #ffffff45}
@@ -36,6 +36,18 @@ input[type=number]{width:105px;border:2px solid #dfe5ee;border-radius:14px;paddi
 .start{display:block;width:min(100%,520px);margin:18px auto 0;font-size:20px;padding:17px}
 .replay{display:block;margin:13px auto 0}
 .result{margin-top:15px;text-align:center;font-size:24px;font-weight:900;min-height:34px}
+
+/* Style Bảng Xếp Hạng */
+.leaderboard{margin-top:20px;background:#f8fafc;border:2px solid #e2e8f0;border-radius:18px;padding:16px;display:none}
+.leaderboard h3{margin:0 0 12px;text-align:center;font-size:20px;color:#1e293b}
+.leaderboard-list{list-style:none;padding:0;margin:0;max-height:300px;overflow-y:auto}
+.leaderboard-item{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#fff;border-radius:12px;margin-bottom:8px;box-shadow:0 2px 5px rgba(0,0,0,0.05);font-weight:700}
+.leaderboard-item:last-child{margin-bottom:0}
+.rank{font-size:18px;width:70px;color:#64748b}
+.rank-1{color:#d97706;font-size:20px}
+.rank-2{color:#475569;font-size:20px}
+.rank-3{color:#b45309;font-size:20px}
+
 @media(max-width:600px){
  .wrap{padding:12px 8px 35px}.card{border-radius:20px;padding:13px}
  .track{min-height:410px;padding-right:66px}.finish{width:58px}
@@ -55,7 +67,6 @@ input[type=number]{width:105px;border:2px solid #dfe5ee;border-radius:14px;paddi
 
   <section class="card">
     <label for="names">Nhập tên (mỗi dòng 1 người - tối đa 67 người)</label>
-    <!-- Mặc định ban đầu chỉ 3 tên -->
     <textarea id="names">Vịt Đỏ
 Vịt Vàng
 Vịt Xanh</textarea>
@@ -82,6 +93,12 @@ Vịt Xanh</textarea>
     <button id="start" class="green start" onclick="startRace()">▶️ 🚀 Bắt đầu cuộc đua!</button>
     <button class="replay" onclick="resetRace()">↻ Chơi lại</button>
     <div id="result" class="result"></div>
+
+    <!-- Bảng Xếp Hạng -->
+    <div id="leaderboard" class="leaderboard">
+      <h3>🏆 BẢNG XẾP HẠNG THỨ TỰ VỀ ĐÍCH</h3>
+      <ul id="leaderboard-list" class="leaderboard-list"></ul>
+    </div>
   </section>
 </div>
 
@@ -93,7 +110,6 @@ let duckSoundTimeout = null;
 
 const $=id=>document.getElementById(id);
 
-// Giới hạn tối đa nhận đúng 67 con vịt
 function getNames(){
   return $("names").value.split(/\n+/).map(x=>x.trim()).filter(Boolean).slice(0, 67);
 }
@@ -113,8 +129,9 @@ function buildTrack(){
       <span class="name"><i class="dot" style="background:${colors[i%colors.length]}"></i>${escapeHtml(name)}</span>`;
     lane.appendChild(duck); 
     track.appendChild(lane);
-    ducks.push({el:duck,name,progress:0,finished:false});
+    ducks.push({el:duck,name,progress:0,color:colors[i%colors.length],finished:false});
   });
+  hideLeaderboard();
 }
 
 function escapeHtml(s){
@@ -133,13 +150,11 @@ function shuffleNames(){
   buildTrack();
 }
 
-// Hàm bấm mẫu 3 tên
 function sample3(){
   $("names").value="Vịt Đỏ\nVịt Vàng\nVịt Xanh"; 
   buildTrack();
 }
 
-// Phát tiếng vịt kêu ngẫu nhiên từ 2 đến 6 giây
 function scheduleDuckSound(){
   if(!running) return;
   const randomDelay = Math.floor(Math.random() * 4000) + 2000;
@@ -165,6 +180,7 @@ function startRace(){
   }
   running=true; 
   $("result").textContent="";
+  hideLeaderboard();
   $("start").disabled=true; 
   $("start").style.opacity=.55;
   
@@ -201,9 +217,12 @@ function finishRace(){
   $("start").style.opacity=1;
   clearTimeout(duckSoundTimeout);
   
-  const winner=ducks.slice().sort((a,b)=>b.progress-a.progress)[0];
+  const sortedDucks = ducks.slice().sort((a,b)=>b.progress-a.progress);
+  const winner = sortedDucks[0];
   $("result").textContent=`🏆 ${winner.name} thắng cuộc!`;
   
+  renderLeaderboard(sortedDucks);
+
   const winSound = document.getElementById("winSound");
   if(winSound){
     winSound.currentTime = 0;
@@ -211,6 +230,36 @@ function finishRace(){
   }
 
   confetti();
+}
+
+function renderLeaderboard(sortedDucks){
+  const list = $("leaderboard-list");
+  list.innerHTML = "";
+  
+  sortedDucks.forEach((d, index) => {
+    const rankNum = index + 1;
+    let rankBadge = `Top ${rankNum}`;
+    let rankClass = "";
+
+    if (rankNum === 1) { rankBadge = "🥇 Top 1"; rankClass = "rank-1"; }
+    else if (rankNum === 2) { rankBadge = "🥈 Top 2"; rankClass = "rank-2"; }
+    else if (rankNum === 3) { rankBadge = "🥉 Top 3"; rankClass = "rank-3"; }
+
+    const li = document.createElement("li");
+    li.className = "leaderboard-item";
+    li.innerHTML = `
+      <span class="rank ${rankClass}">${rankBadge}</span>
+      <span><i class="dot" style="background:${d.color}"></i>${escapeHtml(d.name)}</span>
+    `;
+    list.appendChild(li);
+  });
+
+  $("leaderboard").style.display = "block";
+}
+
+function hideLeaderboard(){
+  $("leaderboard").style.display = "none";
+  $("leaderboard-list").innerHTML = "";
 }
 
 function resetRace(){
