@@ -116,6 +116,11 @@ const gameOverScreen = document.getElementById("gameOverScreen");
 const gameOverTitle = document.getElementById("gameOverTitle");
 const finalScoreText = document.getElementById("finalScoreText");
 
+// Khởi tạo âm thanh từ file bạn vừa tải lên
+const bgMusic = new Audio("angrybird.sound.mp4");
+bgMusic.loop = true; // Lặp lại nhạc nền liên tục
+bgMusic.volume = 0.5; // Điều chỉnh âm lượng (từ 0.0 đến 1.0)
+
 let gameState = "MENU"; // MENU, PLAYING, GAMEOVER
 let score = 0;
 let lives = 3;
@@ -147,21 +152,15 @@ function resizeCanvas() {
 
     bird.radius = 18 * scale;
 
-    // Thiết lập vị trí khối hộp và heo
     const startX = canvas.width * 0.65;
     const boxW = 45 * scale;
     const boxH = 55 * scale;
 
     targets = [
-        // Cột bên trái
         { type: "wood", x: startX, y: groundY - boxH, width: boxW, height: boxH, alive: true, health: 2 },
         { type: "pig", x: startX + boxW/2, y: groundY - boxH - 16 * scale, alive: true, radius: 14 * scale },
-        
-        // Cột bên phải
         { type: "wood", x: startX + boxW + 20 * scale, y: groundY - boxH, width: boxW, height: boxH, alive: true, health: 2 },
         { type: "pig", x: startX + boxW + 20 * scale + boxW/2, y: groundY - boxH - 16 * scale, alive: true, radius: 14 * scale },
-        
-        // Khối băng ngang phía trên
         { type: "ice", x: startX + 5 * scale, y: groundY - boxH * 2 - 5 * scale, width: boxW * 2 + 10 * scale, height: 20 * scale, alive: true, health: 1 },
         { type: "pig", x: startX + boxW + 10 * scale, y: groundY - boxH * 2 - 25 * scale, alive: true, radius: 14 * scale }
     ];
@@ -182,6 +181,11 @@ function startGame() {
     resetBird();
     startScreen.classList.add("hidden");
     gameOverScreen.classList.add("hidden");
+
+    // Phát nhạc nền khi người chơi bấm nút bắt đầu
+    bgMusic.play().catch(error => {
+        console.log("Trình duyệt chặn tự động phát nhạc:", error);
+    });
 }
 
 function endGame(isWin) {
@@ -207,7 +211,6 @@ function resetBird() {
     bird.isDragging = false;
 }
 
-// Xử lý sự kiện chuột và cảm ứng
 function getPointerPos(e) {
     const rect = canvas.getBoundingClientRect();
     let clientX = e.clientX;
@@ -247,7 +250,6 @@ function onTouchEnd() {
     bird.isDragging = false;
     bird.isLaunched = true;
 
-    // Tính vận tốc bắn ngược chiều kéo
     bird.vx = (sling.x - bird.x) * 0.23;
     bird.vy = (sling.y - bird.y) * 0.23;
 }
@@ -261,8 +263,7 @@ canvas.addEventListener("touchmove", onTouchMove, { passive: true });
 window.addEventListener("touchend", onTouchEnd);
 window.addEventListener("resize", resizeCanvas);
 
-// Kiểm tra va chạm cơ bản
-fnCheckCollision = function(b, t) {
+function checkCollision(b, t) {
     if (!t.alive) return false;
     if (t.type === "pig") {
         return Math.hypot(b.x - t.x, b.y - t.y) < b.radius + t.radius;
@@ -273,7 +274,6 @@ fnCheckCollision = function(b, t) {
     }
 }
 
-// Vẽ chim đỏ
 function drawBird(x, y, r) {
     ctx.fillStyle = "#e62e00";
     ctx.beginPath();
@@ -283,7 +283,6 @@ function drawBird(x, y, r) {
     ctx.lineWidth = 2 * scale;
     ctx.stroke();
 
-    // Mắt
     ctx.fillStyle = "#fff";
     ctx.beginPath();
     ctx.arc(x + r*0.35, y - r*0.15, r*0.3, 0, Math.PI * 2);
@@ -293,7 +292,6 @@ function drawBird(x, y, r) {
     ctx.arc(x + r*0.45, y - r*0.15, r*0.1, 0, Math.PI * 2);
     ctx.fill();
 
-    // Mỏ
     ctx.fillStyle = "#ffb800";
     ctx.beginPath();
     ctx.moveTo(x + r*0.7, y);
@@ -303,7 +301,6 @@ function drawBird(x, y, r) {
     ctx.fill();
 }
 
-// Vẽ heo xanh
 function drawPig(x, y, r) {
     ctx.fillStyle = "#7acc29";
     ctx.beginPath();
@@ -313,7 +310,6 @@ function drawPig(x, y, r) {
     ctx.lineWidth = 2 * scale;
     ctx.stroke();
 
-    // Mũi heo
     ctx.fillStyle = "#99e64d";
     ctx.beginPath();
     ctx.ellipse(x, y + r*0.1, r*0.35, r*0.25, 0, 0, Math.PI * 2);
@@ -327,11 +323,9 @@ function drawPig(x, y, r) {
     ctx.fill();
 }
 
-// Vòng lặp cập nhật và vẽ game
 function update() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Vẽ mây nền
     clouds.forEach(c => {
         c.x += c.speed;
         if (c.x > canvas.width) c.x = -c.w;
@@ -342,13 +336,11 @@ function update() {
         ctx.fill();
     });
 
-    // Vẽ mặt đất
     ctx.fillStyle = "#5c4033";
     ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
     ctx.fillStyle = "#43a047";
     ctx.fillRect(0, groundY, canvas.width, 18 * scale);
 
-    // Vẽ trụ súng cao su
     ctx.strokeStyle = "#3e2723";
     ctx.lineWidth = 10 * scale;
     ctx.beginPath();
@@ -357,7 +349,6 @@ function update() {
     ctx.stroke();
 
     if (gameState === "PLAYING") {
-        // Hiển thị điểm số & mạng
         ctx.fillStyle = "#fff";
         ctx.font = "bold 24px Arial";
         ctx.textAlign = "center";
@@ -367,7 +358,6 @@ function update() {
             drawBird(sling.x - 45 - (i * 30), groundY - 18 * scale, 12 * scale);
         }
 
-        // Vẽ dây thun khi kéo
         if (bird.isDragging) {
             ctx.strokeStyle = "#3e2723";
             ctx.lineWidth = 4 * scale;
@@ -377,7 +367,6 @@ function update() {
             ctx.lineTo(sling.x + 8, sling.y - 5);
             ctx.stroke();
 
-            // Đường dẫn dự đoán đường bay (Trail preview)
             let simX = bird.x;
             let simY = bird.y;
             let simVx = (sling.x - bird.x) * 0.23;
@@ -395,13 +384,11 @@ function update() {
             }
         }
 
-        // Cập nhật vị trí chim bay
         if (bird.isLaunched) {
             bird.x += bird.vx;
             bird.y += bird.vy;
-            bird.vy += 0.22; // Trọng lực
+            bird.vy += 0.22;
 
-            // Kiểm tra chạm đất hoặc ra ngoài màn hình
             if (bird.y + bird.radius >= groundY || bird.x > canvas.width || bird.x < 0) {
                 bird.isLaunched = false;
                 lives--;
@@ -417,20 +404,14 @@ function update() {
             }
         }
 
-        // Vẽ chim
-        if (!bird.isLaunched) {
-            drawBird(bird.x, bird.y, bird.radius);
-        } else {
-            drawBird(bird.x, bird.y, bird.radius);
-        }
+        drawBird(bird.x, bird.y, bird.radius);
 
-        // Cập nhật và kiểm tra mục tiêu (hộp gỗ, băng, heo)
         let activePigs = false;
         targets.forEach(t => {
             if (t.alive) {
                 if (t.type === "pig") activePigs = true;
 
-                if (fnCheckCollision(bird, t)) {
+                if (checkCollision(bird, t)) {
                     t.alive = false;
                     score += (t.type === "pig" ? 200 : 100);
                 }
@@ -447,8 +428,7 @@ function update() {
             }
         });
 
-        // Nếu không còn heo nào sống sót -> Chiến thắng
-        if (!activePigs && targets.length > 0) {
+        if (!activePigs && targets.length > 1) {
             endGame(true);
         }
     }
@@ -456,7 +436,6 @@ function update() {
     requestAnimationFrame(update);
 }
 
-// Khởi tạo chạy ban đầu
 resizeCanvas();
 update();
 </script>
