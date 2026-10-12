@@ -116,12 +116,16 @@ const gameOverScreen = document.getElementById("gameOverScreen");
 const gameOverTitle = document.getElementById("gameOverTitle");
 const finalScoreText = document.getElementById("finalScoreText");
 
-// Khởi tạo âm thanh từ file bạn vừa tải lên
+// Khởi tạo âm thanh nền
 const bgMusic = new Audio("angrybird.sound.mp4");
-bgMusic.loop = true; // Lặp lại nhạc nền liên tục
-bgMusic.volume = 0.5; // Điều chỉnh âm lượng (từ 0.0 đến 1.0)
+bgMusic.loop = true;
+bgMusic.volume = 0.5;
 
-let gameState = "MENU"; // MENU, PLAYING, GAMEOVER
+// Tải hình ảnh chú heo xanh từ file pig.png trên GitHub
+const pigImage = new Image();
+pigImage.src = "pig.png"; 
+
+let gameState = "MENU"; 
 let score = 0;
 let lives = 3;
 let groundY = 0;
@@ -158,11 +162,11 @@ function resizeCanvas() {
 
     targets = [
         { type: "wood", x: startX, y: groundY - boxH, width: boxW, height: boxH, alive: true, health: 2 },
-        { type: "pig", x: startX + boxW/2, y: groundY - boxH - 16 * scale, alive: true, radius: 14 * scale },
+        { type: "pig", x: startX + boxW/2, y: groundY - boxH - 18 * scale, alive: true, radius: 18 * scale },
         { type: "wood", x: startX + boxW + 20 * scale, y: groundY - boxH, width: boxW, height: boxH, alive: true, health: 2 },
-        { type: "pig", x: startX + boxW + 20 * scale + boxW/2, y: groundY - boxH - 16 * scale, alive: true, radius: 14 * scale },
+        { type: "pig", x: startX + boxW + 20 * scale + boxW/2, y: groundY - boxH - 18 * scale, alive: true, radius: 18 * scale },
         { type: "ice", x: startX + 5 * scale, y: groundY - boxH * 2 - 5 * scale, width: boxW * 2 + 10 * scale, height: 20 * scale, alive: true, health: 1 },
-        { type: "pig", x: startX + boxW + 10 * scale, y: groundY - boxH * 2 - 25 * scale, alive: true, radius: 14 * scale }
+        { type: "pig", x: startX + boxW + 10 * scale, y: groundY - boxH * 2 - 28 * scale, alive: true, radius: 18 * scale }
     ];
 
     if (clouds.length === 0) {
@@ -182,7 +186,6 @@ function startGame() {
     startScreen.classList.add("hidden");
     gameOverScreen.classList.add("hidden");
 
-    // Phát nhạc nền khi người chơi bấm nút bắt đầu
     bgMusic.play().catch(error => {
         console.log("Trình duyệt chặn tự động phát nhạc:", error);
     });
@@ -302,25 +305,14 @@ function drawBird(x, y, r) {
 }
 
 function drawPig(x, y, r) {
-    ctx.fillStyle = "#7acc29";
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = "#4d801a";
-    ctx.lineWidth = 2 * scale;
-    ctx.stroke();
-
-    ctx.fillStyle = "#99e64d";
-    ctx.beginPath();
-    ctx.ellipse(x, y + r*0.1, r*0.35, r*0.25, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = "#336600";
-    ctx.beginPath();
-    ctx.arc(x - r*0.12, y + r*0.1, r*0.05, 0, Math.PI * 2);
-    ctx.arc(x + r*0.12, y + r*0.1, r*0.05, 0, Math.PI * 2);
-    ctx.fill();
+    if (pigImage.complete && pigImage.naturalWidth !== 0) {
+        ctx.drawImage(pigImage, x - r, y - r, r * 2, r * 2);
+    } else {
+        ctx.fillStyle = "#7acc29";
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+    }
 }
 
 function update() {
