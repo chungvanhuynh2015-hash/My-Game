@@ -335,128 +335,148 @@ function update() {
 
     let gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
     gradient.addColorStop(0, "#1a80b8");
-gradient.addColorStop(0.6, "#70c5ce");
-gradient.addColorStop(1, "#9be2e6");
-ctx.fillStyle = gradient;
-ctx.fillRect(0, 0, canvas.width, canvas.height);
-clouds.forEach(c => {
-c.x += c.speed;
-if (c.x > canvas.width) c.x = -c.w;
-ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
-ctx.beginPath();
-ctx.arc(c.x, c.y, c.w * 0.3, 0, Math.PI * 2);
-ctx.arc(c.x + c.w * 0.25, c.y - c.w * 0.1, c.w * 0.35, 0, Math.PI * 2);
-ctx.arc(c.x + c.w * 0.5, c.y, c.w * 0.25, 0, Math.PI * 2);
-ctx.fill();
-});
-decorationTrees.forEach(tree => {
-ctx.fillStyle = "#3a5f16";
-ctx.beginPath();
-ctx.arc(tree.x, tree.y - tree.r0.6, tree.r, 0, Math.PI * 2);
-ctx.fill();
-ctx.fillStyle = "#497c1a";
-ctx.beginPath();
-ctx.arc(tree.x - tree.r0.2, tree.y - tree.r*0.8, tree.r * 0.8, 0, Math.PI * 2);
-ctx.fill();
-});
-ctx.fillStyle = "#6d4c20";
-ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
-ctx.fillStyle = "#5c9e32";
-ctx.fillRect(0, groundY, canvas.width, 15 * scale);
-ctx.strokeStyle = "#422813";
-ctx.lineWidth = 8 * scale;
-ctx.beginPath();
-ctx.moveTo(sling.x, sling.y);
-ctx.lineTo(sling.x, groundY);
-ctx.stroke();
-if (gameState === "MENU") {
-drawBird(sling.x, sling.y, 18 * scale);
-} else if (gameState === "GAMEOVER") {
-let win = true;
-targets.forEach(t => { if (t.type === "pig" && t.alive) win = false; });
-} else if (gameState === "PLAYING") {
-ctx.fillStyle = "#fff";
-ctx.font = "bold 24px Arial";
-ctx.textAlign = "center";
-ctx.fillText("ĐIỂM SỐ: " + score, canvas.width / 2, 40);
-for (let i = 0; i < lives - 1; i++) {
-drawBird(sling.x - 45 - (i * 35), groundY - (18 * scale), 15 * scale);
+    gradient.addColorStop(0.6, "#70c5ce");
+    gradient.addColorStop(1, "#9be2e6");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    clouds.forEach(c => {
+        c.x += c.speed;
+        if (c.x > canvas.width) c.x = -c.w;
+        ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, c.w * 0.3, 0, Math.PI * 2);
+        ctx.arc(c.x + c.w * 0.25, c.y - c.w * 0.1, c.w * 0.35, 0, Math.PI * 2);
+        ctx.arc(c.x + c.w * 0.5, c.y, c.w * 0.25, 0, Math.PI * 2);
+        ctx.fill();
+    });
+
+    decorationTrees.forEach(tree => {
+        ctx.fillStyle = "#3a5f16";
+        ctx.beginPath();
+        // Đã sửa lỗi thiếu dấu * ở tree.r * 0.6
+        ctx.arc(tree.x, tree.y - tree.r * 0.6, tree.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#497c1a";
+        ctx.beginPath();
+        // Đã sửa lỗi thiếu dấu * ở tree.r * 0.2 và tree.r * 0.8
+        ctx.arc(tree.x - tree.r * 0.2, tree.y - tree.r * 0.8, tree.r * 0.8, 0, Math.PI * 2);
+        ctx.fill();
+    });
+
+    ctx.fillStyle = "#6d4c20";
+    ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+    ctx.fillStyle = "#5c9e32";
+    ctx.fillRect(0, groundY, canvas.width, 15 * scale);
+
+    ctx.strokeStyle = "#422813";
+    ctx.lineWidth = 8 * scale;
+    ctx.beginPath();
+    ctx.moveTo(sling.x, sling.y);
+    ctx.lineTo(sling.x, groundY);
+    ctx.stroke();
+
+    if (gameState === "MENU") {
+        drawBird(sling.x, sling.y, 18 * scale);
+    } else if (gameState === "GAMEOVER") {
+        let win = true;
+        targets.forEach(t => { if (t.type === "pig" && t.alive) win = false; });
+    } else if (gameState === "PLAYING") {
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 24px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("ĐIỂM SỐ: " + score, canvas.width / 2, 40);
+
+        for (let i = 0; i < lives - 1; i++) {
+            drawBird(sling.x - 45 - (i * 35), groundY - (18 * scale), 15 * scale);
+        }
+
+        if (bird.isDragging) {
+            ctx.strokeStyle = "#2b1609";
+            ctx.lineWidth = 5 * scale;
+            ctx.beginPath();
+            ctx.moveTo(sling.x, sling.y);
+            ctx.lineTo(bird.x, bird.y);
+            ctx.stroke();
+
+            let simX = bird.x;
+            let simY = bird.y;
+            let simVx = (sling.x - bird.x) * 0.24;
+            let simVy = (sling.y - bird.y) * 0.24;
+
+            ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+            for (let i = 0; i < 30; i += 2) {
+                simX += simVx * 2;
+                simY += simVy * 2;
+                simVy += 0.22 * 2;
+                if (simY >= groundY || simX > canvas.width || simX < 0) break;
+                ctx.beginPath();
+                ctx.arc(simX, simY, 4 * scale, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        if (bird.isLaunched) {
+            bird.x += bird.vx;
+            bird.y += bird.vy;
+            bird.vy += 0.22;
+
+            if (bird.y + bird.radius >= groundY || bird.x > canvas.width || bird.x < 0) {
+                bird.isLaunched = false;
+                lives--;
+                let pigAlive = false;
+                targets.forEach(t => { if (t.type === "pig" && t.alive) pigAlive = true; });
+
+                if (pigAlive && lives === 0) {
+                    endGame(false);
+                } else if (!pigAlive) {
+                    endGame(true);
+                } else {
+                    resetBird();
+                }
+            }
+        }
+
+        if (!bird.isLaunched && lives > 0) {
+            drawBird(bird.x, bird.y, bird.radius);
+        } else if (bird.isLaunched && bird.y + bird.radius < groundY) {
+            drawBird(bird.x, bird.y, bird.radius);
+        }
+
+        let pigAlive = false;
+        targets.forEach(t => {
+            if (t.alive) {
+                if (t.type === "pig") pigAlive = true;
+                if (checkCollision(bird, t)) {
+                    t.alive = false;
+                    score += 100;
+                }
+
+                if (t.type === "pig") {
+                    drawPig(t.x, t.y, t.radius);
+                } else {
+                    ctx.fillStyle = t.type === "wood" ? "#bf8339" : "#a1d7f0";
+                    ctx.fillRect(t.x, t.y, t.width, t.height);
+                    ctx.strokeStyle = t.type === "wood" ? "#8a571c" : "#60abcf";
+                    ctx.lineWidth = 2 * scale;
+                    ctx.strokeRect(t.x, t.y, t.width, t.height);
+                }
+            }
+        });
+
+        if (!pigAlive && targets.length > 0) {
+            endGame(true);
+        }
+    } else {
+        ctx.fillStyle = "#ff3333";
+        ctx.beginPath();
+        ctx.arc(sling.x, sling.y, bird.radius, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    requestAnimationFrame(update);
 }
-if (bird.isDragging) {
-ctx.strokeStyle = "#2b1609";
-ctx.lineWidth = 5 * scale;
-ctx.beginPath();
-ctx.moveTo(sling.x, sling.y);
-ctx.lineTo(bird.x, bird.y);
-ctx.stroke();
-let simX = bird.x;
-let simY = bird.y;
-let simVx = (sling.x - bird.x) * 0.24;
-let simVy = (sling.y - bird.y) * 0.24;
-ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
-for (let i = 0; i < 30; i += 2) {
-simX += simVx * 2;
-simY += simVy * 2;
-simVy += 0.22 * 2;
-if (simY >= groundY || simX > canvas.width || simX < 0) break;
-ctx.beginPath();
-ctx.arc(simX, simY, 4 * scale, 0, Math.PI * 2);
-ctx.fill();
-}
-}
-if (bird.isLaunched) {
-bird.x += bird.vx;
-bird.y += bird.vy;
-bird.vy += 0.22;
-if (bird.y + bird.radius >= groundY || bird.x > canvas.width || bird.x < 0) {
-bird.isLaunched = false;
-lives--;
-let pigAlive = false;
-targets.forEach(t => { if (t.type === "pig" && t.alive) pigAlive = true; });
-if (pigAlive && lives === 0) {
-endGame(false);
-} else if (!pigAlive) {
-endGame(true);
-} else {
-resetBird();
-}
-}
-}
-if (!bird.isLaunched && lives > 0) {
-drawBird(bird.x, bird.y, bird.radius);
-} else if (bird.isLaunched && bird.y + bird.radius < groundY) {
-drawBird(bird.x, bird.y, bird.radius);
-}
-let pigAlive = false;
-targets.forEach(t => {
-if (t.alive) {
-if (t.type === "pig") pigAlive = true;
-if (checkCollision(bird, t)) {
-t.alive = false;
-score += 100;
-}
-if (t.type === "pig") {
-drawPig(t.x, t.y, t.radius);
-} else {
-ctx.fillStyle = t.type === "wood" ? "#bf8339" : "#a1d7f0";
-ctx.fillRect(t.x, t.y, t.width, t.height);
-ctx.strokeStyle = t.type === "wood" ? "#8a571c" : "#60abcf";
-ctx.lineWidth = 2 * scale;
-ctx.strokeRect(t.x, t.y, t.width, t.height);
-}
-}
-});
-if (!pigAlive && targets.length > 0) {
-endGame(true);
-}
-} else {
-ctx.fillStyle = "#ff3333";
-ctx.beginPath();
-ctx.arc(sling.x, sling.y, bird.radius, 0, Math.PI * 2);
-ctx.fill();
-}
-requestAnimationFrame(update);
-}
+
 resizeCanvas();
 update();
 </script>
