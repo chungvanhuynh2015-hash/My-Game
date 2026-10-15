@@ -25,12 +25,11 @@
             position: relative;
             width: 100vw;
             height: 100vh;
-            max-width: 1400px; /* Mở rộng khung chứa map */
+            max-width: 1400px;
             max-height: 750px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.8);
         }
         canvas {
-            background: linear-gradient(to bottom, #4ca2cd, #67b26f);
             display: block;
             width: 100%;
             height: 100%;
@@ -41,7 +40,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.85);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -60,12 +59,12 @@
         }
         .overlay p {
             font-size: 20px;
-            margin: 0 0 30px 0;
+            margin: 0 0 20px 0;
             color: #ddd;
         }
         .btn {
-            padding: 16px 45px;
-            font-size: 22px;
+            padding: 14px 40px;
+            font-size: 20px;
             font-weight: bold;
             background: linear-gradient(to bottom, #8ddb44, #558822);
             color: #fff;
@@ -74,6 +73,7 @@
             cursor: pointer;
             box-shadow: 0 6px 0 #335511, 0 10px 20px rgba(0,0,0,0.4);
             transition: 0.1s;
+            margin: 8px;
         }
         .btn:hover {
             background: linear-gradient(to bottom, #9ee85c, #669922);
@@ -85,6 +85,44 @@
         .hidden {
             display: none !important;
         }
+        
+        /* Giao diện tài khoản */
+        .input-group {
+            margin: 12px 0;
+            text-align: left;
+            width: 300px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #ffcc00;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 2px solid #558822;
+            background: #222;
+            color: white;
+            font-size: 16px;
+        }
+        .avatar-upload {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .avatar-preview {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 2px solid #ffcc00;
+            object-fit: cover;
+            background: #333;
+        }
+
+        /* Nút Setting bánh răng */
         #gearBtn {
             position: absolute;
             top: 20px;
@@ -109,6 +147,8 @@
             border-color: #ffcc00;
             transform: rotate(45deg);
         }
+
+        /* Bảng Cài đặt Modal */
         #settingsModal {
             position: absolute;
             top: 0;
@@ -154,9 +194,6 @@
             color: white;
             font-size: 16px;
         }
-        .setting-group input[type="range"] {
-            cursor: pointer;
-        }
         .close-btn {
             background: #ff3333;
             color: white;
@@ -168,8 +205,30 @@
             font-weight: bold;
             margin-top: 10px;
         }
-        .close-btn:hover {
-            background: #ff1a1a;
+        .close-btn:hover { background: #ff1a1a; }
+
+        /* Hiển thị thông tin user góc phải trên */
+        #userInfoPanel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 250;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            padding: 8px 15px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            backdrop-filter: blur(4px);
+        }
+        #userInfoPanel img {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            border: 1px solid #ffcc00;
+            object-fit: cover;
         }
     </style>
 </head>
@@ -179,7 +238,53 @@
         <!-- Nút Setting bánh răng -->
         <button id="gearBtn" onclick="openSettings()">⚙️</button>
 
-        <!-- Bảng Cài đặt -->
+        <!-- Bảng thông tin user góc phải -->
+        <div id="userInfoPanel" class="hidden">
+            <img id="panelAvatar" src="" alt="Avatar">
+            <span id="panelUsername" style="font-weight: bold;">User</span>
+        </div>
+
+        <!-- Màn hình Đăng nhập / Tạo tài khoản -->
+        <div id="authScreen" class="overlay">
+            <h1>ĐĂNG NHẬP TÀI KHOẢN</h1>
+            <p>Nhập tên và mật khẩu để lưu tiến trình chơi của bạn!</p>
+            
+            <div class="input-group">
+                <label>Tên tài khoản:</label>
+                <input type="text" id="usernameInput" placeholder="Nhập tên của bạn...">
+            </div>
+            
+            <div class="input-group">
+                <label>Mật khẩu:</label>
+                <input type="password" id="passwordInput" placeholder="Nhập mật khẩu...">
+            </div>
+
+            <div class="avatar-upload">
+                <img id="avatarPreview" class="avatar-preview" src="" alt="Preview">
+                <div>
+                    <label style="display:block; margin-bottom:5px; font-weight:bold; color:#ffcc00; text-align:left;">Chọn Ảnh Đại Diện:</label>
+                    <input type="file" id="avatarFile" accept="image/*" onchange="previewAvatar(event)" style="color: #ccc; font-size: 14px;">
+                </div>
+            </div>
+
+            <button class="btn" onclick="handleLogin()">VÀO GAME</button>
+        </div>
+
+        <!-- Màn hình Chọn Màn Chơi (Level Menu) -->
+        <div id="levelMenuScreen" class="overlay hidden">
+            <h1>CHỌN MÀN CHƠI</h1>
+            <p id="welcomeUserText">Xin chào!</p>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-bottom: 25px;">
+                <button class="btn" style="padding: 15px 25px;" onclick="startLevel(1)">Màn 1</button>
+                <button class="btn" style="padding: 15px 25px;" onclick="startLevel(2)">Màn 2</button>
+                <button class="btn" style="padding: 15px 25px;" onclick="startLevel(3)">Màn 3</button>
+                <button class="btn" style="padding: 15px 25px;" onclick="startLevel(4)">Màn 4</button>
+                <button class="btn" style="padding: 15px 25px;" onclick="startLevel(5)">Màn 5</button>
+            </div>
+            <button class="btn" style="background: #444; border-color: #222;" onclick="logout()">Đăng Xuất</button>
+        </div>
+
+        <!-- Bảng Cài đặt Modal -->
         <div id="settingsModal" class="hidden">
             <div class="settings-content">
                 <h2>CÀI ĐẶT ÂM THANH</h2>
@@ -198,23 +303,21 @@
                 </div>
 
                 <div class="setting-group" style="display: flex; gap: 10px;">
-                    <button class="btn" style="flex:1; padding: 10px; font-size: 16px;" onclick="toggleMute()" id="muteBtn">Tắt Nhạc</button>
+                    <button class="btn" style="flex:1; padding: 10px; font-size: 16px; margin:0;" onclick="toggleMute()" id="muteBtn">Tắt Nhạc</button>
                 </div>
 
                 <button class="close-btn" onclick="closeSettings()">Đóng</button>
             </div>
         </div>
 
-        <div id="startScreen" class="overlay">
-            <h1>ANGRY BIRDS MINI</h1>
-            <p>Kéo và thả chim để phá hủy toàn bộ heo xanh trong 3 lượt bắn!</p>
-            <button class="btn" onclick="startGame()">BẮT ĐẦU CHƠI</button>
-        </div>
-
+        <!-- Màn hình kết quả Thắng / Thua -->
         <div id="gameOverScreen" class="overlay hidden">
             <h1 id="gameOverTitle">CHIẾN THẮNG!</h1>
             <p id="finalScoreText">Tổng điểm tuyệt đối: 0</p>
-            <button class="btn" onclick="startGame()">CHƠI LẠI</button>
+            <div style="display: flex; gap: 15px;">
+                <button class="btn" onclick="startLevel(currentLevel)">CHƠI LẠI</button>
+                <button class="btn" style="background: #3388ff; border-color: #1155cc;" onclick="returnToLevelMenu()">CHỌN MÀN</button>
+            </div>
         </div>
 
         <canvas id="gameCanvas"></canvas>
@@ -224,7 +327,8 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-const startScreen = document.getElementById("startScreen");
+const authScreen = document.getElementById("authScreen");
+const levelMenuScreen = document.getElementById("levelMenuScreen");
 const gameOverScreen = document.getElementById("gameOverScreen");
 const gameOverTitle = document.getElementById("gameOverTitle");
 const finalScoreText = document.getElementById("finalScoreText");
@@ -233,7 +337,74 @@ const volumeSlider = document.getElementById("volumeSlider");
 const volumeValue = document.getElementById("volumeValue");
 const muteBtn = document.getElementById("muteBtn");
 const bgMusicSelect = document.getElementById("bgMusicSelect");
+const userInfoPanel = document.getElementById("userInfoPanel");
+const panelAvatar = document.getElementById("panelAvatar");
+const panelUsername = document.getElementById("panelUsername");
+const welcomeUserText = document.getElementById("welcomeUserText");
 
+// Quản lý tài khoản và lưu trữ LocalStorage
+let currentUser = { username: "", password: "", avatar: "" };
+
+window.onload = function() {
+    let savedUser = localStorage.getItem("angryBirdsUser");
+    if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+        panelUsername.textContent = currentUser.username;
+        if (currentUser.avatar) panelAvatar.src = currentUser.avatar;
+        userInfoPanel.classList.remove("hidden");
+        authScreen.classList.add("hidden");
+        levelMenuScreen.classList.remove("hidden");
+        welcomeUserText.textContent = `Xin chào, ${currentUser.username}! Hãy chọn màn chơi:`;
+    }
+}
+
+let tempAvatarBase64 = "";
+function previewAvatar(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            tempAvatarBase64 = e.target.result;
+            document.getElementById("avatarPreview").src = tempAvatarBase64;
+        }
+        reader.readAsDataURL(file);
+    }
+}
+
+function handleLogin() {
+    let username = document.getElementById("usernameInput").value.trim();
+    let password = document.getElementById("passwordInput").value.trim();
+    if (!username || !password) {
+        alert("Vui lòng nhập đầy đủ tên tài khoản và mật khẩu!");
+        return;
+    }
+    currentUser.username = username;
+    currentUser.password = password;
+    if (tempAvatarBase64) currentUser.avatar = tempAvatarBase64;
+
+    localStorage.setItem("angryBirdsUser", JSON.stringify(currentUser));
+
+    panelUsername.textContent = currentUser.username;
+    if (currentUser.avatar) panelAvatar.src = currentUser.avatar;
+    userInfoPanel.classList.remove("hidden");
+
+    authScreen.classList.add("hidden");
+    levelMenuScreen.classList.remove("hidden");
+    welcomeUserText.textContent = `Xin chào, ${currentUser.username}! Hãy chọn màn chơi:`;
+}
+
+function logout() {
+    localStorage.removeItem("angryBirdsUser");
+    location.reload();
+}
+
+function returnToLevelMenu() {
+    gameOverScreen.classList.add("hidden");
+    levelMenuScreen.classList.remove("hidden");
+    gameState = "MENU";
+}
+
+// Âm thanh
 let currentMusicFile = "angrybird.sound.mp4";
 let bgMusic = new Audio(currentMusicFile);
 bgMusic.loop = true;
@@ -287,7 +458,12 @@ function toggleMute() {
     }
 }
 
-let gameState = "MENU"; 
+// Tải ảnh nền
+const bgImage = new Image();
+bgImage.src = "backgroundangrybird.jpg";
+
+let gameState = "MENU"; // MENU, LEVELSELECT, PLAYING, GAMEOVER
+let currentLevel = 1;
 let score = 0;
 let lives = 3;
 let groundY = 0;
@@ -296,20 +472,19 @@ let scale = 1;
 let sling = { x: 0, y: 0 };
 let bird = { x: 0, y: 0, radius: 18, vx: 0, vy: 0, isDragging: false, isLaunched: false };
 let targets = [];
-let clouds = [];
+let groundHills = []; // Các phần đất nhô lên
 
 function resizeCanvas() {
     canvas.width = canvas.parentElement.clientWidth;
     canvas.height = canvas.parentElement.clientHeight;
 
-    // Mở rộng tỉ lệ map rộng hơn (1400px thay vì 1000px)
     let scaleX = canvas.width / 1400;
     let scaleY = canvas.height / 650;
     scale = Math.min(scaleX, scaleY);
     if (scale < 0.6) scale = 0.6;
 
     groundY = canvas.height - 90 * scale;
-    sling.x = canvas.width * 0.15; // Đặt vị trí súng cao su dịch sang trái một chút để mở rộng tầm nhìn
+    sling.x = canvas.width * 0.15;
     sling.y = groundY - 100 * scale;
 
     if (!bird.isLaunched && !bird.isDragging) {
@@ -319,44 +494,90 @@ function resizeCanvas() {
 
     bird.radius = 18 * scale;
 
-    // Đẩy khu vực mục tiêu (công trình và heo) sang phải nhiều hơn để tạo khoảng cách bay xa
-    const startX = canvas.width * 0.7;
-    const boxW = 50 * scale;
-    const boxH = 60 * scale;
-
-    targets = [
-        { type: "wood", x: startX, y: groundY - boxH, width: boxW, height: boxH, alive: true, health: 2 },
-        { type: "pig", x: startX + boxW/2, y: groundY - boxH - 22 * scale, alive: true, radius: 22 * scale },
-        { type: "wood", x: startX + boxW + 25 * scale, y: groundY - boxH, width: boxW, height: boxH, alive: true, health: 2 },
-        { type: "pig", x: startX + boxW + 25 * scale + boxW/2, y: groundY - boxH - 22 * scale, alive: true, radius: 22 * scale },
-        { type: "ice", x: startX + 5 * scale, y: groundY - boxH * 2 - 5 * scale, width: boxW * 2 + 15 * scale, height: 20 * scale, alive: true, health: 1 },
-        { type: "pig", x: startX + boxW + 12 * scale, y: groundY - boxH * 2 - 32 * scale, alive: true, radius: 22 * scale }
+    // Các phần đồi đất nhô lên ở các khu vực xây nhà
+    groundHills = [
+        { x: canvas.width * 0.62, w: 260 * scale, h: 45 * scale },
+        { x: canvas.width * 0.82, w: 220 * scale, h: 60 * scale }
     ];
+}
 
-    if (clouds.length === 0) {
-        clouds = [
-            { x: canvas.width * 0.1, y: canvas.height * 0.15, speed: 0.15, w: 100 * scale },
-            { x: canvas.width * 0.45, y: canvas.height * 0.08, speed: 0.1, w: 130 * scale },
-            { x: canvas.width * 0.8, y: canvas.height * 0.2, speed: 0.2, w: 110 * scale }
+// Thiết kế 5 Màn Chơi khác nhau
+function loadLevel(lvl) {
+    currentLevel = lvl;
+    resizeCanvas();
+    const startX = canvas.width * 0.65;
+    
+    // Khối vật liệu dài và dẹp xuống một chút (chiều cao mỏng hơn, bề ngang dài hơn)
+    const longW = 110 * scale;
+    const longThinH = 18 * scale; 
+    const blockW = 45 * scale;
+    const blockH = 65 * scale;
+
+    if (lvl === 1) {
+        // Màn 1: Cấu trúc đơn giản trên đồi đất thấp
+        targets = [
+            { type: "wood", x: startX, y: groundY - blockH, width: blockW, height: blockH, alive: true, health: 2 },
+            { type: "pig", x: startX + blockW/2, y: groundY - blockH - 22 * scale, alive: true, radius: 22 * scale },
+            { type: "ice", x: startX - 10 * scale, y: groundY - blockH - 25 * scale, width: longW, height: longThinH, alive: true, health: 1 },
+            { type: "pig", x: startX + blockW + 40 * scale, y: groundY - 22 * scale, alive: true, radius: 22 * scale }
+        ];
+    } else if (lvl === 2) {
+        // Màn 2: Hai tầng nhà kiên cố
+        targets = [
+            { type: "wood", x: startX, y: groundY - blockH, width: blockW, height: blockH, alive: true, health: 2 },
+            { type: "wood", x: startX + 70 * scale, y: groundY - blockH, width: blockW, height: blockH, alive: true, health: 2 },
+            { type: "stone", x: startX - 15 * scale, y: groundY - blockH - longThinH, width: longW + 30 * scale, height: longThinH, alive: true, health: 3 },
+            { type: "pig", x: startX + 35 * scale, y: groundY - blockH - 45 * scale, alive: true, radius: 22 * scale },
+            { type: "pig", x: startX + 35 * scale, y: groundY - 22 * scale, alive: true, radius: 22 * scale }
+        ];
+    } else if (lvl === 3) {
+        // Màn 3: Pháo đài trên đồi đất nhô cao
+        let hillTopY = groundY - 45 * scale;
+        targets = [
+            { type: "stone", x: startX, y: hillTopY - blockH, width: blockW, height: blockH, alive: true, health: 3 },
+            { type: "stone", x: startX + 80 * scale, y: hillTopY - blockH, width: blockW, height: blockH, alive: true, health: 3 },
+            { type: "wood", x: startX - 10 * scale, y: hillTopY - blockH - longThinH, width: longW + 20 * scale, height: longThinH, alive: true, health: 2 },
+            { type: "pig", x: startX + 40 * scale, y: hillTopY - blockH - 40 * scale, alive: true, radius: 22 * scale },
+            { type: "pig", x: startX + 120 * scale, y: hillTopY - 22 * scale, alive: true, radius: 22 * scale }
+        ];
+    } else if (lvl === 4) {
+        // Màn 4: Tháp nhiều tầng hẹp và dài dẹp
+        targets = [
+            { type: "wood", x: startX + 30 * scale, y: groundY - blockH, width: blockW, height: blockH, alive: true, health: 2 },
+            { type: "ice", x: startX, y: groundY - blockH - longThinH, width: longW, height: longThinH, alive: true, health: 1 },
+            { type: "pig", x: startX + 50 * scale, y: groundY - blockH - 35 * scale, alive: true, radius: 22 * scale },
+            { type: "stone", x: startX + 15 * scale, y: groundY - blockH * 2 - longThinH, width: 80 * scale, height: longThinH, alive: true, health: 3 },
+            { type: "pig", x: startX + 55 * scale, y: groundY - blockH * 2 - 60 * scale, alive: true, radius: 22 * scale }
+        ];
+    } else if (lvl === 5) {
+        // Màn 5: Đại bản doanh Boss Lợn (Thử thách cuối cùng)
+        let hillTopY2 = groundY - 60 * scale;
+        targets = [
+            { type: "stone", x: startX - 20 * scale, y: hillTopY2 - blockH, width: blockW, height: blockH, alive: true, health: 3 },
+            { type: "stone", x: startX + 60 * scale, y: hillTopY2 - blockH, width: blockW, height: blockH, alive: true, health: 3 },
+            { type: "wood", x: startX - 35 * scale, y: hillTopY2 - blockH - longThinH, width: longW + 50 * scale, height: longThinH, alive: true, health: 2 },
+            { type: "pig", x: startX + 20 * scale, y: hillTopY2 - blockH - 40 * scale, alive: true, radius: 22 * scale },
+            { type: "pig", x: startX - 10 * scale, y: hillTopY2 - 22 * scale, alive: true, radius: 22 * scale },
+            { type: "pig", x: startX + 80 * scale, y: hillTopY2 - 22 * scale, alive: true, radius: 22 * scale }
         ];
     }
 }
 
-function startGame() {
+function startLevel(lvl) {
     gameState = "PLAYING";
     score = 0;
     lives = 3;
-    resizeCanvas();
-    resetBird();
-    startScreen.classList.add("hidden");
+    levelMenuScreen.classList.add("hidden");
     gameOverScreen.classList.add("hidden");
+    loadLevel(lvl);
+    resetBird();
 
     victorySound.pause();
     victorySound.currentTime = 0;
 
     if (!isMuted) {
         bgMusic.currentTime = 0;
-        bgMusic.play().catch(error => console.log(error));
+        bgMusic.play().catch(e => console.log(e));
     }
 }
 
@@ -366,9 +587,9 @@ function endGame(isWin) {
     bgMusic.pause();
 
     if (isWin) {
-        gameOverTitle.textContent = "CHIẾN THẮNG!";
+        gameOverTitle.textContent = "CHIẾN THẮNG MÀN " + currentLevel + "!";
         gameOverTitle.style.color = "#8ddb44";
-        finalScoreText.innerHTML = "Tổng điểm tuyệt đối: " + score;
+        finalScoreText.innerHTML = "Tổng điểm đạt được: " + score;
 
         if (!isMuted) {
             victorySound.currentTime = 0;
@@ -480,18 +701,15 @@ function drawBird(x, y, r) {
     ctx.fill();
 }
 
-// Chỉnh sửa ngoại hình heo: viền đen bé lại, mắt dịch ra xa nhau hơn và có thể nhắm mắt
+// Vẽ chú lợn xanh viền đen bé lại, mắt dịch ra xa nhau và nhắm mắt tự động
 function drawPig(x, y, r) {
     ctx.save();
     ctx.translate(x, y);
 
-    // Viền đen mảnh hơn (bé lại) đúng yêu cầu
     ctx.strokeStyle = "#000000";
     ctx.lineWidth = 2.2 * scale;
 
-    // 1. Tai lợn
     ctx.fillStyle = "#6fc525";
-    // Tai trái
     ctx.beginPath();
     ctx.arc(-r * 0.42, -r * 0.78, r * 0.3, 0, Math.PI * 2);
     ctx.fill();
@@ -501,7 +719,6 @@ function drawPig(x, y, r) {
     ctx.arc(-r * 0.42, -r * 0.78, r * 0.13, 0, Math.PI * 2);
     ctx.fill();
 
-    // Tai phải
     ctx.fillStyle = "#6fc525";
     ctx.beginPath();
     ctx.arc(r * 0.42, -r * 0.78, r * 0.3, 0, Math.PI * 2);
@@ -512,14 +729,12 @@ function drawPig(x, y, r) {
     ctx.arc(r * 0.42, -r * 0.78, r * 0.13, 0, Math.PI * 2);
     ctx.fill();
 
-    // 2. Thân mặt chính
     ctx.fillStyle = "#7acc29";
     ctx.beginPath();
     ctx.arc(0, 0, r, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
 
-    // 3. Lông mày xanh đậm
     ctx.fillStyle = "#559c19";
     ctx.beginPath();
     ctx.arc(-r * 0.52, -r * 0.3, r * 0.16, Math.PI, 0, false);
@@ -528,15 +743,12 @@ function drawPig(x, y, r) {
     ctx.arc(r * 0.52, -r * 0.3, r * 0.16, Math.PI, 0, false);
     ctx.fill();
 
-    // Hiệu ứng chớp mắt tự động
     let timeSec = Date.now() / 400;
     let isBlinking = (Math.sin(timeSec + x) > 0.85);
 
-    // 4. Hai mắt to tròn (ĐÃ DỊCH CHUYỂN RA XA NHAU HƠN)
     let eyeRadius = r * 0.28;
-    let eyeOffsetX = r * 0.46; // Tăng khoảng cách dịch sang 2 bên
+    let eyeOffsetX = r * 0.46;
 
-    // Mắt trái (dịch sang trái nhiều hơn)
     ctx.fillStyle = "#ffffff";
     ctx.beginPath();
     ctx.arc(-eyeOffsetX, -r * 0.15, eyeRadius, 0, Math.PI * 2);
@@ -556,7 +768,6 @@ function drawPig(x, y, r) {
         ctx.stroke();
     }
 
-    // Mắt phải (dịch sang phải nhiều hơn)
     ctx.fillStyle = "#ffffff";
     ctx.beginPath();
     ctx.arc(eyeOffsetX, -r * 0.15, eyeRadius, 0, Math.PI * 2);
@@ -576,14 +787,12 @@ function drawPig(x, y, r) {
         ctx.stroke();
     }
 
-    // 5. Mũi mõm lợn to
     ctx.fillStyle = "#8fe038";
     ctx.beginPath();
     ctx.ellipse(0, r * 0.18, r * 0.45, r * 0.35, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
 
-    // 6. Hai lỗ mũi đen
     ctx.fillStyle = "#2d570c";
     ctx.beginPath();
     ctx.arc(-r * 0.13, r * 0.16, r * 0.07, 0, Math.PI * 2);
@@ -592,7 +801,6 @@ function drawPig(x, y, r) {
     ctx.arc(r * 0.13, r * 0.16, r * 0.07, 0, Math.PI * 2);
     ctx.fill();
 
-    // 7. Miệng cười
     ctx.strokeStyle = "#2d570c";
     ctx.lineWidth = 2 * scale;
     ctx.beginPath();
@@ -605,21 +813,26 @@ function drawPig(x, y, r) {
 function update() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    clouds.forEach(c => {
-        c.x += c.speed;
-        if (c.x > canvas.width) c.x = -c.w;
-        ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+    // 1. Vẽ Ảnh Background
+    if (bgImage.complete && bgImage.naturalWidth !== 0) {
+        ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+    } else {
+        ctx.fillStyle = "#4ca2cd";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // 2. Vẽ các phần đất nhô lên (đồi cỏ)
+    groundHills.forEach(hill => {
+        ctx.fillStyle = "#5c9e32";
         ctx.beginPath();
-        ctx.arc(c.x, c.y, c.w * 0.3, 0, Math.PI * 2);
-        ctx.arc(c.x + c.w * 0.25, c.y - c.w * 0.1, c.w * 0.35, 0, Math.PI * 2);
+        ctx.ellipse(hill.x + hill.w/2, groundY, hill.w/2, hill.h, 0, Math.PI, 0, false);
         ctx.fill();
+        ctx.strokeStyle = "#386b1f";
+        ctx.lineWidth = 3 * scale;
+        ctx.stroke();
     });
 
-    ctx.fillStyle = "#5c4033";
-    ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
-    ctx.fillStyle = "#43a047";
-    ctx.fillRect(0, groundY, canvas.width, 18 * scale);
-
+    // 3. Vẽ trụ súng cao su
     ctx.strokeStyle = "#3e2723";
     ctx.lineWidth = 10 * scale;
     ctx.beginPath();
@@ -629,9 +842,9 @@ function update() {
 
     if (gameState === "PLAYING") {
         ctx.fillStyle = "#fff";
-        ctx.font = "bold 24px Arial";
+        ctx.font = "bold 22px Arial";
         ctx.textAlign = "center";
-        ctx.fillText("ĐIỂM: " + score, canvas.width / 2, 45);
+        ctx.fillText(`MÀN: ${currentLevel} | ĐIỂM: ${score}`, canvas.width / 2, 45);
 
         for (let i = 0; i < lives - 1; i++) {
             drawBird(sling.x - 45 - (i * 30), groundY - 18 * scale, 12 * scale);
@@ -698,16 +911,20 @@ function update() {
                 if (t.type === "pig") {
                     drawPig(t.x, t.y, t.radius);
                 } else {
-                    ctx.fillStyle = t.type === "wood" ? "#b5651d" : "#81d4fa";
+                    // Màu sắc khối vật liệu (Gỗ, Băng, Đá)
+                    if (t.type === "wood") ctx.fillStyle = "#b5651d";
+                    else if (t.type === "ice") ctx.fillStyle = "#81d4fa";
+                    else ctx.fillStyle = "#90a4ae"; // Đá
+
                     ctx.fillRect(t.x, t.y, t.width, t.height);
-                    ctx.strokeStyle = t.type === "wood" ? "#7c3f0b" : "#29b6f6";
-                    ctx.lineWidth = 2 * scale;
+                    ctx.strokeStyle = "#222";
+                    ctx.lineWidth = 1.5 * scale;
                     ctx.strokeRect(t.x, t.y, t.width, t.height);
                 }
             }
         });
 
-        if (!activePigs && targets.length > 1) {
+        if (!activePigs && targets.length > 0) {
             endGame(true);
         }
     }
