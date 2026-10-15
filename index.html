@@ -25,8 +25,8 @@
             position: relative;
             width: 100vw;
             height: 100vh;
-            max-width: 1200px;
-            max-height: 700px;
+            max-width: 1400px; /* Mở rộng khung chứa map */
+            max-height: 750px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.8);
         }
         canvas {
@@ -302,13 +302,14 @@ function resizeCanvas() {
     canvas.width = canvas.parentElement.clientWidth;
     canvas.height = canvas.parentElement.clientHeight;
 
-    let scaleX = canvas.width / 1000;
-    let scaleY = canvas.height / 600;
+    // Mở rộng tỉ lệ map rộng hơn (1400px thay vì 1000px)
+    let scaleX = canvas.width / 1400;
+    let scaleY = canvas.height / 650;
     scale = Math.min(scaleX, scaleY);
     if (scale < 0.6) scale = 0.6;
 
     groundY = canvas.height - 90 * scale;
-    sling.x = canvas.width * 0.2;
+    sling.x = canvas.width * 0.15; // Đặt vị trí súng cao su dịch sang trái một chút để mở rộng tầm nhìn
     sling.y = groundY - 100 * scale;
 
     if (!bird.isLaunched && !bird.isDragging) {
@@ -318,23 +319,25 @@ function resizeCanvas() {
 
     bird.radius = 18 * scale;
 
-    const startX = canvas.width * 0.65;
-    const boxW = 45 * scale;
-    const boxH = 55 * scale;
+    // Đẩy khu vực mục tiêu (công trình và heo) sang phải nhiều hơn để tạo khoảng cách bay xa
+    const startX = canvas.width * 0.7;
+    const boxW = 50 * scale;
+    const boxH = 60 * scale;
 
     targets = [
         { type: "wood", x: startX, y: groundY - boxH, width: boxW, height: boxH, alive: true, health: 2 },
         { type: "pig", x: startX + boxW/2, y: groundY - boxH - 22 * scale, alive: true, radius: 22 * scale },
-        { type: "wood", x: startX + boxW + 20 * scale, y: groundY - boxH, width: boxW, height: boxH, alive: true, health: 2 },
-        { type: "pig", x: startX + boxW + 20 * scale + boxW/2, y: groundY - boxH - 22 * scale, alive: true, radius: 22 * scale },
-        { type: "ice", x: startX + 5 * scale, y: groundY - boxH * 2 - 5 * scale, width: boxW * 2 + 10 * scale, height: 20 * scale, alive: true, health: 1 },
-        { type: "pig", x: startX + boxW + 10 * scale, y: groundY - boxH * 2 - 32 * scale, alive: true, radius: 22 * scale }
+        { type: "wood", x: startX + boxW + 25 * scale, y: groundY - boxH, width: boxW, height: boxH, alive: true, health: 2 },
+        { type: "pig", x: startX + boxW + 25 * scale + boxW/2, y: groundY - boxH - 22 * scale, alive: true, radius: 22 * scale },
+        { type: "ice", x: startX + 5 * scale, y: groundY - boxH * 2 - 5 * scale, width: boxW * 2 + 15 * scale, height: 20 * scale, alive: true, health: 1 },
+        { type: "pig", x: startX + boxW + 12 * scale, y: groundY - boxH * 2 - 32 * scale, alive: true, radius: 22 * scale }
     ];
 
     if (clouds.length === 0) {
         clouds = [
-            { x: canvas.width * 0.15, y: canvas.height * 0.2, speed: 0.2, w: 100 * scale },
-            { x: canvas.width * 0.6, y: canvas.height * 0.1, speed: 0.15, w: 140 * scale }
+            { x: canvas.width * 0.1, y: canvas.height * 0.15, speed: 0.15, w: 100 * scale },
+            { x: canvas.width * 0.45, y: canvas.height * 0.08, speed: 0.1, w: 130 * scale },
+            { x: canvas.width * 0.8, y: canvas.height * 0.2, speed: 0.2, w: 110 * scale }
         ];
     }
 }
@@ -477,128 +480,123 @@ function drawBird(x, y, r) {
     ctx.fill();
 }
 
-// Hàm vẽ hoàn toàn chú lợn xanh chuẩn phong cách mẫu với hiệu ứng chớp mắt tự động
+// Chỉnh sửa ngoại hình heo: viền đen bé lại, mắt dịch ra xa nhau hơn và có thể nhắm mắt
 function drawPig(x, y, r) {
     ctx.save();
     ctx.translate(x, y);
 
-    // Đường viền đen chung bọc quanh lợn
+    // Viền đen mảnh hơn (bé lại) đúng yêu cầu
     ctx.strokeStyle = "#000000";
-    ctx.lineWidth = 3.5 * scale;
+    ctx.lineWidth = 2.2 * scale;
 
-    // 1. Vẽ tai lợn phía trên
+    // 1. Tai lợn
     ctx.fillStyle = "#6fc525";
     // Tai trái
     ctx.beginPath();
-    ctx.arc(-r * 0.45, -r * 0.75, r * 0.32, 0, Math.PI * 2);
+    ctx.arc(-r * 0.42, -r * 0.78, r * 0.3, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
-    // Lỗ tai trái nhỏ bên trong
     ctx.fillStyle = "#559c19";
     ctx.beginPath();
-    ctx.arc(-r * 0.45, -r * 0.75, r * 0.14, 0, Math.PI * 2);
+    ctx.arc(-r * 0.42, -r * 0.78, r * 0.13, 0, Math.PI * 2);
     ctx.fill();
 
     // Tai phải
     ctx.fillStyle = "#6fc525";
     ctx.beginPath();
-    ctx.arc(r * 0.35, -r * 0.8, r * 0.32, 0, Math.PI * 2);
+    ctx.arc(r * 0.42, -r * 0.78, r * 0.3, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
-    // Lỗ tai phải nhỏ bên trong
     ctx.fillStyle = "#559c19";
     ctx.beginPath();
-    ctx.arc(r * 0.35, -r * 0.8, r * 0.14, 0, Math.PI * 2);
+    ctx.arc(r * 0.42, -r * 0.78, r * 0.13, 0, Math.PI * 2);
     ctx.fill();
 
-    // 2. Thân mặt chính hình tròn xanh lá đặc trưng
+    // 2. Thân mặt chính
     ctx.fillStyle = "#7acc29";
     ctx.beginPath();
     ctx.arc(0, 0, r, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
 
-    // 3. Lông mày xanh đậm phía trên mắt
+    // 3. Lông mày xanh đậm
     ctx.fillStyle = "#559c19";
     ctx.beginPath();
-    ctx.arc(-r * 0.45, -r * 0.28, r * 0.18, Math.PI, 0, false);
+    ctx.arc(-r * 0.52, -r * 0.3, r * 0.16, Math.PI, 0, false);
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(r * 0.45, -r * 0.3, r * 0.18, Math.PI, 0, false);
+    ctx.arc(r * 0.52, -r * 0.3, r * 0.16, Math.PI, 0, false);
     ctx.fill();
 
-    // Hiệu ứng chớp mắt: tự động nhắm mắt (mỗi chu kỳ vài giây lợn sẽ nháy mắt 1 lần)
+    // Hiệu ứng chớp mắt tự động
     let timeSec = Date.now() / 400;
     let isBlinking = (Math.sin(timeSec + x) > 0.85);
 
-    // 4. Hai mắt to tròn trắng + con ngươi đen
-    let eyeRadius = r * 0.32;
-    
-    // Mắt trái
+    // 4. Hai mắt to tròn (ĐÃ DỊCH CHUYỂN RA XA NHAU HƠN)
+    let eyeRadius = r * 0.28;
+    let eyeOffsetX = r * 0.46; // Tăng khoảng cách dịch sang 2 bên
+
+    // Mắt trái (dịch sang trái nhiều hơn)
     ctx.fillStyle = "#ffffff";
     ctx.beginPath();
-    ctx.arc(-r * 0.38, -r * 0.15, eyeRadius, 0, Math.PI * 2);
+    ctx.arc(-eyeOffsetX, -r * 0.15, eyeRadius, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
 
     if (!isBlinking) {
         ctx.fillStyle = "#000000";
         ctx.beginPath();
-        ctx.arc(-r * 0.32, -r * 0.15, r * 0.09, 0, Math.PI * 2);
+        ctx.arc(-eyeOffsetX + r * 0.05, -r * 0.15, r * 0.08, 0, Math.PI * 2);
         ctx.fill();
     } else {
-        // Trạng thái nhắm mắt (đường cong híp mắt)
         ctx.strokeStyle = "#000";
-        ctx.lineWidth = 3 * scale;
+        ctx.lineWidth = 2.5 * scale;
         ctx.beginPath();
-        ctx.arc(-r * 0.38, -r * 0.05, eyeRadius * 0.6, Math.PI, 0, false);
+        ctx.arc(-eyeOffsetX, -r * 0.05, eyeRadius * 0.6, Math.PI, 0, false);
         ctx.stroke();
-        ctx.strokeStyle = "#000000";
-        ctx.lineWidth = 3.5 * scale;
     }
 
-    // Mắt phải
+    // Mắt phải (dịch sang phải nhiều hơn)
     ctx.fillStyle = "#ffffff";
     ctx.beginPath();
-    ctx.arc(r * 0.38, -r * 0.15, eyeRadius, 0, Math.PI * 2);
+    ctx.arc(eyeOffsetX, -r * 0.15, eyeRadius, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
 
     if (!isBlinking) {
         ctx.fillStyle = "#000000";
         ctx.beginPath();
-        ctx.arc(r * 0.32, -r * 0.15, r * 0.09, 0, Math.PI * 2);
+        ctx.arc(eyeOffsetX - r * 0.05, -r * 0.15, r * 0.08, 0, Math.PI * 2);
         ctx.fill();
     } else {
-        // Trạng thái nhắm mắt phải
         ctx.strokeStyle = "#000";
-        ctx.lineWidth = 3 * scale;
+        ctx.lineWidth = 2.5 * scale;
         ctx.beginPath();
-        ctx.arc(r * 0.38, -r * 0.05, eyeRadius * 0.6, Math.PI, 0, false);
+        ctx.arc(eyeOffsetX, -r * 0.05, eyeRadius * 0.6, Math.PI, 0, false);
         ctx.stroke();
     }
 
-    // 5. Mũi mõm lợn to hình oval xanh sáng nổi bật ở giữa
+    // 5. Mũi mõm lợn to
     ctx.fillStyle = "#8fe038";
     ctx.beginPath();
-    ctx.ellipse(0, r * 0.18, r * 0.48, r * 0.38, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, r * 0.18, r * 0.45, r * 0.35, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
 
-    // 6. Hai lỗ mũi đen trên mõm
+    // 6. Hai lỗ mũi đen
     ctx.fillStyle = "#2d570c";
     ctx.beginPath();
-    ctx.arc(-r * 0.14, r * 0.16, r * 0.08, 0, Math.PI * 2);
+    ctx.arc(-r * 0.13, r * 0.16, r * 0.07, 0, Math.PI * 2);
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(r * 0.14, r * 0.16, r * 0.08, 0, Math.PI * 2);
+    ctx.arc(r * 0.13, r * 0.16, r * 0.07, 0, Math.PI * 2);
     ctx.fill();
 
-    // 7. Miệng cười nhếch mép dưới mũi
+    // 7. Miệng cười
     ctx.strokeStyle = "#2d570c";
-    ctx.lineWidth = 2.5 * scale;
+    ctx.lineWidth = 2 * scale;
     ctx.beginPath();
-    ctx.arc(0, r * 0.3, r * 0.22, 0.1, Math.PI - 0.1, false);
+    ctx.arc(0, r * 0.3, r * 0.2, 0.1, Math.PI - 0.1, false);
     ctx.stroke();
 
     ctx.restore();
