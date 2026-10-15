@@ -85,8 +85,6 @@
         .hidden {
             display: none !important;
         }
-
-        /* Nút Setting hình bánh răng ở góc trên bên trái */
         #gearBtn {
             position: absolute;
             top: 20px;
@@ -111,8 +109,6 @@
             border-color: #ffcc00;
             transform: rotate(45deg);
         }
-
-        /* Trang nhỏ (Modal) Cài đặt âm lượng và nhạc */
         #settingsModal {
             position: absolute;
             top: 0;
@@ -180,10 +176,10 @@
 <body>
 
     <div id="gameContainer">
-        <!-- Nút Setting hình bánh răng -->
+        <!-- Nút Setting bánh răng -->
         <button id="gearBtn" onclick="openSettings()">⚙️</button>
 
-        <!-- Trang nhỏ chỉnh âm lượng và đổi nhạc (Modal) -->
+        <!-- Bảng Cài đặt -->
         <div id="settingsModal" class="hidden">
             <div class="settings-content">
                 <h2>CÀI ĐẶT ÂM THANH</h2>
@@ -209,14 +205,12 @@
             </div>
         </div>
 
-        <!-- Màn hình bắt đầu -->
         <div id="startScreen" class="overlay">
             <h1>ANGRY BIRDS MINI</h1>
             <p>Kéo và thả chim để phá hủy toàn bộ heo xanh trong 3 lượt bắn!</p>
             <button class="btn" onclick="startGame()">BẮT ĐẦU CHƠI</button>
         </div>
 
-        <!-- Màn hình kết quả -->
         <div id="gameOverScreen" class="overlay hidden">
             <h1 id="gameOverTitle">CHIẾN THẮNG!</h1>
             <p id="finalScoreText">Tổng điểm tuyệt đối: 0</p>
@@ -240,7 +234,6 @@ const volumeValue = document.getElementById("volumeValue");
 const muteBtn = document.getElementById("muteBtn");
 const bgMusicSelect = document.getElementById("bgMusicSelect");
 
-// Khởi tạo các đối tượng âm thanh
 let currentMusicFile = "angrybird.sound.mp4";
 let bgMusic = new Audio(currentMusicFile);
 bgMusic.loop = true;
@@ -251,16 +244,9 @@ victorySound.volume = 0.7;
 
 let isMuted = false;
 
-// Mở/Đóng bảng Setting
-function openSettings() {
-    settingsModal.classList.remove("hidden");
-}
+function openSettings() { settingsModal.classList.remove("hidden"); }
+function closeSettings() { settingsModal.classList.add("hidden"); }
 
-function closeSettings() {
-    settingsModal.classList.add("hidden");
-}
-
-// Thay đổi file nhạc nền
 function changeBackgroundMusic() {
     let selectedFile = bgMusicSelect.value;
     bgMusic.pause();
@@ -268,13 +254,11 @@ function changeBackgroundMusic() {
     bgMusic = new Audio(currentMusicFile);
     bgMusic.loop = true;
     bgMusic.volume = volumeSlider.value / 100;
-
     if (!isMuted && gameState === "PLAYING") {
         bgMusic.play().catch(e => console.log(e));
     }
 }
 
-// Cập nhật âm lượng từ thanh trượt (0 - 100)
 function updateVolume(val) {
     volumeValue.textContent = val;
     let vol = val / 100;
@@ -287,7 +271,6 @@ function updateVolume(val) {
     }
 }
 
-// Nút tắt/bật nhạc nhanh trong setting
 function toggleMute() {
     isMuted = !isMuted;
     if (isMuted) {
@@ -303,10 +286,6 @@ function toggleMute() {
         }
     }
 }
-
-// Tải hình ảnh chú heo xanh
-const pigImage = new Image();
-pigImage.src = "pig.png"; 
 
 let gameState = "MENU"; 
 let score = 0;
@@ -345,11 +324,11 @@ function resizeCanvas() {
 
     targets = [
         { type: "wood", x: startX, y: groundY - boxH, width: boxW, height: boxH, alive: true, health: 2 },
-        { type: "pig", x: startX + boxW/2, y: groundY - boxH - 18 * scale, alive: true, radius: 18 * scale },
+        { type: "pig", x: startX + boxW/2, y: groundY - boxH - 22 * scale, alive: true, radius: 22 * scale },
         { type: "wood", x: startX + boxW + 20 * scale, y: groundY - boxH, width: boxW, height: boxH, alive: true, health: 2 },
-        { type: "pig", x: startX + boxW + 20 * scale + boxW/2, y: groundY - boxH - 18 * scale, alive: true, radius: 18 * scale },
+        { type: "pig", x: startX + boxW + 20 * scale + boxW/2, y: groundY - boxH - 22 * scale, alive: true, radius: 22 * scale },
         { type: "ice", x: startX + 5 * scale, y: groundY - boxH * 2 - 5 * scale, width: boxW * 2 + 10 * scale, height: 20 * scale, alive: true, health: 1 },
-        { type: "pig", x: startX + boxW + 10 * scale, y: groundY - boxH * 2 - 28 * scale, alive: true, radius: 18 * scale }
+        { type: "pig", x: startX + boxW + 10 * scale, y: groundY - boxH * 2 - 32 * scale, alive: true, radius: 22 * scale }
     ];
 
     if (clouds.length === 0) {
@@ -374,9 +353,7 @@ function startGame() {
 
     if (!isMuted) {
         bgMusic.currentTime = 0;
-        bgMusic.play().catch(error => {
-            console.log("Trình duyệt chặn tự động phát nhạc:", error);
-        });
+        bgMusic.play().catch(error => console.log(error));
     }
 }
 
@@ -500,15 +477,131 @@ function drawBird(x, y, r) {
     ctx.fill();
 }
 
+// Hàm vẽ hoàn toàn chú lợn xanh chuẩn phong cách mẫu với hiệu ứng chớp mắt tự động
 function drawPig(x, y, r) {
-    if (pigImage.complete && pigImage.naturalWidth !== 0) {
-        ctx.drawImage(pigImage, x - r, y - r, r * 2, r * 2);
-    } else {
-        ctx.fillStyle = "#7acc29";
+    ctx.save();
+    ctx.translate(x, y);
+
+    // Đường viền đen chung bọc quanh lợn
+    ctx.strokeStyle = "#000000";
+    ctx.lineWidth = 3.5 * scale;
+
+    // 1. Vẽ tai lợn phía trên
+    ctx.fillStyle = "#6fc525";
+    // Tai trái
+    ctx.beginPath();
+    ctx.arc(-r * 0.45, -r * 0.75, r * 0.32, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    // Lỗ tai trái nhỏ bên trong
+    ctx.fillStyle = "#559c19";
+    ctx.beginPath();
+    ctx.arc(-r * 0.45, -r * 0.75, r * 0.14, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Tai phải
+    ctx.fillStyle = "#6fc525";
+    ctx.beginPath();
+    ctx.arc(r * 0.35, -r * 0.8, r * 0.32, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    // Lỗ tai phải nhỏ bên trong
+    ctx.fillStyle = "#559c19";
+    ctx.beginPath();
+    ctx.arc(r * 0.35, -r * 0.8, r * 0.14, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 2. Thân mặt chính hình tròn xanh lá đặc trưng
+    ctx.fillStyle = "#7acc29";
+    ctx.beginPath();
+    ctx.arc(0, 0, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // 3. Lông mày xanh đậm phía trên mắt
+    ctx.fillStyle = "#559c19";
+    ctx.beginPath();
+    ctx.arc(-r * 0.45, -r * 0.28, r * 0.18, Math.PI, 0, false);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(r * 0.45, -r * 0.3, r * 0.18, Math.PI, 0, false);
+    ctx.fill();
+
+    // Hiệu ứng chớp mắt: tự động nhắm mắt (mỗi chu kỳ vài giây lợn sẽ nháy mắt 1 lần)
+    let timeSec = Date.now() / 400;
+    let isBlinking = (Math.sin(timeSec + x) > 0.85);
+
+    // 4. Hai mắt to tròn trắng + con ngươi đen
+    let eyeRadius = r * 0.32;
+    
+    // Mắt trái
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.arc(-r * 0.38, -r * 0.15, eyeRadius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    if (!isBlinking) {
+        ctx.fillStyle = "#000000";
         ctx.beginPath();
-        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.arc(-r * 0.32, -r * 0.15, r * 0.09, 0, Math.PI * 2);
         ctx.fill();
+    } else {
+        // Trạng thái nhắm mắt (đường cong híp mắt)
+        ctx.strokeStyle = "#000";
+        ctx.lineWidth = 3 * scale;
+        ctx.beginPath();
+        ctx.arc(-r * 0.38, -r * 0.05, eyeRadius * 0.6, Math.PI, 0, false);
+        ctx.stroke();
+        ctx.strokeStyle = "#000000";
+        ctx.lineWidth = 3.5 * scale;
     }
+
+    // Mắt phải
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.arc(r * 0.38, -r * 0.15, eyeRadius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    if (!isBlinking) {
+        ctx.fillStyle = "#000000";
+        ctx.beginPath();
+        ctx.arc(r * 0.32, -r * 0.15, r * 0.09, 0, Math.PI * 2);
+        ctx.fill();
+    } else {
+        // Trạng thái nhắm mắt phải
+        ctx.strokeStyle = "#000";
+        ctx.lineWidth = 3 * scale;
+        ctx.beginPath();
+        ctx.arc(r * 0.38, -r * 0.05, eyeRadius * 0.6, Math.PI, 0, false);
+        ctx.stroke();
+    }
+
+    // 5. Mũi mõm lợn to hình oval xanh sáng nổi bật ở giữa
+    ctx.fillStyle = "#8fe038";
+    ctx.beginPath();
+    ctx.ellipse(0, r * 0.18, r * 0.48, r * 0.38, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // 6. Hai lỗ mũi đen trên mõm
+    ctx.fillStyle = "#2d570c";
+    ctx.beginPath();
+    ctx.arc(-r * 0.14, r * 0.16, r * 0.08, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(r * 0.14, r * 0.16, r * 0.08, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 7. Miệng cười nhếch mép dưới mũi
+    ctx.strokeStyle = "#2d570c";
+    ctx.lineWidth = 2.5 * scale;
+    ctx.beginPath();
+    ctx.arc(0, r * 0.3, r * 0.22, 0.1, Math.PI - 0.1, false);
+    ctx.stroke();
+
+    ctx.restore();
 }
 
 function update() {
