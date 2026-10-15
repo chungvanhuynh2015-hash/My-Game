@@ -25,12 +25,11 @@
             position: relative;
             width: 100vw;
             height: 100vh;
-            max-width: 1400px; /* Mở rộng khung chứa map */
+            max-width: 1400px;
             max-height: 750px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.8);
         }
         canvas {
-            background: linear-gradient(to bottom, #4ca2cd, #67b26f);
             display: block;
             width: 100%;
             height: 100%;
@@ -287,6 +286,10 @@ function toggleMute() {
     }
 }
 
+// Tải file ảnh backgroundangrybird.jpg từ GitHub
+const bgImage = new Image();
+bgImage.src = "backgroundangrybird.jpg";
+
 let gameState = "MENU"; 
 let score = 0;
 let lives = 3;
@@ -296,20 +299,18 @@ let scale = 1;
 let sling = { x: 0, y: 0 };
 let bird = { x: 0, y: 0, radius: 18, vx: 0, vy: 0, isDragging: false, isLaunched: false };
 let targets = [];
-let clouds = [];
 
 function resizeCanvas() {
     canvas.width = canvas.parentElement.clientWidth;
     canvas.height = canvas.parentElement.clientHeight;
 
-    // Mở rộng tỉ lệ map rộng hơn (1400px thay vì 1000px)
     let scaleX = canvas.width / 1400;
     let scaleY = canvas.height / 650;
     scale = Math.min(scaleX, scaleY);
     if (scale < 0.6) scale = 0.6;
 
     groundY = canvas.height - 90 * scale;
-    sling.x = canvas.width * 0.15; // Đặt vị trí súng cao su dịch sang trái một chút để mở rộng tầm nhìn
+    sling.x = canvas.width * 0.15;
     sling.y = groundY - 100 * scale;
 
     if (!bird.isLaunched && !bird.isDragging) {
@@ -319,7 +320,6 @@ function resizeCanvas() {
 
     bird.radius = 18 * scale;
 
-    // Đẩy khu vực mục tiêu (công trình và heo) sang phải nhiều hơn để tạo khoảng cách bay xa
     const startX = canvas.width * 0.7;
     const boxW = 50 * scale;
     const boxH = 60 * scale;
@@ -332,14 +332,6 @@ function resizeCanvas() {
         { type: "ice", x: startX + 5 * scale, y: groundY - boxH * 2 - 5 * scale, width: boxW * 2 + 15 * scale, height: 20 * scale, alive: true, health: 1 },
         { type: "pig", x: startX + boxW + 12 * scale, y: groundY - boxH * 2 - 32 * scale, alive: true, radius: 22 * scale }
     ];
-
-    if (clouds.length === 0) {
-        clouds = [
-            { x: canvas.width * 0.1, y: canvas.height * 0.15, speed: 0.15, w: 100 * scale },
-            { x: canvas.width * 0.45, y: canvas.height * 0.08, speed: 0.1, w: 130 * scale },
-            { x: canvas.width * 0.8, y: canvas.height * 0.2, speed: 0.2, w: 110 * scale }
-        ];
-    }
 }
 
 function startGame() {
@@ -480,18 +472,14 @@ function drawBird(x, y, r) {
     ctx.fill();
 }
 
-// Chỉnh sửa ngoại hình heo: viền đen bé lại, mắt dịch ra xa nhau hơn và có thể nhắm mắt
 function drawPig(x, y, r) {
     ctx.save();
     ctx.translate(x, y);
 
-    // Viền đen mảnh hơn (bé lại) đúng yêu cầu
     ctx.strokeStyle = "#000000";
     ctx.lineWidth = 2.2 * scale;
 
-    // 1. Tai lợn
     ctx.fillStyle = "#6fc525";
-    // Tai trái
     ctx.beginPath();
     ctx.arc(-r * 0.42, -r * 0.78, r * 0.3, 0, Math.PI * 2);
     ctx.fill();
@@ -501,7 +489,6 @@ function drawPig(x, y, r) {
     ctx.arc(-r * 0.42, -r * 0.78, r * 0.13, 0, Math.PI * 2);
     ctx.fill();
 
-    // Tai phải
     ctx.fillStyle = "#6fc525";
     ctx.beginPath();
     ctx.arc(r * 0.42, -r * 0.78, r * 0.3, 0, Math.PI * 2);
@@ -512,14 +499,12 @@ function drawPig(x, y, r) {
     ctx.arc(r * 0.42, -r * 0.78, r * 0.13, 0, Math.PI * 2);
     ctx.fill();
 
-    // 2. Thân mặt chính
     ctx.fillStyle = "#7acc29";
     ctx.beginPath();
     ctx.arc(0, 0, r, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
 
-    // 3. Lông mày xanh đậm
     ctx.fillStyle = "#559c19";
     ctx.beginPath();
     ctx.arc(-r * 0.52, -r * 0.3, r * 0.16, Math.PI, 0, false);
@@ -528,15 +513,12 @@ function drawPig(x, y, r) {
     ctx.arc(r * 0.52, -r * 0.3, r * 0.16, Math.PI, 0, false);
     ctx.fill();
 
-    // Hiệu ứng chớp mắt tự động
     let timeSec = Date.now() / 400;
     let isBlinking = (Math.sin(timeSec + x) > 0.85);
 
-    // 4. Hai mắt to tròn (ĐÃ DỊCH CHUYỂN RA XA NHAU HƠN)
     let eyeRadius = r * 0.28;
-    let eyeOffsetX = r * 0.46; // Tăng khoảng cách dịch sang 2 bên
+    let eyeOffsetX = r * 0.46;
 
-    // Mắt trái (dịch sang trái nhiều hơn)
     ctx.fillStyle = "#ffffff";
     ctx.beginPath();
     ctx.arc(-eyeOffsetX, -r * 0.15, eyeRadius, 0, Math.PI * 2);
@@ -556,7 +538,6 @@ function drawPig(x, y, r) {
         ctx.stroke();
     }
 
-    // Mắt phải (dịch sang phải nhiều hơn)
     ctx.fillStyle = "#ffffff";
     ctx.beginPath();
     ctx.arc(eyeOffsetX, -r * 0.15, eyeRadius, 0, Math.PI * 2);
@@ -576,14 +557,12 @@ function drawPig(x, y, r) {
         ctx.stroke();
     }
 
-    // 5. Mũi mõm lợn to
     ctx.fillStyle = "#8fe038";
     ctx.beginPath();
     ctx.ellipse(0, r * 0.18, r * 0.45, r * 0.35, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
 
-    // 6. Hai lỗ mũi đen
     ctx.fillStyle = "#2d570c";
     ctx.beginPath();
     ctx.arc(-r * 0.13, r * 0.16, r * 0.07, 0, Math.PI * 2);
@@ -592,7 +571,6 @@ function drawPig(x, y, r) {
     ctx.arc(r * 0.13, r * 0.16, r * 0.07, 0, Math.PI * 2);
     ctx.fill();
 
-    // 7. Miệng cười
     ctx.strokeStyle = "#2d570c";
     ctx.lineWidth = 2 * scale;
     ctx.beginPath();
@@ -605,20 +583,13 @@ function drawPig(x, y, r) {
 function update() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    clouds.forEach(c => {
-        c.x += c.speed;
-        if (c.x > canvas.width) c.x = -c.w;
-        ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
-        ctx.beginPath();
-        ctx.arc(c.x, c.y, c.w * 0.3, 0, Math.PI * 2);
-        ctx.arc(c.x + c.w * 0.25, c.y - c.w * 0.1, c.w * 0.35, 0, Math.PI * 2);
-        ctx.fill();
-    });
-
-    ctx.fillStyle = "#5c4033";
-    ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
-    ctx.fillStyle = "#43a047";
-    ctx.fillRect(0, groundY, canvas.width, 18 * scale);
+    // Vẽ ảnh background phủ kín canvas, nếu chưa tải xong thì hiện màu nền tạm
+    if (bgImage.complete && bgImage.naturalWidth !== 0) {
+        ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+    } else {
+        ctx.fillStyle = "#4ca2cd";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
 
     ctx.strokeStyle = "#3e2723";
     ctx.lineWidth = 10 * scale;
