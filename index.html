@@ -82,6 +82,13 @@
             transform: translateY(4px);
             box-shadow: 0 2px 0 #335511, 0 5px 10px rgba(0,0,0,0.4);
         }
+        .btn.locked {
+            background: linear-gradient(to bottom, #777, #444);
+            border-color: #222;
+            box-shadow: 0 6px 0 #222;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
         .hidden {
             display: none !important;
         }
@@ -148,6 +155,27 @@
             transform: rotate(45deg);
         }
 
+        /* Nút Đăng Xuất thu nhỏ ở góc dưới bên phải màn hình chọn màn */
+        #logoutBtn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            padding: 8px 20px;
+            font-size: 14px;
+            background: linear-gradient(to bottom, #ff4444, #cc0000);
+            border: 2px solid #990000;
+            box-shadow: 0 4px 0 #990000;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            z-index: 250;
+        }
+        #logoutBtn:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #990000;
+        }
+
         /* Bảng Cài đặt Modal */
         #settingsModal {
             position: absolute;
@@ -207,7 +235,7 @@
         }
         .close-btn:hover { background: #ff1a1a; }
 
-        /* Hiển thị thông tin user góc phải trên */
+        /* Thông tin user góc phải trên */
         #userInfoPanel {
             position: absolute;
             top: 20px;
@@ -238,7 +266,7 @@
         <!-- Nút Setting bánh răng -->
         <button id="gearBtn" onclick="openSettings()">⚙️</button>
 
-        <!-- Bảng thông tin user góc phải -->
+        <!-- Thông tin user góc phải -->
         <div id="userInfoPanel" class="hidden">
             <img id="panelAvatar" src="" alt="Avatar">
             <span id="panelUsername" style="font-weight: bold;">User</span>
@@ -275,13 +303,14 @@
             <h1>CHỌN MÀN CHƠI</h1>
             <p id="welcomeUserText">Xin chào!</p>
             <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-bottom: 25px;">
-                <button class="btn" style="padding: 15px 25px;" onclick="startLevel(1)">Màn 1</button>
-                <button class="btn" style="padding: 15px 25px;" onclick="startLevel(2)">Màn 2</button>
-                <button class="btn" style="padding: 15px 25px;" onclick="startLevel(3)">Màn 3</button>
-                <button class="btn" style="padding: 15px 25px;" onclick="startLevel(4)">Màn 4</button>
-                <button class="btn" style="padding: 15px 25px;" onclick="startLevel(5)">Màn 5</button>
+                <button class="btn" id="lvlBtn1" style="padding: 15px 25px;" onclick="startLevel(1)">Màn 1</button>
+                <button class="btn locked" id="lvlBtn2" style="padding: 15px 25px;" onclick="startLevel(2)">Màn 2 🔒</button>
+                <button class="btn locked" id="lvlBtn3" style="padding: 15px 25px;" onclick="startLevel(3)">Màn 3 🔒</button>
+                <button class="btn locked" id="lvlBtn4" style="padding: 15px 25px;" onclick="startLevel(4)">Màn 4 🔒</button>
+                <button class="btn locked" id="lvlBtn5" style="padding: 15px 25px;" onclick="startLevel(5)">Màn 5 🔒</button>
             </div>
-            <button class="btn" style="background: #444; border-color: #222;" onclick="logout()">Đăng Xuất</button>
+            <!-- Nút đăng xuất thu nhỏ ở góc dưới phải -->
+            <button id="logoutBtn" onclick="logout()">Đăng Xuất</button>
         </div>
 
         <!-- Bảng Cài đặt Modal -->
@@ -342,19 +371,22 @@ const panelAvatar = document.getElementById("panelAvatar");
 const panelUsername = document.getElementById("panelUsername");
 const welcomeUserText = document.getElementById("welcomeUserText");
 
-// Quản lý tài khoản và lưu trữ LocalStorage
-let currentUser = { username: "", password: "", avatar: "" };
+// Quản lý tài khoản và tiến trình mở khóa màn chơi
+let currentUser = { username: "", password: "", avatar: "", maxLevelUnlocked: 1 };
 
 window.onload = function() {
     let savedUser = localStorage.getItem("angryBirdsUser");
     if (savedUser) {
         currentUser = JSON.parse(savedUser);
+        if (!currentUser.maxLevelUnlocked) currentUser.maxLevelUnlocked = 1;
+        
         panelUsername.textContent = currentUser.username;
         if (currentUser.avatar) panelAvatar.src = currentUser.avatar;
         userInfoPanel.classList.remove("hidden");
         authScreen.classList.add("hidden");
         levelMenuScreen.classList.remove("hidden");
         welcomeUserText.textContent = `Xin chào, ${currentUser.username}! Hãy chọn màn chơi:`;
+        updateLevelButtons();
     }
 }
 
@@ -381,6 +413,7 @@ function handleLogin() {
     currentUser.username = username;
     currentUser.password = password;
     if (tempAvatarBase64) currentUser.avatar = tempAvatarBase64;
+    if (!currentUser.maxLevelUnlocked) currentUser.maxLevelUnlocked = 1;
 
     localStorage.setItem("angryBirdsUser", JSON.stringify(currentUser));
 
@@ -391,6 +424,7 @@ function handleLogin() {
     authScreen.classList.add("hidden");
     levelMenuScreen.classList.remove("hidden");
     welcomeUserText.textContent = `Xin chào, ${currentUser.username}! Hãy chọn màn chơi:`;
+    updateLevelButtons();
 }
 
 function logout() {
@@ -402,6 +436,20 @@ function returnToLevelMenu() {
     gameOverScreen.classList.add("hidden");
     levelMenuScreen.classList.remove("hidden");
     gameState = "MENU";
+    updateLevelButtons();
+}
+
+function updateLevelButtons() {
+    for (let i = 1; i <= 5; i++) {
+        let btn = document.getElementById(`lvlBtn${i}`);
+        if (i <= currentUser.maxLevelUnlocked) {
+            btn.classList.remove("locked");
+            btn.textContent = `Màn ${i}`;
+        } else {
+            btn.classList.add("locked");
+            btn.textContent = `Màn ${i} 🔒`;
+        }
+    }
 }
 
 // Âm thanh
@@ -458,11 +506,16 @@ function toggleMute() {
     }
 }
 
-// Tải ảnh nền
-const bgImage = new Image();
-bgImage.src = "backgroundangrybird.jpg";
+// Tải 5 background riêng biệt cho 5 màn chơi
+let bgImages = [];
+for (let i = 1; i <= 5; i++) {
+    let img = new Image();
+    // Bạn có thể tải lên các file background1.jpg đến background5.jpg hoặc dùng chung backgroundangrybird.jpg
+    img.src = `backgroundangrybird.jpg`; 
+    bgImages.push(img);
+}
 
-let gameState = "MENU"; // MENU, LEVELSELECT, PLAYING, GAMEOVER
+let gameState = "MENU"; 
 let currentLevel = 1;
 let score = 0;
 let lives = 3;
@@ -472,7 +525,7 @@ let scale = 1;
 let sling = { x: 0, y: 0 };
 let bird = { x: 0, y: 0, radius: 18, vx: 0, vy: 0, isDragging: false, isLaunched: false };
 let targets = [];
-let groundHills = []; // Các phần đất nhô lên
+let groundHills = [];
 
 function resizeCanvas() {
     canvas.width = canvas.parentElement.clientWidth;
@@ -494,27 +547,23 @@ function resizeCanvas() {
 
     bird.radius = 18 * scale;
 
-    // Các phần đồi đất nhô lên ở các khu vực xây nhà
     groundHills = [
         { x: canvas.width * 0.62, w: 260 * scale, h: 45 * scale },
         { x: canvas.width * 0.82, w: 220 * scale, h: 60 * scale }
     ];
 }
 
-// Thiết kế 5 Màn Chơi khác nhau
 function loadLevel(lvl) {
     currentLevel = lvl;
     resizeCanvas();
     const startX = canvas.width * 0.65;
     
-    // Khối vật liệu dài và dẹp xuống một chút (chiều cao mỏng hơn, bề ngang dài hơn)
     const longW = 110 * scale;
     const longThinH = 18 * scale; 
     const blockW = 45 * scale;
     const blockH = 65 * scale;
 
     if (lvl === 1) {
-        // Màn 1: Cấu trúc đơn giản trên đồi đất thấp
         targets = [
             { type: "wood", x: startX, y: groundY - blockH, width: blockW, height: blockH, alive: true, health: 2 },
             { type: "pig", x: startX + blockW/2, y: groundY - blockH - 22 * scale, alive: true, radius: 22 * scale },
@@ -522,7 +571,6 @@ function loadLevel(lvl) {
             { type: "pig", x: startX + blockW + 40 * scale, y: groundY - 22 * scale, alive: true, radius: 22 * scale }
         ];
     } else if (lvl === 2) {
-        // Màn 2: Hai tầng nhà kiên cố
         targets = [
             { type: "wood", x: startX, y: groundY - blockH, width: blockW, height: blockH, alive: true, health: 2 },
             { type: "wood", x: startX + 70 * scale, y: groundY - blockH, width: blockW, height: blockH, alive: true, health: 2 },
@@ -531,7 +579,6 @@ function loadLevel(lvl) {
             { type: "pig", x: startX + 35 * scale, y: groundY - 22 * scale, alive: true, radius: 22 * scale }
         ];
     } else if (lvl === 3) {
-        // Màn 3: Pháo đài trên đồi đất nhô cao
         let hillTopY = groundY - 45 * scale;
         targets = [
             { type: "stone", x: startX, y: hillTopY - blockH, width: blockW, height: blockH, alive: true, health: 3 },
@@ -541,7 +588,6 @@ function loadLevel(lvl) {
             { type: "pig", x: startX + 120 * scale, y: hillTopY - 22 * scale, alive: true, radius: 22 * scale }
         ];
     } else if (lvl === 4) {
-        // Màn 4: Tháp nhiều tầng hẹp và dài dẹp
         targets = [
             { type: "wood", x: startX + 30 * scale, y: groundY - blockH, width: blockW, height: blockH, alive: true, health: 2 },
             { type: "ice", x: startX, y: groundY - blockH - longThinH, width: longW, height: longThinH, alive: true, health: 1 },
@@ -550,7 +596,6 @@ function loadLevel(lvl) {
             { type: "pig", x: startX + 55 * scale, y: groundY - blockH * 2 - 60 * scale, alive: true, radius: 22 * scale }
         ];
     } else if (lvl === 5) {
-        // Màn 5: Đại bản doanh Boss Lợn (Thử thách cuối cùng)
         let hillTopY2 = groundY - 60 * scale;
         targets = [
             { type: "stone", x: startX - 20 * scale, y: hillTopY2 - blockH, width: blockW, height: blockH, alive: true, health: 3 },
@@ -564,6 +609,10 @@ function loadLevel(lvl) {
 }
 
 function startLevel(lvl) {
+    if (lvl > currentUser.maxLevelUnlocked) {
+        alert("Bạn cần phải vượt qua màn trước để mở khóa màn này!");
+        return;
+    }
     gameState = "PLAYING";
     score = 0;
     lives = 3;
@@ -590,6 +639,12 @@ function endGame(isWin) {
         gameOverTitle.textContent = "CHIẾN THẮNG MÀN " + currentLevel + "!";
         gameOverTitle.style.color = "#8ddb44";
         finalScoreText.innerHTML = "Tổng điểm đạt được: " + score;
+
+        // Mở khóa màn chơi tiếp theo nếu thắng
+        if (currentLevel >= currentUser.maxLevelUnlocked && currentLevel < 5) {
+            currentUser.maxLevelUnlocked = currentLevel + 1;
+            localStorage.setItem("angryBirdsUser", JSON.stringify(currentUser));
+        }
 
         if (!isMuted) {
             victorySound.currentTime = 0;
@@ -701,7 +756,6 @@ function drawBird(x, y, r) {
     ctx.fill();
 }
 
-// Vẽ chú lợn xanh viền đen bé lại, mắt dịch ra xa nhau và nhắm mắt tự động
 function drawPig(x, y, r) {
     ctx.save();
     ctx.translate(x, y);
@@ -813,15 +867,16 @@ function drawPig(x, y, r) {
 function update() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // 1. Vẽ Ảnh Background
-    if (bgImage.complete && bgImage.naturalWidth !== 0) {
-        ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+    // Vẽ Background riêng biệt tương ứng với từng màn chơi (từ màn 1 đến màn 5)
+    let currentBg = bgImages[currentLevel - 1];
+    if (currentBg && currentBg.complete && currentBg.naturalWidth !== 0) {
+        ctx.drawImage(currentBg, 0, 0, canvas.width, canvas.height);
     } else {
         ctx.fillStyle = "#4ca2cd";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
-    // 2. Vẽ các phần đất nhô lên (đồi cỏ)
+    // Vẽ các phần đồi đất nhô lên
     groundHills.forEach(hill => {
         ctx.fillStyle = "#5c9e32";
         ctx.beginPath();
@@ -832,7 +887,7 @@ function update() {
         ctx.stroke();
     });
 
-    // 3. Vẽ trụ súng cao su
+    // Vẽ trụ súng cao su
     ctx.strokeStyle = "#3e2723";
     ctx.lineWidth = 10 * scale;
     ctx.beginPath();
@@ -911,10 +966,9 @@ function update() {
                 if (t.type === "pig") {
                     drawPig(t.x, t.y, t.radius);
                 } else {
-                    // Màu sắc khối vật liệu (Gỗ, Băng, Đá)
                     if (t.type === "wood") ctx.fillStyle = "#b5651d";
                     else if (t.type === "ice") ctx.fillStyle = "#81d4fa";
-                    else ctx.fillStyle = "#90a4ae"; // Đá
+                    else ctx.fillStyle = "#90a4ae";
 
                     ctx.fillRect(t.x, t.y, t.width, t.height);
                     ctx.strokeStyle = "#222";
