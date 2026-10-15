@@ -524,7 +524,7 @@ function toggleMute() {
     }
 }
 
-// Tải đúng file background.angrybird.jpg[cite: 13]
+// Tải đúng file background.angrybird.jpg
 const bgImage = new Image();
 bgImage.src = "background.angrybird.jpg";
 
@@ -549,7 +549,7 @@ function resizeCanvas() {
     scale = Math.min(scaleX, scaleY);
     if (scale < 0.6) scale = 0.6;
 
-    groundY = canvas.height - 90 * scale;
+    groundY = canvas.height - 225 * scale; // Đã nâng groundY lên ngang với mặt cỏ xanh
     sling.x = canvas.width * 0.15;
     sling.y = groundY - 100 * scale;
 
