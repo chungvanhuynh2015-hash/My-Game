@@ -85,7 +85,6 @@
         .hidden {
             display: none !important;
         }
-        /* Style cho nút Setting ở góc trên bên trái */
         #settingBtn {
             position: absolute;
             top: 20px;
@@ -125,7 +124,7 @@
         <!-- Màn hình kết quả -->
         <div id="gameOverScreen" class="overlay hidden">
             <h1 id="gameOverTitle">CHIẾN THẮNG!</h1>
-            <p id="finalScoreText">Tổng điểm tuyệt đối: 800</p>
+            <p id="finalScoreText">Tổng điểm tuyệt đối: 0</p>
             <button class="btn" onclick="startGame()">CHƠI LẠI</button>
         </div>
 
@@ -142,18 +141,21 @@ const gameOverTitle = document.getElementById("gameOverTitle");
 const finalScoreText = document.getElementById("finalScoreText");
 const settingBtn = document.getElementById("settingBtn");
 
-// Khởi tạo âm thanh nền
+// Khởi tạo âm thanh nền và âm thanh chiến thắng
 const bgMusic = new Audio("angrybird.sound.mp4");
 bgMusic.loop = true;
 bgMusic.volume = 0.5;
 
+const victorySound = new Audio("victorysound.mp4");
+victorySound.volume = 0.7;
+
 let isMusicMuted = false;
 
-// Hàm bật/tắt nhạc khi nhấn nút Setting
 function toggleMusic() {
     isMusicMuted = !isMusicMuted;
     if (isMusicMuted) {
         bgMusic.pause();
+        victorySound.pause();
         settingBtn.textContent = "🔇 Nhạc: Tắt";
     } else {
         if (gameState === "PLAYING") {
@@ -228,7 +230,11 @@ function startGame() {
     startScreen.classList.add("hidden");
     gameOverScreen.classList.add("hidden");
 
+    victorySound.pause();
+    victorySound.currentTime = 0;
+
     if (!isMusicMuted) {
+        bgMusic.currentTime = 0;
         bgMusic.play().catch(error => {
             console.log("Trình duyệt chặn tự động phát nhạc:", error);
         });
@@ -238,10 +244,20 @@ function startGame() {
 function endGame(isWin) {
     gameState = "GAMEOVER";
     gameOverScreen.classList.remove("hidden");
+
+    // Dừng nhạc nền khi kết thúc game
+    bgMusic.pause();
+
     if (isWin) {
         gameOverTitle.textContent = "CHIẾN THẮNG!";
         gameOverTitle.style.color = "#8ddb44";
         finalScoreText.innerHTML = "Tổng điểm tuyệt đối: " + score;
+
+        // Phát nhạc chiến thắng nếu không bị tắt âm thanh
+        if (!isMusicMuted) {
+            victorySound.currentTime = 0;
+            victorySound.play().catch(e => console.log(e));
+        }
     } else {
         gameOverTitle.textContent = "HẾT LƯỢT BẮN!";
         gameOverTitle.style.color = "#ff3333";
