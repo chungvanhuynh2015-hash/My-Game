@@ -51,25 +51,27 @@
             padding: 20px;
             backdrop-filter: blur(5px);
         }
-        .overlay h1 {
-            font-size: 52px;
-            margin: 0 0 15px 0;
-            color: #ffcc00;
-            text-shadow: 3px 3px 0px #ff3333, 5px 5px 15px rgba(0,0,0,0.7);
+        
+        /* Màn hình chào mừng có màu sắc rực rỡ bắt mắt */
+        #welcomeScreen {
+            background: linear-gradient(135deg, #1b4332, #2d6a4f, #40916c);
         }
-        .overlay p {
-            font-size: 20px;
-            margin: 0 0 20px 0;
-            color: #ddd;
+
+        .overlay h1 {
+            font-size: 58px;
+            margin: 0 0 25px 0;
+            color: #ffcc00;
+            text-shadow: 4px 4px 0px #ff3333, 6px 6px 20px rgba(0,0,0,0.8);
+            letter-spacing: 2px;
         }
         .btn {
-            padding: 14px 40px;
-            font-size: 20px;
+            padding: 16px 50px;
+            font-size: 22px;
             font-weight: bold;
             background: linear-gradient(to bottom, #8ddb44, #558822);
             color: #fff;
             border: 2px solid #335511;
-            border-radius: 30px;
+            border-radius: 35px;
             cursor: pointer;
             box-shadow: 0 6px 0 #335511, 0 10px 20px rgba(0,0,0,0.4);
             transition: 0.1s;
@@ -267,12 +269,11 @@
             <span id="panelUsername" style="font-weight: bold;">User</span>
         </div>
 
-        <!-- Màn hình Chào mừng ban đầu (Nút PLAY + Ghi chú nhỏ) -->
+        <!-- Màn hình Chào mừng ban đầu (Nút PLAY màu sắc + Ghi chú nhỏ bên dưới) -->
         <div id="welcomeScreen" class="overlay">
             <h1>ANGRY BIRDS MINI</h1>
-            <p>Trò chơi bắn chim phá pháo đài lợn xanh cực đỉnh!</p>
             <button class="btn" style="font-size: 26px; padding: 18px 55px;" onclick="goToAuthScreen()">PLAY</button>
-            <div style="font-size: 13px; color: #aaa; margin-top: 12px; font-style: italic;">* Đăng nhập để lưu tiến trình chơi của bạn</div>
+            <div style="font-size: 14px; color: #e0e0e0; margin-top: 15px; font-style: italic; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">* Đăng nhập để lưu tiến trình chơi của bạn</div>
         </div>
 
         <!-- Màn hình Đăng nhập / Tạo tài khoản -->
@@ -418,10 +419,10 @@ function handleLogin() {
         return;
     }
 
-    // Kiểm tra trùng tên tài khoản đã lưu trong bộ nhớ máy
+    // Kiểm tra trùng lặp tên tài khoản
     let allUsers = JSON.parse(localStorage.getItem("angryBirdsAllUsers") || "{}");
     if (allUsers[username] && allUsers[username] !== password) {
-        alert("Tên tài khoản này đã có người sử dụng và mật khẩu không khớp! Vui lòng chọn tên khác.");
+        alert("Tên tài khoản này đã có, vui lòng nhập tên khác!");
         return;
     }
 
@@ -577,45 +578,45 @@ function loadLevel(lvl) {
 
     if (lvl === 1) {
         targets = [
-            { type: "wood", x: startX, y: groundY - blockH, width: blockW, height: blockH, alive: true, health: 2, maxHealth: 2, vy: 0, onGround: true },
-            { type: "pig", x: startX + blockW/2, y: groundY - blockH - 22 * scale, alive: true, radius: 22 * scale, vy: 0, onGround: true },
-            { type: "ice", x: startX - 10 * scale, y: groundY - blockH - 25 * scale, width: longW, height: longThinH, alive: true, health: 1, maxHealth: 1, vy: 0, onGround: true },
-            { type: "pig", x: startX + blockW + 40 * scale, y: groundY - 22 * scale, alive: true, radius: 22 * scale, vy: 0, onGround: true }
+            { type: "wood", x: startX, y: groundY - blockH, width: blockW, height: blockH, alive: true, health: 2, maxHealth: 2, vy: 0 },
+            { type: "pig", x: startX + blockW/2, y: groundY - blockH - 22 * scale, alive: true, radius: 22 * scale, vy: 0 },
+            { type: "ice", x: startX - 10 * scale, y: groundY - blockH - 25 * scale, width: longW, height: longThinH, alive: true, health: 1, maxHealth: 1, vy: 0 },
+            { type: "pig", x: startX + blockW + 40 * scale, y: groundY - 22 * scale, alive: true, radius: 22 * scale, vy: 0 }
         ];
     } else if (lvl === 2) {
         targets = [
-            { type: "wood", x: startX, y: groundY - blockH, width: blockW, height: blockH, alive: true, health: 2, maxHealth: 2, vy: 0, onGround: true },
-            { type: "wood", x: startX + 70 * scale, y: groundY - blockH, width: blockW, height: blockH, alive: true, health: 2, maxHealth: 2, vy: 0, onGround: true },
-            { type: "stone", x: startX - 15 * scale, y: groundY - blockH - longThinH, width: longW + 30 * scale, height: longThinH, alive: true, health: 3, maxHealth: 3, vy: 0, onGround: false },
-            { type: "pig", x: startX + 35 * scale, y: groundY - blockH - 45 * scale, alive: true, radius: 22 * scale, vy: 0, onGround: false },
-            { type: "pig", x: startX + 35 * scale, y: groundY - 22 * scale, alive: true, radius: 22 * scale, vy: 0, onGround: true }
+            { type: "wood", x: startX, y: groundY - blockH, width: blockW, height: blockH, alive: true, health: 2, maxHealth: 2, vy: 0 },
+            { type: "wood", x: startX + 70 * scale, y: groundY - blockH, width: blockW, height: blockH, alive: true, health: 2, maxHealth: 2, vy: 0 },
+            { type: "stone", x: startX - 15 * scale, y: groundY - blockH - longThinH, width: longW + 30 * scale, height: longThinH, alive: true, health: 3, maxHealth: 3, vy: 0 },
+            { type: "pig", x: startX + 35 * scale, y: groundY - blockH - 45 * scale, alive: true, radius: 22 * scale, vy: 0 },
+            { type: "pig", x: startX + 35 * scale, y: groundY - 22 * scale, alive: true, radius: 22 * scale, vy: 0 }
         ];
     } else if (lvl === 3) {
         let hillTopY = groundY - 45 * scale;
         targets = [
-            { type: "stone", x: startX, y: hillTopY - blockH, width: blockW, height: blockH, alive: true, health: 3, maxHealth: 3, vy: 0, onGround: true },
-            { type: "stone", x: startX + 80 * scale, y: hillTopY - blockH, width: blockW, height: blockH, alive: true, health: 3, maxHealth: 3, vy: 0, onGround: true },
-            { type: "wood", x: startX - 10 * scale, y: hillTopY - blockH - longThinH, width: longW + 20 * scale, height: longThinH, alive: true, health: 2, maxHealth: 2, vy: 0, onGround: false },
-            { type: "pig", x: startX + 40 * scale, y: hillTopY - blockH - 40 * scale, alive: true, radius: 22 * scale, vy: 0, onGround: false },
-            { type: "pig", x: startX + 120 * scale, y: hillTopY - 22 * scale, alive: true, radius: 22 * scale, vy: 0, onGround: true }
+            { type: "stone", x: startX, y: hillTopY - blockH, width: blockW, height: blockH, alive: true, health: 3, maxHealth: 3, vy: 0 },
+            { type: "stone", x: startX + 80 * scale, y: hillTopY - blockH, width: blockW, height: blockH, alive: true, health: 3, maxHealth: 3, vy: 0 },
+            { type: "wood", x: startX - 10 * scale, y: hillTopY - blockH - longThinH, width: longW + 20 * scale, height: longThinH, alive: true, health: 2, maxHealth: 2, vy: 0 },
+            { type: "pig", x: startX + 40 * scale, y: hillTopY - blockH - 40 * scale, alive: true, radius: 22 * scale, vy: 0 },
+            { type: "pig", x: startX + 120 * scale, y: hillTopY - 22 * scale, alive: true, radius: 22 * scale, vy: 0 }
         ];
     } else if (lvl === 4) {
         targets = [
-            { type: "wood", x: startX + 30 * scale, y: groundY - blockH, width: blockW, height: blockH, alive: true, health: 2, maxHealth: 2, vy: 0, onGround: true },
-            { type: "ice", x: startX, y: groundY - blockH - longThinH, width: longW, height: longThinH, alive: true, health: 1, maxHealth: 1, vy: 0, onGround: false },
-            { type: "pig", x: startX + 50 * scale, y: groundY - blockH - 35 * scale, alive: true, radius: 22 * scale, vy: 0, onGround: false },
-            { type: "stone", x: startX + 15 * scale, y: groundY - blockH * 2 - longThinH, width: 80 * scale, height: longThinH, alive: true, health: 3, maxHealth: 3, vy: 0, onGround: false },
-            { type: "pig", x: startX + 55 * scale, y: groundY - blockH * 2 - 60 * scale, alive: true, radius: 22 * scale, vy: 0, onGround: false }
+            { type: "wood", x: startX + 30 * scale, y: groundY - blockH, width: blockW, height: blockH, alive: true, health: 2, maxHealth: 2, vy: 0 },
+            { type: "ice", x: startX, y: groundY - blockH - longThinH, width: longW, height: longThinH, alive: true, health: 1, maxHealth: 1, vy: 0 },
+            { type: "pig", x: startX + 50 * scale, y: groundY - blockH - 35 * scale, alive: true, radius: 22 * scale, vy: 0 },
+            { type: "stone", x: startX + 15 * scale, y: groundY - blockH * 2 - longThinH, width: 80 * scale, height: longThinH, alive: true, health: 3, maxHealth: 3, vy: 0 },
+            { type: "pig", x: startX + 55 * scale, y: groundY - blockH * 2 - 60 * scale, alive: true, radius: 22 * scale, vy: 0 }
         ];
     } else if (lvl === 5) {
         let hillTopY2 = groundY - 60 * scale;
         targets = [
-            { type: "stone", x: startX - 20 * scale, y: hillTopY2 - blockH, width: blockW, height: blockH, alive: true, health: 3, maxHealth: 3, vy: 0, onGround: true },
-            { type: "stone", x: startX + 60 * scale, y: hillTopY2 - blockH, width: blockW, height: blockH, alive: true, health: 3, maxHealth: 3, vy: 0, onGround: true },
-            { type: "wood", x: startX - 35 * scale, y: hillTopY2 - blockH - longThinH, width: longW + 50 * scale, height: longThinH, alive: true, health: 2, maxHealth: 2, vy: 0, onGround: false },
-            { type: "pig", x: startX + 20 * scale, y: hillTopY2 - blockH - 40 * scale, alive: true, radius: 22 * scale, vy: 0, onGround: false },
-            { type: "pig", x: startX - 10 * scale, y: hillTopY2 - 22 * scale, alive: true, radius: 22 * scale, vy: 0, onGround: true },
-            { type: "pig", x: startX + 80 * scale, y: hillTopY2 - 22 * scale, alive: true, radius: 22 * scale, vy: 0, onGround: true }
+            { type: "stone", x: startX - 20 * scale, y: hillTopY2 - blockH, width: blockW, height: blockH, alive: true, health: 3, maxHealth: 3, vy: 0 },
+            { type: "stone", x: startX + 60 * scale, y: hillTopY2 - blockH, width: blockW, height: blockH, alive: true, health: 3, maxHealth: 3, vy: 0 },
+            { type: "wood", x: startX - 35 * scale, y: hillTopY2 - blockH - longThinH, width: longW + 50 * scale, height: longThinH, alive: true, health: 2, maxHealth: 2, vy: 0 },
+            { type: "pig", x: startX + 20 * scale, y: hillTopY2 - blockH - 40 * scale, alive: true, radius: 22 * scale, vy: 0 },
+            { type: "pig", x: startX - 10 * scale, y: hillTopY2 - 22 * scale, alive: true, radius: 22 * scale, vy: 0 },
+            { type: "pig", x: startX + 80 * scale, y: hillTopY2 - 22 * scale, alive: true, radius: 22 * scale, vy: 0 }
         ];
     }
 }
@@ -875,7 +876,6 @@ function drawPig(x, y, r) {
     ctx.restore();
 }
 
-// Vẽ hoạt ảnh nứt nẻ rạn vỡ (Damage / Cracking Animation) trực tiếp lên Canvas
 function drawCracks(t) {
     if (t.health < t.maxHealth) {
         ctx.strokeStyle = "#000";
@@ -922,4 +922,128 @@ function update() {
     ctx.strokeStyle = "#3e2723";
     ctx.lineWidth = 10 * scale;
     ctx.beginPath();
-    ctx.
+    ctx.moveTo(sling.x, sling.y);
+    ctx.lineTo(sling.x, groundY);
+    ctx.stroke();
+
+    if (gameState === "PLAYING") {
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 22px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(`MÀN: ${currentLevel} | ĐIỂM: ${score}`, canvas.width / 2, 45);
+
+        for (let i = 0; i < lives - 1; i++) {
+            drawBird(sling.x - 45 - (i * 30), groundY - 18 * scale, 12 * scale);
+        }
+
+        if (bird.isDragging) {
+            ctx.strokeStyle = "#3e2723";
+            ctx.lineWidth = 4 * scale;
+            ctx.beginPath();
+            ctx.moveTo(sling.x - 8, sling.y - 5);
+            ctx.lineTo(bird.x, bird.y);
+            ctx.lineTo(sling.x + 8, sling.y - 5);
+            ctx.stroke();
+
+            let simX = bird.x;
+            let simY = bird.y;
+            let simVx = (sling.x - bird.x) * 0.23;
+            let simVy = (sling.y - bird.y) * 0.23;
+
+            ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+            for (let i = 0; i < 25; i += 2) {
+                simX += simVx * 2;
+                simY += simVy * 2;
+                simVy += 0.22 * 2;
+                if (simY >= groundY) break;
+                ctx.beginPath();
+                ctx.arc(simX, simY, 3 * scale, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        if (bird.isLaunched) {
+            bird.x += bird.vx;
+            bird.y += bird.vy;
+            bird.vy += 0.22;
+
+            if (bird.y + bird.radius >= groundY || bird.x > canvas.width || bird.x < 0) {
+                bird.isLaunched = false;
+                lives--;
+                
+                let remainingPigs = targets.some(t => t.type === "pig" && t.alive);
+                if (!remainingPigs) {
+                    endGame(true);
+                } else if (lives <= 0) {
+                    endGame(false);
+                } else {
+                    resetBird();
+                }
+            }
+        }
+
+        drawBird(bird.x, bird.y, bird.radius);
+
+        let activePigs = false;
+        targets.forEach(t => {
+            if (t.alive) {
+                if (t.type === "pig") activePigs = true;
+
+                let groundLimit = groundY;
+                groundHills.forEach(hill => {
+                    if (t.x >= hill.x && t.x <= hill.x + hill.w) {
+                        let hillSurfaceY = groundY - hill.h;
+                        if (hillSurfaceY < groundLimit) groundLimit = hillSurfaceY;
+                    }
+                });
+
+                let floorY = (t.type === "pig") ? groundLimit - t.radius : groundLimit - t.height;
+                if (t.y < floorY) {
+                    t.vy += 0.35;
+                    t.y += t.vy;
+                    if (t.y >= floorY) {
+                        t.y = floorY;
+                        t.vy = 0;
+                    }
+                }
+
+                if (checkCollision(bird, t)) {
+                    t.health--;
+                    bird.vx *= -0.3;
+                    bird.vy *= -0.3;
+                    if (t.health <= 0) {
+                        t.alive = false;
+                        score += (t.type === "pig" ? 200 : 100);
+                    }
+                }
+
+                if (t.type === "pig") {
+                    drawPig(t.x, t.y, t.radius);
+                    drawCracks(t);
+                } else {
+                    if (t.type === "wood") ctx.fillStyle = "#b5651d";
+                    else if (t.type === "ice") ctx.fillStyle = "#81d4fa";
+                    else ctx.fillStyle = "#90a4ae";
+
+                    ctx.fillRect(t.x, t.y, t.width, t.height);
+                    ctx.strokeStyle = "#222";
+                    ctx.lineWidth = 1.5 * scale;
+                    ctx.strokeRect(t.x, t.y, t.width, t.height);
+                    drawCracks(t);
+                }
+            }
+        });
+
+        if (!activePigs && targets.length > 0) {
+            endGame(true);
+        }
+    }
+
+    requestAnimationFrame(update);
+}
+
+resizeCanvas();
+update();
+</script>
+</body>
+</html>
