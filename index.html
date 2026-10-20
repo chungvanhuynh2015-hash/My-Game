@@ -577,64 +577,74 @@ function resizeCanvas() {
     bird.radius = 22 * scale;
 
     groundHills = [
-        { x: canvas.width * 0.58, w: 320 * scale, h: 55 * scale },
-        { x: canvas.width * 0.82, w: 260 * scale, h: 75 * scale }
+        { x: canvas.width * 0.52, w: 380 * scale, h: 65 * scale },
+        { x: canvas.width * 0.78, w: 300 * scale, h: 90 * scale }
     ];
 }
 
+// THIẾT KẾ LẠI ĐỊA HÌNH & CẤU TRÚC PHÁO ĐÀI CÂN ĐỐI, CHUẨN XÁC HƠN
 function loadLevel(lvl) {
     currentLevel = lvl;
     resizeCanvas();
     currentBirdIndex = 0;
     particles = [];
-    const startX = canvas.width * 0.65;
+    const startX = canvas.width * 0.63;
     
-    const longW = 120 * scale;
+    const longW = 140 * scale;
     const longThinH = 18 * scale; 
-    const blockW = 48 * scale;
-    const blockH = 70 * scale;
+    const blockW = 45 * scale;
+    const blockH = 75 * scale;
+
+    // Đặt đỉnh đồi thứ nhất làm chân móng cho pháo đài chính
+    let hill1TopY = groundY - 65 * scale;
 
     if (lvl === 1) {
+        // Màn 1: Cấu trúc cơ bản vững chãi đặt sát bề mặt đồi
         targets = [
-            { type: "wood", x: startX, y: groundY - blockH, width: blockW, height: blockH, alive: true },
-            { type: "pig", x: startX + blockW/2, y: groundY - blockH - 24 * scale, alive: true, radius: 24 * scale },
-            { type: "ice", x: startX - 10 * scale, y: groundY - blockH - 26 * scale, width: longW, height: longThinH, alive: true },
-            { type: "pig", x: startX + blockW + 40 * scale, y: groundY - 24 * scale, alive: true, radius: 24 * scale }
+            { type: "wood", x: startX, y: hill1TopY - blockH, width: blockW, height: blockH, alive: true },
+            { type: "wood", x: startX + 70 * scale, y: hill1TopY - blockH, width: blockW, height: blockH, alive: true },
+            { type: "ice", x: startX - 10 * scale, y: hill1TopY - blockH - longThinH, width: longW + 10 * scale, height: longThinH, alive: true },
+            { type: "pig", x: startX + 37 * scale, y: hill1TopY - blockH - 26 * scale, alive: true, radius: 24 * scale },
+            { type: "pig", x: startX + 37 * scale, y: hill1TopY - blockH - 58 * scale, alive: true, radius: 24 * scale }
         ];
     } else if (lvl === 2) {
+        // Màn 2: Tháp đôi kiên cố
         targets = [
-            { type: "wood", x: startX, y: groundY - blockH, width: blockW, height: blockH, alive: true },
-            { type: "wood", x: startX + 75 * scale, y: groundY - blockH, width: blockW, height: blockH, alive: true },
-            { type: "stone", x: startX - 15 * scale, y: groundY - blockH - longThinH, width: longW + 30 * scale, height: longThinH, alive: true },
-            { type: "pig", x: startX + 37 * scale, y: groundY - blockH - 48 * scale, alive: true, radius: 24 * scale },
-            { type: "pig", x: startX + 37 * scale, y: groundY - 24 * scale, alive: true, radius: 24 * scale }
+            { type: "wood", x: startX - 10 * scale, y: hill1TopY - blockH, width: blockW, height: blockH, alive: true },
+            { type: "wood", x: startX + 80 * scale, y: hill1TopY - blockH, width: blockW, height: blockH, alive: true },
+            { type: "stone", x: startX - 20 * scale, y: hill1TopY - blockH - longThinH, width: longW + 40 * scale, height: longThinH, alive: true },
+            { type: "pig", x: startX + 35 * scale, y: hill1TopY - 24 * scale, alive: true, radius: 24 * scale },
+            { type: "pig", x: startX + 35 * scale, y: hill1TopY - blockH - 45 * scale, alive: true, radius: 24 * scale }
         ];
     } else if (lvl === 3) {
-        let hillTopY = groundY - 55 * scale;
+        // Màn 3: Pháo đài 2 tầng
+        let topH = hill1TopY - blockH - longThinH;
         targets = [
-            { type: "stone", x: startX, y: hillTopY - blockH, width: blockW, height: blockH, alive: true },
-            { type: "stone", x: startX + 85 * scale, y: hillTopY - blockH, width: blockW, height: blockH, alive: true },
-            { type: "wood", x: startX - 10 * scale, y: hillTopY - blockH - longThinH, width: longW + 20 * scale, height: longThinH, alive: true },
-            { type: "pig", x: startX + 42 * scale, y: hillTopY - blockH - 42 * scale, alive: true, radius: 24 * scale },
-            { type: "pig", x: startX + 125 * scale, y: hillTopY - 24 * scale, alive: true, radius: 24 * scale }
+            { type: "stone", x: startX, y: hill1TopY - blockH, width: blockW, height: blockH, alive: true },
+            { type: "stone", x: startX + 80 * scale, y: hill1TopY - blockH, width: blockW, height: blockH, alive: true },
+            { type: "wood", x: startX - 10 * scale, y: topH, width: longW + 20 * scale, height: longThinH, alive: true },
+            { type: "pig", x: startX + 40 * scale, y: hill1TopY - blockH - 26 * scale, alive: true, radius: 24 * scale },
+            { type: "pig", x: startX + 40 * scale, y: topH - 26 * scale, alive: true, radius: 24 * scale }
         ];
     } else if (lvl === 4) {
+        // Màn 4: Pháo đài cao tầng phối hợp gỗ và băng
+        let floor2Y = hill1TopY - blockH;
         targets = [
-            { type: "wood", x: startX + 30 * scale, y: groundY - blockH, width: blockW, height: blockH, alive: true },
-            { type: "ice", x: startX, y: groundY - blockH - longThinH, width: longW, height: longThinH, alive: true },
-            { type: "pig", x: startX + 50 * scale, y: groundY - blockH - 38 * scale, alive: true, radius: 24 * scale },
-            { type: "stone", x: startX + 15 * scale, y: groundY - blockH * 2 - longThinH, width: 85 * scale, height: longThinH, alive: true },
-            { type: "pig", x: startX + 57 * scale, y: groundY - blockH * 2 - 62 * scale, alive: true, radius: 24 * scale }
+            { type: "wood", x: startX + 25 * scale, y: floor2Y, width: blockW, height: blockH, alive: true },
+            { type: "ice", x: startX, y: floor2Y - longThinH, width: longW, height: longThinH, alive: true },
+            { type: "pig", x: startX + 48 * scale, y: floor2Y - 26 * scale, alive: true, radius: 24 * scale },
+            { type: "stone", x: startX + 15 * scale, y: floor2Y - blockH - longThinH, width: 90 * scale, height: longThinH, alive: true },
+            { type: "pig", x: startX + 55 * scale, y: floor2Y - blockH - 45 * scale, alive: true, radius: 24 * scale }
         ];
     } else if (lvl === 5) {
-        let hillTopY2 = groundY - 70 * scale;
+        // Màn 5: Căn cứ kiên cố nhất với nhiều heo bảo vệ
         targets = [
-            { type: "stone", x: startX - 20 * scale, y: hillTopY2 - blockH, width: blockW, height: blockH, alive: true },
-            { type: "stone", x: startX + 65 * scale, y: hillTopY2 - blockH, width: blockW, height: blockH, alive: true },
-            { type: "wood", x: startX - 35 * scale, y: hillTopY2 - blockH - longThinH, width: longW + 50 * scale, height: longThinH, alive: true },
-            { type: "pig", x: startX + 22 * scale, y: hillTopY2 - blockH - 42 * scale, alive: true, radius: 24 * scale },
-            { type: "pig", x: startX - 10 * scale, y: hillTopY2 - 24 * scale, alive: true, radius: 24 * scale },
-            { type: "pig", x: startX + 85 * scale, y: hillTopY2 - 24 * scale, alive: true, radius: 24 * scale }
+            { type: "stone", x: startX - 15 * scale, y: hill1TopY - blockH, width: blockW, height: blockH, alive: true },
+            { type: "stone", x: startX + 75 * scale, y: hill1TopY - blockH, width: blockW, height: blockH, alive: true },
+            { type: "wood", x: startX - 30 * scale, y: hill1TopY - blockH - longThinH, width: longW + 50 * scale, height: longThinH, alive: true },
+            { type: "pig", x: startX + 30 * scale, y: hill1TopY - blockH - 30 * scale, alive: true, radius: 24 * scale },
+            { type: "pig", x: startX - 5 * scale, y: hill1TopY - 24 * scale, alive: true, radius: 24 * scale },
+            { type: "pig", x: startX + 95 * scale, y: hill1TopY - 24 * scale, alive: true, radius: 24 * scale }
         ];
     }
 }
@@ -987,178 +997,3 @@ function drawCloud(x, y, size) {
 
 function handleBirdFinish() {
     lives--;
-    currentBirdIndex++;
-    let remainingPigs = targets.some(t => t.type === "pig" && t.alive);
-    if (!remainingPigs) {
-        endGame(true);
-    } else if (lives <= 0 || currentBirdIndex >= birdTypes.length) {
-        setTimeout(() => {
-            let checkPigs = targets.some(t => t.type === "pig" && t.alive);
-            if (!checkPigs) endGame(true);
-            else endGame(false);
-        }, 500);
-    } else {
-        resetBird();
-    }
-}
-
-function update() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    ctx.save();
-    if (screenShakeTime > 0) {
-        let offsetX = (Math.random() - 0.5) * 12;
-        let offsetY = (Math.random() - 0.5) * 12;
-        ctx.translate(offsetX, offsetY);
-        screenShakeTime--;
-    }
-
-    drawCanvasBackground();
-
-    groundHills.forEach(hill => {
-        ctx.fillStyle = "#61a82d";
-        ctx.beginPath();
-        ctx.ellipse(hill.x + hill.w/2, groundY, hill.w/2, hill.h, 0, Math.PI, 0, false);
-        ctx.fill();
-        ctx.strokeStyle = "#3e6d1c";
-        ctx.lineWidth = 3 * scale;
-        ctx.stroke();
-    });
-
-    ctx.strokeStyle = "#3e2723";
-    ctx.lineWidth = 10 * scale;
-    ctx.beginPath();
-    ctx.moveTo(sling.x, sling.y);
-    ctx.lineTo(sling.x, groundY);
-    ctx.stroke();
-
-    if (gameState === "PLAYING") {
-        ctx.fillStyle = "#fff";
-        ctx.font = "bold 22px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText(`MÀN: ${currentLevel} | ĐIỂM: ${score}`, canvas.width / 2, 45);
-
-        for (let i = currentBirdIndex + 1; i < birdTypes.length; i++) {
-            let idxOffset = i - (currentBirdIndex + 1);
-            drawBirdByType(birdTypes[i], sling.x - 45 - (idxOffset * 35), groundY - 18 * scale, 12 * scale);
-        }
-
-        if (bird.isDragging) {
-            ctx.strokeStyle = "#3e2723";
-            ctx.lineWidth = 4 * scale;
-            ctx.beginPath();
-            ctx.moveTo(sling.x - 8, sling.y - 5);
-            ctx.lineTo(bird.x, bird.y);
-            ctx.lineTo(sling.x + 8, sling.y - 5);
-            ctx.stroke();
-
-            let simX = bird.x;
-            let simY = bird.y;
-            let simVx = (sling.x - bird.x) * 0.23;
-            let simVy = (sling.y - bird.y) * 0.23;
-
-            ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
-            for (let i = 0; i < 25; i += 2) {
-                simX += simVx * 2;
-                simY += simVy * 2;
-                simVy += 0.22 * 2;
-                if (simY >= groundY) break;
-                ctx.beginPath();
-                ctx.arc(simX, simY, 3 * scale, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
-
-        if (bird.isLaunched) {
-            bird.x += bird.vx;
-            bird.y += bird.vy;
-            bird.vy += 0.22;
-
-            if (bird.y + bird.radius >= groundY || bird.x > canvas.width || bird.x < 0) {
-                bird.isLaunched = false;
-                handleBirdFinish();
-            }
-        }
-
-        subBirds.forEach(sb => {
-            sb.x += sb.vx;
-            sb.y += sb.vy;
-            sb.vy += 0.22;
-            drawBirdByType("blue", sb.x, sb.y, sb.radius);
-
-            targets.forEach(t => {
-                if (t.alive && checkCollision(sb, t)) {
-                    t.alive = false;
-                    score += (t.type === "pig" ? 200 : 100);
-                    createDebris(t.x, t.y, "#4fc3f7");
-                }
-            });
-        });
-
-        drawBirdByType(bird.type, bird.x, bird.y, bird.radius);
-
-        // Cập nhật và vẽ các hạt mảnh vỡ (Particles)
-        particles.forEach((p, idx) => {
-            p.x += p.vx;
-            p.y += p.vy;
-            p.vy += 0.3;
-            p.alpha -= 0.03;
-
-            if (p.alpha <= 0) {
-                particles.splice(idx, 1);
-            } else {
-                ctx.save();
-                ctx.globalAlpha = p.alpha;
-                ctx.fillStyle = p.color;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-            }
-        });
-
-        let activePigs = false;
-        targets.forEach(t => {
-            if (t.alive) {
-                if (t.type === "pig") activePigs = true;
-
-                if (checkCollision(bird, t)) {
-                    t.alive = false;
-                    score += (t.type === "pig" ? 250 : (t.type === "stone" ? 150 : 100));
-                    createDebris(t.x, t.y, t.type === "pig" ? "#7acc29" : "#b5651d");
-                    triggerScreenShake(6);
-                    bird.vx *= -0.3;
-                    bird.vy *= -0.3;
-                }
-
-                if (t.alive) {
-                    if (t.type === "pig") {
-                        drawPig(t.x, t.y, t.radius);
-                    } else {
-                        if (t.type === "wood") ctx.fillStyle = "#b5651d";
-                        else if (t.type === "ice") ctx.fillStyle = "#81d4fa";
-                        else ctx.fillStyle = "#90a4ae";
-
-                        ctx.fillRect(t.x, t.y, t.width, t.height);
-                        ctx.strokeStyle = "#222";
-                        ctx.lineWidth = 1.5 * scale;
-                        ctx.strokeRect(t.x, t.y, t.width, t.height);
-                    }
-                }
-            }
-        });
-
-        if (!activePigs && targets.length > 0) {
-            endGame(true);
-        }
-    }
-
-    ctx.restore();
-    requestAnimationFrame(update);
-}
-
-resizeCanvas();
-update();
-</script>
-</body>
-</html>
