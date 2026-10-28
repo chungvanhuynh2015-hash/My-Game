@@ -56,6 +56,13 @@
             background: linear-gradient(135deg, #1b4332, #2d6a4f, #40916c);
         }
 
+        /* Giao diện Shop được làm nổi bật với hình nền shop.avif */
+        #shopScreen {
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.8)), url('shop.avif');
+            background-size: cover;
+            background-position: center;
+        }
+
         .overlay h1 {
             font-size: 58px;
             margin: 0 0 25px 0;
@@ -95,7 +102,6 @@
             display: none !important;
         }
 
-        /* Đã dời nút cài đặt sang góc bên phải phía trên để không đè lên bảng điểm */
         #gearBtn {
             position: absolute;
             top: 25px;
@@ -226,19 +232,19 @@
             <button class="back-menu-btn" onclick="returnToMainMenu()">Về Menu Chính</button>
         </div>
 
-        <!-- Màn hình Shop -->
+        <!-- Màn hình Shop tích hợp file shop.avif -->
         <div id="shopScreen" class="overlay hidden">
             <h1>CỬA HÀNG</h1>
             <div style="display: flex; flex-direction: column; gap: 15px; max-width: 480px; width: 100%; margin-bottom: 20px;">
-                <div style="background: rgba(255,255,255,0.12); padding: 15px 20px; border-radius: 12px; display: flex; align-items: center; gap: 18px; text-align: left; border: 1px solid rgba(255,255,255,0.2);">
-                    <div style="font-size: 38px; background: rgba(0,0,0,0.3); width: 65px; height: 65px; display: flex; align-items: center; justify-content: center; border-radius: 10px;">⚡</div>
+                <div style="background: rgba(0,0,0,0.65); padding: 15px 20px; border-radius: 12px; display: flex; align-items: center; gap: 18px; text-align: left; border: 1px solid rgba(255,255,255,0.3);">
+                    <div style="font-size: 38px; background: rgba(0,0,0,0.5); width: 65px; height: 65px; display: flex; align-items: center; justify-content: center; border-radius: 10px;">⚡</div>
                     <div>
                         <h3 style="margin: 0 0 5px 0; color: #ffcc00;">Năng lượng siêu cấp</h3>
                         <p style="margin: 0; font-size: 14px; opacity: 0.85;">Mở khóa kỹ năng phá hủy diện rộng cực mạnh cho các chú chim.</p>
                     </div>
                 </div>
-                <div style="background: rgba(255,255,255,0.12); padding: 15px 20px; border-radius: 12px; display: flex; align-items: center; gap: 18px; text-align: left; border: 1px solid rgba(255,255,255,0.2);">
-                    <div style="font-size: 38px; background: rgba(0,0,0,0.3); width: 65px; height: 65px; display: flex; align-items: center; justify-content: center; border-radius: 10px;">👑</div>
+                <div style="background: rgba(0,0,0,0.65); padding: 15px 20px; border-radius: 12px; display: flex; align-items: center; gap: 18px; text-align: left; border: 1px solid rgba(255,255,255,0.3);">
+                    <div style="font-size: 38px; background: rgba(0,0,0,0.5); width: 65px; height: 65px; display: flex; align-items: center; justify-content: center; border-radius: 10px;">👑</div>
                     <div>
                         <h3 style="margin: 0 0 5px 0; color: #ffcc00;">Skin Độc Quyền</h3>
                         <p style="margin: 0; font-size: 14px; opacity: 0.85;">Thay đổi diện mạo và hiệu ứng trang phục hoàng gia cho nhân vật.</p>
@@ -1028,7 +1034,6 @@ function update() {
 
     ctx.restore();
 
-    // Bảng điểm ở góc trên bên trái (đã tách không gian với nút cài đặt bên phải)
     ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
     ctx.fillRect(20, 20, 280, 75 * scale);
     ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
