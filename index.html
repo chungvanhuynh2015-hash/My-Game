@@ -645,8 +645,14 @@ bgMusic.volume = 0.5;
 
 const launchSound = new Audio("victorysound.mp4");
 launchSound.volume = 0.5;
+
+// Âm thanh khi Thắng (Dùng victorysound.mp4)
 const victorySound = new Audio("victorysound.mp4");
 victorySound.volume = 0.7;
+
+// Âm thanh khi Thua (Dùng file defeatsound.mp4 bạn vừa thêm)
+const defeatSound = new Audio("defeatsound.mp4");
+defeatSound.volume = 0.7;
 
 let isMuted = false;
 
@@ -670,6 +676,7 @@ function updateVolume(val) {
     let vol = val / 100;
     bgMusic.volume = vol;
     victorySound.volume = vol;
+    defeatSound.volume = vol;
     launchSound.volume = vol;
     if (val > 0 && isMuted) {
         isMuted = false;
@@ -683,6 +690,7 @@ function toggleMute() {
     if (isMuted) {
         bgMusic.pause();
         victorySound.pause();
+        defeatSound.pause();
         launchSound.pause();
         muteBtn.textContent = "Bật Nhạc";
         muteBtn.style.background = "#ff3333";
@@ -861,6 +869,8 @@ function startLevel(lvl) {
 
     victorySound.pause();
     victorySound.currentTime = 0;
+    defeatSound.pause();
+    defeatSound.currentTime = 0;
 
     if (!isMuted) {
         bgMusic.play().catch(e => console.log(e));
@@ -901,6 +911,12 @@ function endGame(isWin) {
         gameOverTitle.textContent = "THẤT BẠI - HẾT LƯỢT BẮN!";
         gameOverTitle.style.color = "#ff3333";
         finalScoreText.innerHTML = "Điểm số đạt được: " + score;
+
+        // Chỉ phát nhạc thua bằng file defeatsound.mp4
+        if (!isMuted) {
+            defeatSound.currentTime = 0;
+            defeatSound.play().catch(e => console.log(e));
+        }
     }
 }
 
@@ -1258,22 +1274,61 @@ function update() {
         ctx.fillRect(plat.x + plat.width * 0.18, plat.y, plat.width * 0.64, 12 * scale);
     });
 
-    ctx.strokeStyle = "#4a3324";
-    ctx.lineWidth = 9 * scale;
+    // Vẽ cây ná sinh động, đẹp và chi tiết hơn giống game gốc
+    ctx.save();
+    let slingBaseGrad = ctx.createLinearGradient(sling.x - 14*scale, 0, sling.x + 14*scale, 0);
+    slingBaseGrad.addColorStop(0, "#5c3a21");
+    slingBaseGrad.addColorStop(0.5, "#8a5a36");
+    slingBaseGrad.addColorStop(1, "#452814");
+    
+    ctx.fillStyle = slingBaseGrad;
+    ctx.strokeStyle = "#2b1604";
+    ctx.lineWidth = 3 * scale;
+
     ctx.beginPath();
-    ctx.moveTo(sling.x - 12 * scale, groundY);
-    ctx.lineTo(sling.x - 4 * scale, sling.y);
-    ctx.lineTo(sling.x + 4 * scale, sling.y);
-    ctx.lineTo(sling.x + 12 * scale, groundY);
+    ctx.moveTo(sling.x - 14 * scale, groundY);
+    ctx.lineTo(sling.x - 7 * scale, sling.y + 15 * scale);
+    ctx.lineTo(sling.x + 7 * scale, sling.y + 15 * scale);
+    ctx.lineTo(sling.x + 14 * scale, groundY);
+    ctx.closePath();
+    ctx.fill();
     ctx.stroke();
 
+    ctx.beginPath();
+    ctx.moveTo(sling.x - 8 * scale, sling.y + 20 * scale);
+    ctx.quadraticCurveTo(sling.x - 24 * scale, sling.y - 10 * scale, sling.x - 22 * scale, sling.y - 25 * scale);
+    ctx.lineTo(sling.x - 14 * scale, sling.y - 25 * scale);
+    ctx.quadraticCurveTo(sling.x - 16 * scale, sling.y - 5 * scale, sling.x - 4 * scale, sling.y + 15 * scale);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(sling.x + 8 * scale, sling.y + 20 * scale);
+    ctx.quadraticCurveTo(sling.x + 24 * scale, sling.y - 10 * scale, sling.x + 22 * scale, sling.y - 25 * scale);
+    ctx.lineTo(sling.x + 14 * scale, sling.y - 25 * scale);
+    ctx.quadraticCurveTo(sling.x + 16 * scale, sling.y - 5 * scale, sling.x + 4 * scale, sling.y + 15 * scale);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = "#38200f";
+    ctx.beginPath();
+    ctx.arc(sling.x - 18 * scale, sling.y - 23 * scale, 4.5 * scale, 0, Math.PI * 2);
+    ctx.arc(sling.x + 18 * scale, sling.y - 23 * scale, 4.5 * scale, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
     if (bird.isDragging) {
-        ctx.strokeStyle = "#2b1604";
-        ctx.lineWidth = 4 * scale;
+        ctx.strokeStyle = "#4d2c12";
+        ctx.lineWidth = 5 * scale;
+        ctx.lineCap = "round";
         ctx.beginPath();
-        ctx.moveTo(sling.x - 6 * scale, sling.y);
+        ctx.moveTo(sling.x - 18 * scale, sling.y - 23 * scale);
         ctx.lineTo(bird.x, bird.y);
-        ctx.lineTo(sling.x + 6 * scale, sling.y);
+        ctx.moveTo(sling.x + 18 * scale, sling.y - 23 * scale);
+        ctx.lineTo(bird.x, bird.y);
         ctx.stroke();
 
         let simVx = (sling.x - bird.x) * 0.21;
@@ -1281,7 +1336,6 @@ function update() {
         let simX = bird.x;
         let simY = bird.y;
 
-        // Đã giảm số lượng chấm quỹ đạo từ 30 xuống 10 để người chơi tự tính toán
         ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
         for (let i = 0; i < 10; i++) {
             simVy += 0.35 * scale;
@@ -1292,6 +1346,14 @@ function update() {
             ctx.fill();
             if (simY > groundY) break;
         }
+    } else {
+        ctx.strokeStyle = "#4d2c12";
+        ctx.lineWidth = 4 * scale;
+        ctx.beginPath();
+        ctx.moveTo(sling.x - 18 * scale, sling.y - 23 * scale);
+        ctx.lineTo(sling.x, sling.y);
+        ctx.lineTo(sling.x + 18 * scale, sling.y - 23 * scale);
+        ctx.stroke();
     }
 
     if (bird.isLaunched) {
