@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Angry Birds Mini - Advanced Edition</title>
+    <title>Angry Bird Version 1.0</title>
     <style>
         * {
             box-sizing: border-box;
@@ -203,7 +203,7 @@
 
         <!-- Menu Chính -->
         <div id="mainMenuScreen" class="overlay">
-            <h1>ANGRY BIRDS MINI</h1>
+            <h1>ANGRY BIRD v1.0</h1>
             <div style="display: flex; flex-direction: column; gap: 12px; align-items: center;">
                 <button class="btn" onclick="startLevel(maxLevelUnlocked)">PLAY</button>
                 <button class="btn" onclick="openLevelMenu()" style="background: linear-gradient(to bottom, #3388ff, #1155cc); border-color: #113399; box-shadow: 0 6px 0 #113399;">CHỌN MÀN</button>
@@ -408,13 +408,13 @@ function triggerScreenShake(duration) {
 }
 
 function createDebris(x, y, color) {
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 8; i++) {
         particles.push({
             x: x,
             y: y,
-            vx: (Math.random() - 0.5) * 8 * scale,
-            vy: (Math.random() - 0.8) * 8 * scale,
-            radius: (Math.random() * 4 + 2) * scale,
+            vx: (Math.random() - 0.5) * 10 * scale,
+            vy: (Math.random() - 0.8) * 10 * scale,
+            radius: (Math.random() * 5 + 2) * scale,
             color: color,
             alpha: 1.0
         });
@@ -824,19 +824,19 @@ function drawPig(x, y, r) {
 
 function drawCanvasBackground() {
     let skyGrad = ctx.createLinearGradient(0, 0, 0, groundY);
-    skyGrad.addColorStop(0, "#4ca2cd");
+    skyGrad.addColorStop(0, "#3a98c9");
     skyGrad.addColorStop(1, "#b4f0f8");
     ctx.fillStyle = skyGrad;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
-    drawCloud(canvas.width * 0.25, canvas.height * 0.15, 80 * scale);
-    drawCloud(canvas.width * 0.7, canvas.height * 0.22, 100 * scale);
+    ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+    drawCloud(canvas.width * 0.2, canvas.height * 0.12, 90 * scale);
+    drawCloud(canvas.width * 0.65, canvas.height * 0.2, 120 * scale);
 
-    ctx.fillStyle = "#73c03a";
+    ctx.fillStyle = "#65b830";
     ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
 
-    ctx.strokeStyle = "#498422";
+    ctx.strokeStyle = "#387515";
     ctx.lineWidth = 4 * scale;
     ctx.beginPath();
     ctx.moveTo(0, groundY);
@@ -883,18 +883,18 @@ function update() {
     drawCanvasBackground();
 
     groundHills.forEach(hill => {
-        ctx.fillStyle = "#61a82d";
+        ctx.fillStyle = "#559c25";
         ctx.beginPath();
         ctx.ellipse(hill.x + hill.w/2, groundY, hill.w/2, hill.h, 0, Math.PI, 0);
         ctx.fill();
-        ctx.strokeStyle = "#498422";
+        ctx.strokeStyle = "#387515";
         ctx.lineWidth = 3 * scale;
         ctx.stroke();
     });
 
-    // Vẽ Sling (Nã cao su)
-    ctx.strokeStyle = "#5c4033";
-    ctx.lineWidth = 8 * scale;
+    // Vẽ Trụ thun (Slingshot)
+    ctx.strokeStyle = "#4a3324";
+    ctx.lineWidth = 9 * scale;
     ctx.beginPath();
     ctx.moveTo(sling.x - 12 * scale, groundY);
     ctx.lineTo(sling.x - 4 * scale, sling.y);
@@ -903,23 +903,40 @@ function update() {
     ctx.stroke();
 
     if (bird.isDragging) {
-        ctx.strokeStyle = "#331a00";
+        // Dây thun
+        ctx.strokeStyle = "#2b1604";
         ctx.lineWidth = 4 * scale;
         ctx.beginPath();
         ctx.moveTo(sling.x - 6 * scale, sling.y);
         ctx.lineTo(bird.x, bird.y);
         ctx.lineTo(sling.x + 6 * scale, sling.y);
         ctx.stroke();
+
+        // 🌟 TÍNH NĂNG MỚI: Vẽ đường dẫn hướng (Trajectory Guide)
+        let simVx = (sling.x - bird.x) * 0.23;
+        let simVy = (sling.y - bird.y) * 0.23;
+        let simX = bird.x;
+        let simY = bird.y;
+
+        ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+        for (let i = 0; i < 25; i++) {
+            simVy += 0.35 * scale;
+            simX += simVx;
+            simY += simVy;
+            ctx.beginPath();
+            ctx.arc(simX, simY, (4 - i * 0.1) * scale, 0, Math.PI * 2);
+            ctx.fill();
+            if (simY > groundY) break;
+        }
     }
 
-    // Physics & Movement Update
+    // Physics Movement
     if (bird.isLaunched) {
         bird.vx *= 0.99;
-        bird.vy += 0.35 * scale; // Trọng lực
+        bird.vy += 0.35 * scale; 
         bird.x += bird.vx;
         bird.y += bird.vy;
 
-        // Check va chạm chim chính
         targets.forEach(t => {
             if (checkCollision(bird, t)) {
                 t.alive = false;
@@ -928,7 +945,6 @@ function update() {
             }
         });
 
-        // Xử lý chim phụ (Blue split)
         subBirds.forEach(sb => {
             sb.vy += 0.35 * scale;
             sb.x += sb.vx;
@@ -952,14 +968,9 @@ function update() {
         }
     }
 
-    // Vẽ Chim
-    if (!bird.isLaunched) {
-        drawBirdByType(bird.type, bird.x, bird.y, bird.radius);
-    } else {
-        drawBirdByType(bird.type, bird.x, bird.y, bird.radius);
-    }
+    drawBirdByType(bird.type, bird.x, bird.y, bird.radius);
 
-    // Vẽ Mục tiêu & Thẻ Khối (Targets/Pigs)
+    // Vẽ Mục tiêu & Khối
     targets.forEach(t => {
         if (!t.alive) return;
         if (t.type === "pig") {
@@ -968,13 +979,13 @@ function update() {
             ctx.save();
             ctx.translate(t.x, t.y);
             if (t.type === "wood") {
-                ctx.fillStyle = "#b5651d";
-                ctx.strokeStyle = "#7f440d";
+                ctx.fillStyle = "#c27329";
+                ctx.strokeStyle = "#874d12";
             } else if (t.type === "stone") {
-                ctx.fillStyle = "#9e9e9e";
-                ctx.strokeStyle = "#616161";
+                ctx.fillStyle = "#a8a8a8";
+                ctx.strokeStyle = "#666666";
             } else if (t.type === "ice") {
-                ctx.fillStyle = "rgba(129, 212, 250, 0.75)";
+                ctx.fillStyle = "rgba(135, 220, 255, 0.8)";
                 ctx.strokeStyle = "#0288d1";
             }
             ctx.fillRect(0, 0, t.width, t.height);
@@ -984,12 +995,12 @@ function update() {
         }
     });
 
-    // Vẽ Mảnh vỡ hiệu ứng (Debris particles)
+    // Vẽ Mảnh vỡ hiệu ứng
     particles.forEach((p, index) => {
         p.x += p.vx;
         p.y += p.vy;
         p.vy += 0.2 * scale;
-        p.alpha -= 0.02;
+        p.alpha -= 0.025;
         ctx.fillStyle = p.color;
         ctx.globalAlpha = Math.max(p.alpha, 0);
         ctx.beginPath();
@@ -1001,15 +1012,20 @@ function update() {
 
     ctx.restore();
 
-    // UI Điểm số trên màn hình game
-    ctx.fillStyle = "rgba(0,0,0,0.4)";
-    ctx.fillRect(canvas.width / 2 - 140, 15 * scale, 280, 45 * scale);
+    // 🌟 TÍNH NĂNG MỚI: Hiển thị số chim còn lại và Điểm số góc trên
+    ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+    ctx.fillRect(20, 20, 210, 50 * scale);
     ctx.fillStyle = "#ffffff";
-    ctx.font = `bold ${20 * scale}px Segoe UI`;
-    ctx.textAlign = "center";
-    ctx.fillText(`MÀN: ${currentLevel} | ĐIỂM: ${score}`, canvas.width / 2, 43 * scale);
+    ctx.font = `bold ${16 * scale}px Segoe UI`;
+    ctx.textAlign = "left";
+    ctx.fillText(`MÀN: ${currentLevel} | ĐIỂM: ${score}`, 30, 50 * scale);
 
-    // Kiểm tra điều kiện thắng màn chơi
+    // Hiển thị icon số lượng chim chờ bắn
+    ctx.fillText("Chim:", 30, 85 * scale);
+    for (let i = currentBirdIndex; i < birdTypes.length; i++) {
+        drawBirdByType(birdTypes[i], 90 + (i - currentBirdIndex) * 32 * scale, 80 * scale, 12 * scale);
+    }
+
     let remainingPigs = targets.some(t => t.type === "pig" && t.alive);
     if (!remainingPigs && gameState === "PLAYING") {
         setTimeout(() => { if (gameState === "PLAYING") endGame(true); }, 300);
