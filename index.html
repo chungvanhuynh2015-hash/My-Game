@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Angry Bird Version 40 Levels - Siêu Khó</title>
+    <title>BẮN CHIM - 40 Màn Siêu Khó</title>
     <style>
         * {
             box-sizing: border-box;
@@ -57,11 +57,11 @@
         }
 
         .overlay h1 {
-            font-size: 52px;
+            font-size: 54px;
             margin: 0 0 25px 0;
             color: #ffcc00;
-            text-shadow: 2px 2px 0px #ff3333;
-            letter-spacing: 1px;
+            text-shadow: 3px 3px 0px #ff3333;
+            letter-spacing: 2px;
         }
         .btn {
             padding: 16px 50px;
@@ -149,7 +149,7 @@
             margin-bottom: 20px;
         }
 
-        /* Giao diện Shop Cây Cổ Thụ (Danh Sách Chim) lướt từ trên xuống */
+        /* Giao diện Shop Cây Cổ Thụ (Danh Sách Chim) */
         #birdListScreen {
             background: linear-gradient(rgba(10, 30, 15, 0.92), rgba(5, 15, 8, 0.95)), 
                         radial-gradient(circle, #2d6a4f 0%, #1b4332 100%);
@@ -280,7 +280,6 @@
             display: inline-block;
         }
 
-        /* Khung thông báo thành tựu dạng hình chữ nhật dài ở góc dưới bên phải */
         #achievementToast {
             position: absolute;
             bottom: 30px;
@@ -377,18 +376,15 @@
 <body>
 
     <div id="gameContainer">
-        <!-- Nút cài đặt -->
         <button id="gearBtn" onclick="openSettings()">⚙️</button>
 
-        <!-- Thẻ thông báo thành tựu góc dưới bên phải -->
         <div id="achievementToast">
             <h4 id="toastTitle">🏆 Mở khóa thành tựu</h4>
             <p id="toastDesc">Nội dung thông báo...</p>
         </div>
 
-        <!-- Menu Chính -->
         <div id="mainMenuScreen" class="overlay">
-            <h1>ANGRY BIRD v4.0</h1>
+            <h1>BẮN CHIM v4.0</h1>
             <div style="display: flex; flex-direction: column; gap: 12px; align-items: center;">
                 <button class="btn" onclick="startLevel(maxLevelUnlocked)">PLAY</button>
                 <button class="btn" onclick="openLevelMenu()" style="background: linear-gradient(to bottom, #3388ff, #1155cc); border-color: #113399; box-shadow: 0 6px 0 #113399;">CHỌN MÀN</button>
@@ -396,7 +392,6 @@
             </div>
         </div>
 
-        <!-- Màn hình Danh Sách Chim (Cây Cổ Thụ) -->
         <div id="birdListScreen" class="overlay hidden">
             <h1>🌳 DANH SÁCH CHIM 🌳</h1>
             <div id="equipmentStatusBanner">Đã trang bị: 1/2 con</div>
@@ -405,14 +400,12 @@
             <button class="back-menu-btn" onclick="returnToMainMenu()">Về Menu Chính</button>
         </div>
 
-        <!-- Màn hình Chọn màn chơi -->
         <div id="levelMenuScreen" class="overlay hidden">
             <h1>CHỌN MÀN CHƠI (1 - 40)</h1>
             <div id="levelGridContainer"></div>
             <button class="back-menu-btn" onclick="returnToMainMenu()">Về Menu Chính</button>
         </div>
 
-        <!-- Cài đặt âm thanh -->
         <div id="settingsModal" class="hidden">
             <div class="settings-content">
                 <h2>CÀI ĐẶT ÂM THANH</h2>
@@ -440,7 +433,6 @@
             </div>
         </div>
 
-        <!-- Màn hình Thắng/Thua -->
         <div id="gameOverScreen" class="overlay hidden">
             <h1 id="gameOverTitle">CHIẾN THẮNG!</h1>
             <p id="finalScoreText" style="font-size: 18px;">Tổng điểm tuyệt đối: 0</p>
@@ -481,8 +473,8 @@ const achievementToast = document.getElementById("achievementToast");
 const toastTitle = document.getElementById("toastTitle");
 const toastDesc = document.getElementById("toastDesc");
 
-let maxLevelUnlocked = parseInt(localStorage.getItem("angryBirdsMaxLevel40")) || 1;
-let equippedBirds = JSON.parse(localStorage.getItem("angryBirdsEquippedBirds")) || ["red"];
+let maxLevelUnlocked = parseInt(localStorage.getItem("banChimMaxLevel40")) || 1;
+let equippedBirds = JSON.parse(localStorage.getItem("banChimEquippedBirds")) || ["red"];
 let toastTimeout = null;
 
 const allBirdsConfig = [
@@ -542,43 +534,25 @@ function renderBirdPreviewCanvas(canvasEl, birdType) {
         pCtx.lineTo(-r*1.1, r*0.9);
         pCtx.closePath();
         pCtx.fill();
-        pCtx.strokeStyle = "#5d4037"; pCtx.lineWidth = 2; pCtx.stroke();
+        pCtx.strokeStyle = "#000"; pCtx.lineWidth = 2.5; pCtx.stroke();
     } else if (birdType === "blue") {
         let grad = pCtx.createRadialGradient(-r*0.3, -r*0.3, r*0.05, 0, 0, r);
         grad.addColorStop(0, "#4dd0e1"); grad.addColorStop(0.6, "#00acc1"); grad.addColorStop(1, "#006064");
         pCtx.fillStyle = grad;
         pCtx.beginPath(); pCtx.arc(0, 0, r*0.85, 0, Math.PI * 2); pCtx.fill();
-        pCtx.strokeStyle = "#004d40"; pCtx.lineWidth = 2; pCtx.stroke();
+        pCtx.strokeStyle = "#000"; pCtx.lineWidth = 2.5; pCtx.stroke();
     } else if (birdType === "black") {
         let grad = pCtx.createRadialGradient(-r*0.3, -r*0.3, r*0.05, 0, 0, r);
         grad.addColorStop(0, "#616161"); grad.addColorStop(0.6, "#212121"); grad.addColorStop(1, "#000000");
         pCtx.fillStyle = grad;
         pCtx.beginPath(); pCtx.arc(0, 0, r, 0, Math.PI * 2); pCtx.fill();
-        pCtx.strokeStyle = "#ff3333"; pCtx.lineWidth = 2; pCtx.stroke();
-        pCtx.strokeStyle = "#ffcc00"; pCtx.lineWidth = 2.5;
-        pCtx.beginPath(); pCtx.moveTo(0, -r); pCtx.quadraticCurveTo(r*0.5, -r*1.4, r*0.8, -r*1.3); pCtx.stroke();
-        pCtx.fillStyle = "#ff3333"; pCtx.beginPath(); pCtx.arc(r*0.8, -r*1.3, 3, 0, Math.PI*2); pCtx.fill();
+        pCtx.strokeStyle = "#000"; pCtx.lineWidth = 2.5; pCtx.stroke();
     } else {
         let grad = pCtx.createRadialGradient(-r*0.3, -r*0.3, r*0.05, 0, 0, r);
         grad.addColorStop(0, "#ff6b6b"); grad.addColorStop(0.6, "#e53935"); grad.addColorStop(1, "#b71c1c");
         pCtx.fillStyle = grad;
         pCtx.beginPath(); pCtx.arc(0, 0, r, 0, Math.PI * 2); pCtx.fill();
-        pCtx.strokeStyle = "#5f0000"; pCtx.lineWidth = 2; pCtx.stroke();
-    }
-
-    if (birdType !== "yellow") {
-        pCtx.fillStyle = "#ffffff";
-        pCtx.beginPath();
-        pCtx.arc(-r*0.25, -r*0.05, r*0.28, 0, Math.PI * 2);
-        pCtx.arc(r*0.25, -r*0.05, r*0.28, 0, Math.PI * 2);
-        pCtx.fill();
-        pCtx.strokeStyle = "#000"; pCtx.lineWidth = 1.5; pCtx.stroke();
-
-        pCtx.fillStyle = "#000000";
-        pCtx.beginPath();
-        pCtx.arc(-r*0.15, -r*0.05, r*0.1, 0, Math.PI * 2);
-        pCtx.arc(r*0.35, -r*0.05, r*0.1, 0, Math.PI * 2);
-        pCtx.fill();
+        pCtx.strokeStyle = "#000"; pCtx.lineWidth = 2.5; pCtx.stroke();
     }
     pCtx.restore();
 }
@@ -635,7 +609,7 @@ function buildBirdGrid() {
             btnElem.onclick = () => {
                 if (equippedBirds.length > 1) {
                     equippedBirds = equippedBirds.filter(id => id !== bInfo.id);
-                    localStorage.setItem("angryBirdsEquippedBirds", JSON.stringify(equippedBirds));
+                    localStorage.setItem("banChimEquippedBirds", JSON.stringify(equippedBirds));
                     buildBirdGrid();
                 } else {
                     alert("Cần trang bị ít nhất 1 chú chim ra trận!");
@@ -651,7 +625,7 @@ function buildBirdGrid() {
                     equippedBirds.shift();
                     equippedBirds.push(bInfo.id);
                 }
-                localStorage.setItem("angryBirdsEquippedBirds", JSON.stringify(equippedBirds));
+                localStorage.setItem("banChimEquippedBirds", JSON.stringify(equippedBirds));
                 buildBirdGrid();
             };
         }
@@ -683,6 +657,9 @@ function returnToMainMenu() {
     gameOverScreen.classList.add("hidden");
     mainMenuScreen.classList.remove("hidden");
     gameState = "MENU";
+    if (!isMuted) {
+        bgMusic.play().catch(e => console.log(e));
+    }
 }
 
 let currentMusicFile = "angrybird.sound2.mp4";
@@ -690,6 +667,8 @@ let bgMusic = new Audio(currentMusicFile);
 bgMusic.loop = true;
 bgMusic.volume = 0.5;
 
+const launchSound = new Audio("victorysound.mp4"); // Âm thanh khi bắn
+launchSound.volume = 0.5;
 const victorySound = new Audio("victorysound.mp4");
 victorySound.volume = 0.7;
 
@@ -705,7 +684,7 @@ function changeBackgroundMusic() {
     bgMusic = new Audio(currentMusicFile);
     bgMusic.loop = true;
     bgMusic.volume = volumeSlider.value / 100;
-    if (!isMuted && gameState === "PLAYING") {
+    if (!isMuted) {
         bgMusic.play().catch(e => console.log(e));
     }
 }
@@ -715,6 +694,7 @@ function updateVolume(val) {
     let vol = val / 100;
     bgMusic.volume = vol;
     victorySound.volume = vol;
+    launchSound.volume = vol;
     if (val > 0 && isMuted) {
         isMuted = false;
         muteBtn.textContent = "Tắt Nhạc";
@@ -727,14 +707,13 @@ function toggleMute() {
     if (isMuted) {
         bgMusic.pause();
         victorySound.pause();
+        launchSound.pause();
         muteBtn.textContent = "Bật Nhạc";
         muteBtn.style.background = "#ff3333";
     } else {
         muteBtn.textContent = "Tắt Nhạc";
         muteBtn.style.background = "linear-gradient(to bottom, #8ddb44, #558822)";
-        if (gameState === "PLAYING") {
-            bgMusic.play().catch(e => console.log(e));
-        }
+        bgMusic.play().catch(e => console.log(e));
     }
 }
 
@@ -760,6 +739,7 @@ let explosions = [];
 
 let targets = [];
 let groundHills = [];
+let trapezoidPlatforms = []; // Các ô đất hình thang nhô lên ở mỗi màn
 let particles = [];
 let screenShakeTime = 0;
 
@@ -770,13 +750,11 @@ function triggerScreenShake(duration) {
 function createDebris(x, y, color) {
     for (let i = 0; i < 8; i++) {
         particles.push({
-            x: x,
-            y: y,
+            x: x, y: y,
             vx: (Math.random() - 0.5) * 10 * scale,
             vy: (Math.random() - 0.8) * 10 * scale,
             radius: (Math.random() * 5 + 2) * scale,
-            color: color,
-            alpha: 1.0
+            color: color, alpha: 1.0
         });
     }
 }
@@ -800,14 +778,9 @@ function resizeCanvas() {
     }
 
     bird.radius = 22 * scale;
-
-    groundHills = [
-        { x: canvas.width * 0.58, w: 320 * scale, h: 55 * scale },
-        { x: canvas.width * 0.82, w: 260 * scale, h: 75 * scale }
-    ];
 }
 
-// CƠ CHẾ CẤU TRÚC MÀN CHƠI SIÊU KHÓ (TẤT CẢ 40 MÀN)
+// THIẾT KẾ KIẾN TRÚC & ĐẤT HÌNH THANG HOÀN TOÀN KHÁC BIỆT THEO TỪNG MÀN
 function loadLevel(lvl) {
     currentLevel = lvl;
     resizeCanvas();
@@ -824,77 +797,81 @@ function loadLevel(lvl) {
     }
     bird.type = birdTypes[0];
 
-    const startX = canvas.width * 0.55;
-    const blockW = 44 * scale;
-    const blockH = 65 * scale;
-
     targets = [];
+    trapezoidPlatforms = [];
+
+    // Sinh ngẫu nhiên các ô đất nhô lên hình thang độc lập dựa theo số màn chơi
+    let platformCount = 1 + (lvl % 3); // 1 đến 3 bệ đất hình thang
+    let startX = canvas.width * 0.48;
     
-    // ĐỘ KHÓ CỰC ĐẠI: Tất cả màn đều có cấu trúc tháp kiên cố nhiều tầng đá/băng/gỗ kết hợp dày đặc, cùng gấp đôi số lượng heo (từ 5 đến 9 con heo phòng thủ sâu bên trong)
-    let pigCount = Math.min(5 + Math.floor(lvl / 5), 9);
-
-    let baseHeight = groundY;
-
-    // Tầng 1: Hàng rào kiên cố vật liệu đá và băng dày đặc bảo vệ phía trước
-    for (let i = 0; i < 5; i++) {
-        let tType = (i % 2 === 0) ? "stone" : "ice";
-        if (i === 2) tType = "stone";
-        targets.push({
-            type: tType,
-            x: startX + (i * 52 * scale),
-            y: baseHeight - blockH,
-            width: blockW,
-            height: blockH,
-            alive: true
+    for (let p = 0; p < platformCount; p++) {
+        let pWidth = (140 + (lvl * 7) % 80) * scale;
+        let pHeight = (40 + (lvl * 5) % 35) * scale;
+        let px = startX + (p * 220 * scale);
+        let py = groundY - pHeight;
+        
+        trapezoidPlatforms.push({
+            x: px, y: py, width: pWidth, height: pHeight,
+            topWidth: pWidth * 0.65 // Tạo hình thang (đáy trên nhỏ hơn đáy dưới)
         });
     }
 
-    // Tầng 2: Thanh chắn ngang siêu dài bằng đá
-    targets.push({
-        type: "stone",
-        x: startX - 10 * scale,
-        y: baseHeight - blockH - 20 * scale,
-        width: 280 * scale,
-        height: 20 * scale,
-        alive: true
-    });
+    // Bố trí kiến trúc tháp vật liệu (gỗ, đá, băng) siêu khó và phong phú theo từng màn
+    let blockW = 42 * scale;
+    let blockH = 65 * scale;
+    let pigCount = Math.min(5 + Math.floor(lvl / 5), 10);
 
-    // Tầng 3: Pháo đài tháp đôi kiên cố phía trên
-    for (let i = 0; i < 4; i++) {
-        let tType = (i < 2) ? "wood" : "stone";
+    // Xây dựng pháo đài dựa trên các bệ đất hình thang
+    trapezoidPlatforms.forEach((plat, idx) => {
+        let tType1 = (idx % 2 === 0) ? "stone" : "wood";
+        let tType2 = (idx % 3 === 0) ? "ice" : "stone";
+
+        // Cột đỡ tầng 1 trên bệ hình thang
         targets.push({
-            type: tType,
-            x: startX + 25 * scale + (i * 55 * scale),
-            y: baseHeight - (blockH * 2) - 25 * scale,
-            width: blockW,
-            height: blockH,
-            alive: true
+            type: tType1,
+            x: plat.x + plat.width * 0.15,
+            y: plat.y - blockH,
+            width: blockW, height: blockH, alive: true
         });
-    }
+        targets.push({
+            type: tType1,
+            x: plat.x + plat.width * 0.55,
+            y: plat.y - blockH,
+            width: blockW, height: blockH, alive: true
+        });
 
-    // Tầng mái che cố định bằng băng/đá nặng
-    targets.push({
-        type: "stone",
-        x: startX + 20 * scale,
-        y: baseHeight - (blockH * 2) - 45 * scale,
-        width: 230 * scale,
-        height: 20 * scale,
-        alive: true
+        // Thanh chắn ngang tầng 2
+        targets.push({
+            type: tType2,
+            x: plat.x,
+            y: plat.y - blockH - 22 * scale,
+            width: plat.width, height: 20 * scale, alive: true
+        });
+
+        // Tầng tháp thứ 3 phía trên
+        targets.push({
+            type: "wood",
+            x: plat.x + plat.width * 0.3,
+            y: plat.y - (blockH * 2) - 22 * scale,
+            width: blockW, height: blockH, alive: true
+        });
     });
 
-    // Hệ thống Heo tinh ranh ẩn nấp tầng sâu bên trong pháo đài
+    // Hệ thống Heo rải rác bên trong pháo đài
     for (let p = 0; p < pigCount; p++) {
-        let px = startX + 35 * scale + (p * 32 * scale);
-        let py = baseHeight - 24 * scale;
-        if (p >= 4) py = baseHeight - blockH - 45 * scale;
-        if (p >= 7) py = baseHeight - (blockH * 2) - 70 * scale;
+        let platIndex = p % trapezoidPlatforms.length;
+        let plat = trapezoidPlatforms[platIndex];
+        
+        let px = plat.x + plat.width * 0.35 + (p * 12) % (plat.width * 0.4);
+        let py = plat.y - 25 * scale;
+        if (p >= 5) py = plat.y - blockH - 45 * scale;
 
         targets.push({
             type: "pig",
-            x: px,
-            y: py,
+            x: px, y: py,
             alive: true,
-            radius: (20 + (p % 3)) * scale
+            radius: (20 + (p % 3)) * scale,
+            vy: 0 // Vận tốc rơi tự do khi không còn chỗ đứng
         });
     }
 }
@@ -918,7 +895,6 @@ function startLevel(lvl) {
     victorySound.currentTime = 0;
 
     if (!isMuted) {
-        bgMusic.currentTime = 0;
         bgMusic.play().catch(e => console.log(e));
     }
 }
@@ -929,10 +905,10 @@ function endGame(isWin) {
     bgMusic.pause();
 
     if (isWin) {
-        let bonusScore = lives * 100; // Giảm thưởng điểm dư vì màn siêu khó
+        let bonusScore = lives * 100;
         score += bonusScore;
 
-        gameOverTitle.textContent = "CHIẾN THẮNG MÀN " + currentLevel + " (SIÊU KHÓ)!";
+        gameOverTitle.textContent = "CHIẾN THẮNG MÀN " + currentLevel + "!";
         gameOverTitle.style.color = "#8ddb44";
         finalScoreText.innerHTML = `Tổng điểm đạt được: ${score} <br><span style="font-size:15px; color:#ffcc00;">(+${bonusScore} điểm thưởng chim dư)</span>`;
 
@@ -946,7 +922,7 @@ function endGame(isWin) {
 
         if (currentLevel >= maxLevelUnlocked && currentLevel < 40) {
             maxLevelUnlocked = currentLevel + 1;
-            localStorage.setItem("angryBirdsMaxLevel40", maxLevelUnlocked);
+            localStorage.setItem("banChimMaxLevel40", maxLevelUnlocked);
         }
 
         if (!isMuted) {
@@ -954,7 +930,7 @@ function endGame(isWin) {
             victorySound.play().catch(e => console.log(e));
         }
     } else {
-        gameOverTitle.textContent = "THẤT BẠI - PHÁO ĐÀI QUÁ KIÊN CỐ!";
+        gameOverTitle.textContent = "THẤT BẠI - HẾT LƯỢT BẮN!";
         gameOverTitle.style.color = "#ff3333";
         finalScoreText.innerHTML = "Điểm số đạt được: " + score;
     }
@@ -1066,7 +1042,7 @@ function onTouchMove(e) {
     const dx = pos.x - sling.x;
     const dy = pos.y - sling.y;
     const dist = Math.hypot(dx, dy);
-    const maxDrag = 110 * scale;
+    const maxDrag = 140 * scale; // Tăng khoảng kéo bắn xa hơn
 
     let angle = Math.atan2(dy, dx);
     let currentDist = Math.min(dist, maxDrag);
@@ -1080,8 +1056,14 @@ function onTouchEnd() {
     bird.isDragging = false;
     bird.isLaunched = true;
 
-    bird.vx = (sling.x - bird.x) * 0.23;
-    bird.vy = (sling.y - bird.y) * 0.23;
+    // Phát âm thanh khi bắn
+    if (!isMuted) {
+        launchSound.currentTime = 0;
+        launchSound.play().catch(e => {});
+    }
+
+    bird.vx = (sling.x - bird.x) * 0.26; // Lực bắn mạnh hơn, bay xa hơn
+    bird.vy = (sling.y - bird.y) * 0.26;
 }
 
 window.addEventListener("mousedown", onTouchStart);
@@ -1104,6 +1086,7 @@ function checkCollision(b, t) {
     }
 }
 
+// HÌNH ẢNH CHIM CHUẨN GAME GỐC: Viền đen rõ, mỏ màu vàng
 function drawBirdByType(type, x, y, r) {
     ctx.save();
     ctx.translate(x, y);
@@ -1118,47 +1101,44 @@ function drawBirdByType(type, x, y, r) {
         ctx.lineTo(-r*1.2, r*0.9);
         ctx.closePath();
         ctx.fill();
-        ctx.strokeStyle = "#5d4037"; ctx.lineWidth = 2.2 * scale; ctx.stroke();
+        ctx.strokeStyle = "#000000"; ctx.lineWidth = 2.8 * scale; ctx.stroke(); // Viền đen rõ
 
-        ctx.fillStyle = "#ffffff";
-        ctx.beginPath(); ctx.arc(-r*0.35, -r*0.1, r*0.28, 0, Math.PI * 2); ctx.arc(r*0.35, -r*0.1, r*0.28, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = "#000"; ctx.lineWidth = 1.5; ctx.stroke();
-        ctx.fillStyle = "#000";
-        ctx.beginPath(); ctx.arc(-r*0.25, -r*0.1, r*0.1, 0, Math.PI * 2); ctx.arc(r*0.45, -r*0.1, r*0.1, 0, Math.PI * 2); ctx.fill();
-
+        // Mỏ vàng nhọn
         ctx.fillStyle = "#ff8f00";
-        ctx.beginPath(); ctx.moveTo(r*0.8, r*0.1); ctx.lineTo(r*1.6, r*0.3); ctx.lineTo(r*0.8, r*0.6); ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(r*0.8, r*0.1); ctx.lineTo(r*1.6, r*0.3); ctx.lineTo(r*0.8, r*0.6); ctx.closePath(); ctx.fill(); 
+        ctx.strokeStyle = "#000000"; ctx.lineWidth = 1.5; ctx.stroke();
     } else if (type === "blue") {
         let grad = ctx.createRadialGradient(-r*0.3, -r*0.3, r*0.05, 0, 0, r);
         grad.addColorStop(0, "#4dd0e1"); grad.addColorStop(0.6, "#00acc1"); grad.addColorStop(1, "#006064");
         ctx.fillStyle = grad;
         ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = "#004d40"; ctx.lineWidth = 2.2 * scale; ctx.stroke();
+        ctx.strokeStyle = "#000000"; ctx.lineWidth = 2.8 * scale; ctx.stroke();
 
-        drawDetailedEyesAndBeak(r, "#80deea", "#00838f");
+        drawDetailedEyesAndBeak(r, "#ffb74d", "#f57c00");
     } else if (type === "black") {
         let grad = ctx.createRadialGradient(-r*0.3, -r*0.3, r*0.05, 0, 0, r);
         grad.addColorStop(0, "#616161"); grad.addColorStop(0.6, "#212121"); grad.addColorStop(1, "#000000");
         ctx.fillStyle = grad;
         ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = "#ff3333"; ctx.lineWidth = 2.5 * scale; ctx.stroke();
+        ctx.strokeStyle = "#000000"; ctx.lineWidth = 2.8 * scale; ctx.stroke();
 
         ctx.strokeStyle = "#ffcc00"; ctx.lineWidth = 3;
         ctx.beginPath(); ctx.moveTo(0, -r); ctx.quadraticCurveTo(r*0.6, -r*1.5, r*0.9, -r*1.4); ctx.stroke();
         ctx.fillStyle = "#ff3333"; ctx.beginPath(); ctx.arc(r*0.9, -r*1.4, 4 * scale, 0, Math.PI*2); ctx.fill();
 
-        drawDetailedEyesAndBeak(r, "#ffcc00", "#e65100");
+        drawDetailedEyesAndBeak(r, "#ffb74d", "#f57c00");
     } else {
         let grad = ctx.createRadialGradient(-r*0.3, -r*0.3, r*0.05, 0, 0, r);
         grad.addColorStop(0, "#ff6b6b"); grad.addColorStop(0.6, "#e53935"); grad.addColorStop(1, "#b71c1c");
         ctx.fillStyle = grad;
         ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = "#5f0000"; ctx.lineWidth = 2.2 * scale; ctx.stroke();
+        ctx.strokeStyle = "#000000"; ctx.lineWidth = 2.8 * scale; ctx.stroke(); // Viền đen rõ
 
+        // Lông mày cau có
         ctx.fillStyle = "#3a0000";
         ctx.beginPath(); ctx.moveTo(-r*0.85, -r*0.35); ctx.lineTo(r*0.7, -r*0.05); ctx.lineTo(r*0.6, r*0.15); ctx.lineTo(-r*0.75, -r*0.15); ctx.closePath(); ctx.fill();
         
-        drawDetailedEyesAndBeak(r, "#ffb74d", "#f57c00");
+        drawDetailedEyesAndBeak(r, "#ffb74d", "#f57c00"); // Mỏ màu vàng
     }
     ctx.restore();
 }
@@ -1177,13 +1157,14 @@ function drawDetailedEyesAndBeak(r, beakColor1, beakColor2) {
     ctx.arc(r*0.4, -r*0.05, r*0.12, 0, Math.PI * 2);
     ctx.fill();
 
+    // Mỏ vàng
     ctx.fillStyle = beakColor1;
     ctx.beginPath();
     ctx.moveTo(r*0.2, r*0.02);
     ctx.lineTo(r*0.88, r*0.15);
     ctx.lineTo(r*0.3, r*0.42);
     ctx.closePath();
-    ctx.fill(); ctx.stroke();
+    ctx.fill(); ctx.strokeStyle = "#000"; ctx.lineWidth = 1.2; ctx.stroke();
 
     ctx.fillStyle = beakColor2;
     ctx.beginPath();
@@ -1275,7 +1256,7 @@ function handleBirdFinish() {
         endGame(true);
     } else if (lives <= 0 || currentBirdIndex >= birdTypes.length) {
         setTimeout(() => {
-            let checkPigs = targets.some(t => t.type === "pig" && t.alive);
+            let checkPigs = targets.some(t.type === "pig" && t.alive);
             if (!checkPigs) endGame(true);
             else endGame(false);
         }, 500);
@@ -1297,14 +1278,23 @@ function update() {
 
     drawCanvasBackground();
 
-    groundHills.forEach(hill => {
-        ctx.fillStyle = "#559c25";
+    // Vẽ các ô đất hình thang nhô lên
+    trapezoidPlatforms.forEach(plat => {
+        ctx.fillStyle = "#8a5a36"; // Màu đất sẫm
         ctx.beginPath();
-        ctx.ellipse(hill.x + hill.w/2, groundY, hill.w/2, hill.h, 0, Math.PI, 0);
+        ctx.moveTo(plat.x, groundY);
+        ctx.lineTo(plat.x + plat.width, groundY);
+        ctx.lineTo(plat.x + plat.width * 0.82, plat.y);
+        ctx.lineTo(plat.x + plat.width * 0.18, plat.y);
+        ctx.closePath();
         ctx.fill();
-        ctx.strokeStyle = "#387515";
+        ctx.strokeStyle = "#5c3a21";
         ctx.lineWidth = 3 * scale;
         ctx.stroke();
+
+        // Lớp cỏ xanh trên đỉnh hình thang
+        ctx.fillStyle = "#559c25";
+        ctx.fillRect(plat.x + plat.width * 0.18, plat.y, plat.width * 0.64, 12 * scale);
     });
 
     ctx.strokeStyle = "#4a3324";
@@ -1325,13 +1315,13 @@ function update() {
         ctx.lineTo(sling.x + 6 * scale, sling.y);
         ctx.stroke();
 
-        let simVx = (sling.x - bird.x) * 0.23;
-        let simVy = (sling.y - bird.y) * 0.23;
+        let simVx = (sling.x - bird.x) * 0.26;
+        let simVy = (sling.y - bird.y) * 0.26;
         let simX = bird.x;
         let simY = bird.y;
 
         ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
-        for (let i = 0; i < 25; i++) {
+        for (let i = 0; i < 30; i++) {
             simVy += 0.35 * scale;
             simX += simVx;
             simY += simVy;
@@ -1415,9 +1405,37 @@ function update() {
         }
     });
 
+    // CẬP NHẬT TRỌNG LỰC CHO HEO: Kiểm tra nếu heo không còn chỗ đứng (bệ đỡ) sẽ tự rơi xuống
     targets.forEach(t => {
         if (!t.alive) return;
         if (t.type === "pig") {
+            let hasSupport = false;
+            // Kiểm tra xem heo có đứng trên bệ hình thang hoặc chạm mặt đất không
+            trapezoidPlatforms.forEach(plat => {
+                if (t.x >= plat.x && t.x <= plat.x + plat.width && Math.abs(t.y + t.radius - plat.y) < 10) {
+                    hasSupport = true;
+                }
+            });
+            // Hoặc đứng trên vật liệu khác
+            targets.forEach(other => {
+                if (other.alive && other.type !== "pig") {
+                    if (t.x >= other.x && t.x <= other.x + other.width && Math.abs(t.y + t.radius - other.y) < 10) {
+                        hasSupport = true;
+                    }
+                }
+            });
+
+            if (!hasSupport && t.y < groundY - t.radius) {
+                t.vy += 0.4 * scale;
+                t.y += t.vy;
+            } else {
+                t.vy = 0;
+            }
+
+            if (t.y >= groundY - t.radius) {
+                t.y = groundY - t.radius;
+            }
+
             drawPig(t.x, t.y, t.radius);
         } else {
             ctx.save();
@@ -1464,7 +1482,7 @@ function update() {
     ctx.fillStyle = "#ffcc00";
     ctx.font = `bold ${Math.round(18 * scale)}px Arial, sans-serif`;
     ctx.textAlign = "left";
-    ctx.fillText(`MÀN: ${currentLevel}/40 (Siêu Khó)`, 35, 52 * scale);
+    ctx.fillText(`MÀN: ${currentLevel}/40`, 35, 52 * scale);
     ctx.fillText(`ĐIỂM: ${score}`, 210, 52 * scale);
 
     ctx.fillStyle = "#ffffff";
