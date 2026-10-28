@@ -290,7 +290,6 @@ const volumeValue = document.getElementById("volumeValue");
 const muteBtn = document.getElementById("muteBtn");
 const bgMusicSelect = document.getElementById("bgMusicSelect");
 
-// Lưu tiến độ màn chơi đã mở khóa qua LocalStorage
 let maxLevelUnlocked = parseInt(localStorage.getItem("angryBirdsMaxLevel")) || 1;
 
 function openLevelMenu() {
@@ -886,146 +885,141 @@ function update() {
     groundHills.forEach(hill => {
         ctx.fillStyle = "#61a82d";
         ctx.beginPath();
-        ctx.ellipse(hill.x + hill.w/2, groundY, hill.w/2, hill.h, 0, Math.PI, 0, false);
+        ctx.ellipse(hill.x + hill.w/2, groundY, hill.w/2, hill.h, 0, Math.PI, 0);
         ctx.fill();
-        ctx.strokeStyle = "#3e6d1c";
+        ctx.strokeStyle = "#498422";
         ctx.lineWidth = 3 * scale;
         ctx.stroke();
     });
 
-    ctx.strokeStyle = "#3e2723";
-    ctx.lineWidth = 10 * scale;
+    // Vẽ Sling (Nã cao su)
+    ctx.strokeStyle = "#5c4033";
+    ctx.lineWidth = 8 * scale;
     ctx.beginPath();
-    ctx.moveTo(sling.x, sling.y);
-    ctx.lineTo(sling.x, groundY);
+    ctx.moveTo(sling.x - 12 * scale, groundY);
+    ctx.lineTo(sling.x - 4 * scale, sling.y);
+    ctx.lineTo(sling.x + 4 * scale, sling.y);
+    ctx.lineTo(sling.x + 12 * scale, groundY);
     ctx.stroke();
 
-    if (gameState === "PLAYING") {
-        ctx.fillStyle = "#fff";
-        ctx.font = "bold 22px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText(`MÀN: ${currentLevel} | ĐIỂM: ${score}`, canvas.width / 2, 45);
+    if (bird.isDragging) {
+        ctx.strokeStyle = "#331a00";
+        ctx.lineWidth = 4 * scale;
+        ctx.beginPath();
+        ctx.moveTo(sling.x - 6 * scale, sling.y);
+        ctx.lineTo(bird.x, bird.y);
+        ctx.lineTo(sling.x + 6 * scale, sling.y);
+        ctx.stroke();
+    }
 
-        for (let i = currentBirdIndex + 1; i < birdTypes.length; i++) {
-            let idxOffset = i - (currentBirdIndex + 1);
-            drawBirdByType(birdTypes[i], sling.x - 45 - (idxOffset * 35), groundY - 18 * scale, 12 * scale);
-        }
+    // Physics & Movement Update
+    if (bird.isLaunched) {
+        bird.vx *= 0.99;
+        bird.vy += 0.35 * scale; // Trọng lực
+        bird.x += bird.vx;
+        bird.y += bird.vy;
 
-        if (bird.isDragging) {
-            ctx.strokeStyle = "#3e2723";
-            ctx.lineWidth = 4 * scale;
-            ctx.beginPath();
-            ctx.moveTo(sling.x - 8, sling.y - 5);
-            ctx.lineTo(bird.x, bird.y);
-            ctx.lineTo(sling.x + 8, sling.y - 5);
-            ctx.stroke();
-
-            let simX = bird.x;
-            let simY = bird.y;
-            let simVx = (sling.x - bird.x) * 0.23;
-            let simVy = (sling.y - bird.y) * 0.23;
-
-            ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
-            for (let i = 0; i < 25; i += 2) {
-                simX += simVx * 2;
-                simY += simVy * 2;
-                simVy += 0.22 * 2;
-                if (simY >= groundY) break;
-                ctx.beginPath();
-                ctx.arc(simX, simY, 3 * scale, 0, Math.PI * 2);
-                ctx.fill();
+        // Check va chạm chim chính
+        targets.forEach(t => {
+            if (checkCollision(bird, t)) {
+                t.alive = false;
+                score += (t.type === "pig" ? 300 : 150);
+                createDebris(t.x, t.y, t.type === "pig" ? "#7acc29" : "#b5651d");
             }
-        }
+        });
 
-        if (bird.isLaunched) {
-            bird.x += bird.vx;
-            bird.y += bird.vy;
-            bird.vy += 0.22;
-
-            if (bird.y + bird.radius >= groundY || bird.x > canvas.width || bird.x < 0) {
-                bird.isLaunched = false;
-                handleBirdFinish();
-            }
-        }
-
+        // Xử lý chim phụ (Blue split)
         subBirds.forEach(sb => {
+            sb.vy += 0.35 * scale;
             sb.x += sb.vx;
             sb.y += sb.vy;
-            sb.vy += 0.22;
-            drawBirdByType("blue", sb.x, sb.y, sb.radius);
-
             targets.forEach(t => {
-                if (t.alive && checkCollision(sb, t)) {
+                if (checkCollision(sb, t)) {
                     t.alive = false;
-                    score += (t.type === "pig" ? 200 : 100);
-                    createDebris(t.x, t.y, "#4fc3f7");
+                    score += (t.type === "pig" ? 300 : 150);
+                    createDebris(t.x, t.y, t.type === "pig" ? "#7acc29" : "#b5651d");
                 }
             });
-        });
-
-        drawBirdByType(bird.type, bird.x, bird.y, bird.radius);
-
-        particles.forEach((p, idx) => {
-            p.x += p.vx;
-            p.y += p.vy;
-            p.vy += 0.3;
-            p.alpha -= 0.03;
-
-            if (p.alpha <= 0) {
-                particles.splice(idx, 1);
-            } else {
-                ctx.save();
-                ctx.globalAlpha = p.alpha;
-                ctx.fillStyle = p.color;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
+            drawBirdByType("blue", sb.x, sb.y, sb.radius);
+            if (sb.y > groundY || sb.x > canvas.width) {
+                sb.alive = false;
             }
         });
 
-        let activePigs = false;
-        targets.forEach(t => {
-            if (t.alive) {
-                if (t.type === "pig") activePigs = true;
-
-                if (checkCollision(bird, t)) {
-                    t.alive = false;
-                    score += (t.type === "pig" ? 250 : (t.type === "stone" ? 150 : 100));
-                    createDebris(t.x, t.y, t.type === "pig" ? "#7acc29" : "#b5651d");
-                    triggerScreenShake(6);
-                    bird.vx *= -0.3;
-                    bird.vy *= -0.3;
-                }
-
-                if (t.alive) {
-                    if (t.type === "pig") {
-                        drawPig(t.x, t.y, t.radius);
-                    } else {
-                        if (t.type === "wood") ctx.fillStyle = "#b5651d";
-                        else if (t.type === "ice") ctx.fillStyle = "#81d4fa";
-                        else ctx.fillStyle = "#90a4ae";
-
-                        ctx.fillRect(t.x, t.y, t.width, t.height);
-                        ctx.strokeStyle = "#222";
-                        ctx.lineWidth = 1.5 * scale;
-                        ctx.strokeRect(t.x, t.y, t.width, t.height);
-                    }
-                }
-            }
-        });
-
-        if (!activePigs && targets.length > 0) {
-            endGame(true);
+        if (bird.y > groundY || bird.x > canvas.width || bird.x < 0) {
+            bird.isLaunched = false;
+            handleBirdFinish();
         }
     }
 
+    // Vẽ Chim
+    if (!bird.isLaunched) {
+        drawBirdByType(bird.type, bird.x, bird.y, bird.radius);
+    } else {
+        drawBirdByType(bird.type, bird.x, bird.y, bird.radius);
+    }
+
+    // Vẽ Mục tiêu & Thẻ Khối (Targets/Pigs)
+    targets.forEach(t => {
+        if (!t.alive) return;
+        if (t.type === "pig") {
+            drawPig(t.x, t.y, t.radius);
+        } else {
+            ctx.save();
+            ctx.translate(t.x, t.y);
+            if (t.type === "wood") {
+                ctx.fillStyle = "#b5651d";
+                ctx.strokeStyle = "#7f440d";
+            } else if (t.type === "stone") {
+                ctx.fillStyle = "#9e9e9e";
+                ctx.strokeStyle = "#616161";
+            } else if (t.type === "ice") {
+                ctx.fillStyle = "rgba(129, 212, 250, 0.75)";
+                ctx.strokeStyle = "#0288d1";
+            }
+            ctx.fillRect(0, 0, t.width, t.height);
+            ctx.lineWidth = 2 * scale;
+            ctx.strokeRect(0, 0, t.width, t.height);
+            ctx.restore();
+        }
+    });
+
+    // Vẽ Mảnh vỡ hiệu ứng (Debris particles)
+    particles.forEach((p, index) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.2 * scale;
+        p.alpha -= 0.02;
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = Math.max(p.alpha, 0);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+        if (p.alpha <= 0) particles.splice(index, 1);
+    });
+
     ctx.restore();
+
+    // UI Điểm số trên màn hình game
+    ctx.fillStyle = "rgba(0,0,0,0.4)";
+    ctx.fillRect(canvas.width / 2 - 140, 15 * scale, 280, 45 * scale);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = `bold ${20 * scale}px Segoe UI`;
+    ctx.textAlign = "center";
+    ctx.fillText(`MÀN: ${currentLevel} | ĐIỂM: ${score}`, canvas.width / 2, 43 * scale);
+
+    // Kiểm tra điều kiện thắng màn chơi
+    let remainingPigs = targets.some(t => t.type === "pig" && t.alive);
+    if (!remainingPigs && gameState === "PLAYING") {
+        setTimeout(() => { if (gameState === "PLAYING") endGame(true); }, 300);
+    }
+
     requestAnimationFrame(update);
 }
 
 resizeCanvas();
-update();
+requestAnimationFrame(update);
 </script>
 </body>
 </html>
