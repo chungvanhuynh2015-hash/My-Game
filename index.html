@@ -52,7 +52,7 @@
             backdrop-filter: blur(5px);
         }
         
-        #welcomeScreen {
+        #mainMenuScreen {
             background: linear-gradient(135deg, #1b4332, #2d6a4f, #40916c);
         }
 
@@ -75,6 +75,7 @@
             box-shadow: 0 6px 0 #335511, 0 10px 20px rgba(0,0,0,0.4);
             transition: 0.1s;
             margin: 8px;
+            min-width: 240px;
         }
         .btn:hover {
             background: linear-gradient(to bottom, #9ee85c, #669922);
@@ -92,41 +93,6 @@
         }
         .hidden {
             display: none !important;
-        }
-        
-        .input-group {
-            margin: 12px 0;
-            text-align: left;
-            width: 300px;
-        }
-        .input-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #ffcc00;
-        }
-        .input-group input {
-            width: 100%;
-            padding: 12px;
-            border-radius: 10px;
-            border: 2px solid #558822;
-            background: #222;
-            color: white;
-            font-size: 16px;
-        }
-        .avatar-upload {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin: 15px 0;
-        }
-        .avatar-preview {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            border: 2px solid #ffcc00;
-            object-fit: cover;
-            background: #333;
         }
 
         #gearBtn {
@@ -154,24 +120,21 @@
             transform: rotate(45deg);
         }
 
-        #logoutBtn {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            padding: 8px 20px;
-            font-size: 14px;
-            background: linear-gradient(to bottom, #ff4444, #cc0000);
-            border: 2px solid #990000;
-            box-shadow: 0 4px 0 #990000;
+        .back-menu-btn {
+            padding: 12px 35px;
+            font-size: 16px;
+            background: linear-gradient(to bottom, #ff8844, #cc4400);
+            border: 2px solid #992200;
+            box-shadow: 0 4px 0 #992200;
             border-radius: 20px;
             color: white;
             cursor: pointer;
             font-weight: bold;
-            z-index: 250;
+            margin-top: 15px;
         }
-        #logoutBtn:active {
+        .back-menu-btn:active {
             transform: translateY(2px);
-            box-shadow: 0 1px 0 #990000;
+            box-shadow: 0 1px 0 #992200;
         }
 
         #settingsModal {
@@ -231,29 +194,6 @@
             margin-top: 10px;
         }
         .close-btn:hover { background: #ff1a1a; }
-
-        #userInfoPanel {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            z-index: 250;
-            background: rgba(0, 0, 0, 0.6);
-            border: 2px solid rgba(255, 255, 255, 0.4);
-            padding: 8px 15px;
-            border-radius: 25px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: white;
-            backdrop-filter: blur(4px);
-        }
-        #userInfoPanel img {
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            border: 1px solid #ffcc00;
-            object-fit: cover;
-        }
     </style>
 </head>
 <body>
@@ -261,54 +201,41 @@
     <div id="gameContainer">
         <button id="gearBtn" onclick="openSettings()">⚙️</button>
 
-        <div id="userInfoPanel" class="hidden">
-            <img id="panelAvatar" src="" alt="Avatar">
-            <span id="panelUsername" style="font-weight: bold;">User</span>
-        </div>
-
-        <div id="welcomeScreen" class="overlay">
+        <!-- Menu Chính -->
+        <div id="mainMenuScreen" class="overlay">
             <h1>ANGRY BIRDS MINI</h1>
-            <button class="btn" style="font-size: 26px; padding: 18px 55px;" onclick="goToAuthScreen()">PLAY</button>
-            <div style="font-size: 14px; color: #e0e0e0; margin-top: 15px; font-style: italic; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">* Đăng nhập để lưu tiến trình chơi của bạn</div>
+            <div style="display: flex; flex-direction: column; gap: 12px; align-items: center;">
+                <button class="btn" onclick="startLevel(maxLevelUnlocked)">PLAY</button>
+                <button class="btn" onclick="openLevelMenu()" style="background: linear-gradient(to bottom, #3388ff, #1155cc); border-color: #113399; box-shadow: 0 6px 0 #113399;">CHỌN MÀN</button>
+                <button class="btn" onclick="openShop()" style="background: linear-gradient(to bottom, #ffaa00, #cc7700); border-color: #995500; box-shadow: 0 6px 0 #995500;">SHOP</button>
+            </div>
         </div>
 
-        <div id="authScreen" class="overlay hidden">
-            <h1>ĐĂNG NHẬP</h1>
-            
-            <div class="input-group">
-                <label>Tên tài khoản:</label>
-                <input type="text" id="usernameInput" placeholder="Nhập tên của bạn...">
-            </div>
-            
-            <div class="input-group">
-                <label>Mật khẩu:</label>
-                <input type="password" id="passwordInput" placeholder="Nhập mật khẩu...">
-            </div>
-
-            <div class="avatar-upload">
-                <img id="avatarPreview" class="avatar-preview" src="" alt="Preview">
-                <div>
-                    <label style="display:block; margin-bottom:5px; font-weight:bold; color:#ffcc00; text-align:left;">Ảnh Đại Diện:</label>
-                    <input type="file" id="avatarFile" accept="image/*" onchange="previewAvatar(event)" style="color: #ccc; font-size: 14px;">
-                </div>
-            </div>
-
-            <button class="btn" onclick="handleLogin()">VÀO GAME</button>
-        </div>
-
+        <!-- Màn hình Chọn màn chơi -->
         <div id="levelMenuScreen" class="overlay hidden">
             <h1>CHỌN MÀN CHƠI</h1>
-            <p id="welcomeUserText">Xin chào!</p>
             <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-bottom: 25px;">
-                <button class="btn" id="lvlBtn1" style="padding: 15px 25px;" onclick="startLevel(1)">Màn 1</button>
-                <button class="btn locked" id="lvlBtn2" style="padding: 15px 25px;" onclick="startLevel(2)">Màn 2 🔒</button>
-                <button class="btn locked" id="lvlBtn3" style="padding: 15px 25px;" onclick="startLevel(3)">Màn 3 🔒</button>
-                <button class="btn locked" id="lvlBtn4" style="padding: 15px 25px;" onclick="startLevel(4)">Màn 4 🔒</button>
-                <button class="btn locked" id="lvlBtn5" style="padding: 15px 25px;" onclick="startLevel(5)">Màn 5 🔒</button>
+                <button class="btn" id="lvlBtn1" style="padding: 15px 25px; min-width: 100px;" onclick="startLevel(1)">Màn 1</button>
+                <button class="btn locked" id="lvlBtn2" style="padding: 15px 25px; min-width: 100px;" onclick="startLevel(2)">Màn 2 🔒</button>
+                <button class="btn locked" id="lvlBtn3" style="padding: 15px 25px; min-width: 100px;" onclick="startLevel(3)">Màn 3 🔒</button>
+                <button class="btn locked" id="lvlBtn4" style="padding: 15px 25px; min-width: 100px;" onclick="startLevel(4)">Màn 4 🔒</button>
+                <button class="btn locked" id="lvlBtn5" style="padding: 15px 25px; min-width: 100px;" onclick="startLevel(5)">Màn 5 🔒</button>
             </div>
-            <button id="logoutBtn" onclick="logout()">Đăng Xuất</button>
+            <button class="back-menu-btn" onclick="returnToMainMenu()">Về Menu Chính</button>
         </div>
 
+        <!-- Màn hình Shop -->
+        <div id="shopScreen" class="overlay hidden">
+            <h1>CỬA HÀNG</h1>
+            <div style="background: rgba(255,255,255,0.1); padding: 25px; border-radius: 15px; margin-bottom: 20px; max-width: 450px; text-align: left;">
+                <p style="margin: 8px 0;">🌟 <b>Năng lượng siêu cấp:</b> Mở khóa kỹ năng độc quyền</p>
+                <p style="margin: 8px 0;">🎨 <b>Skin đặc biệt:</b> Thay đổi giao diện nhân vật</p>
+                <p style="color: #ffcc00; font-style: italic; margin-top: 15px; text-align: center;">(Tính năng mua sắm sẽ được cập nhật sớm!)</p>
+            </div>
+            <button class="back-menu-btn" onclick="returnToMainMenu()">Về Menu Chính</button>
+        </div>
+
+        <!-- Cài đặt âm thanh -->
         <div id="settingsModal" class="hidden">
             <div class="settings-content">
                 <h2>CÀI ĐẶT ÂM THANH</h2>
@@ -334,12 +261,13 @@
             </div>
         </div>
 
+        <!-- Màn hình Thắng/Thua -->
         <div id="gameOverScreen" class="overlay hidden">
             <h1 id="gameOverTitle">CHIẾN THẮNG!</h1>
             <p id="finalScoreText">Tổng điểm tuyệt đối: 0</p>
             <div style="display: flex; gap: 15px;">
-                <button class="btn" onclick="startLevel(currentLevel)">CHƠI LẠI</button>
-                <button class="btn" style="background: #3388ff; border-color: #1155cc;" onclick="returnToLevelMenu()">CHỌN MÀN</button>
+                <button class="btn" style="min-width: 160px;" onclick="startLevel(currentLevel)">CHƠI LẠI</button>
+                <button class="btn" style="background: #3388ff; border-color: #1155cc; box-shadow: 0 6px 0 #1155cc; min-width: 160px;" onclick="openLevelMenu()">CHỌN MÀN</button>
             </div>
         </div>
 
@@ -350,9 +278,9 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-const welcomeScreen = document.getElementById("welcomeScreen");
-const authScreen = document.getElementById("authScreen");
+const mainMenuScreen = document.getElementById("mainMenuScreen");
 const levelMenuScreen = document.getElementById("levelMenuScreen");
+const shopScreen = document.getElementById("shopScreen");
 const gameOverScreen = document.getElementById("gameOverScreen");
 const gameOverTitle = document.getElementById("gameOverTitle");
 const finalScoreText = document.getElementById("finalScoreText");
@@ -361,97 +289,35 @@ const volumeSlider = document.getElementById("volumeSlider");
 const volumeValue = document.getElementById("volumeValue");
 const muteBtn = document.getElementById("muteBtn");
 const bgMusicSelect = document.getElementById("bgMusicSelect");
-const userInfoPanel = document.getElementById("userInfoPanel");
-const panelAvatar = document.getElementById("panelAvatar");
-const panelUsername = document.getElementById("panelUsername");
-const welcomeUserText = document.getElementById("welcomeUserText");
 
-let currentUser = { username: "", password: "", avatar: "", maxLevelUnlocked: 1 };
+// Lưu tiến độ màn chơi đã mở khóa qua LocalStorage
+let maxLevelUnlocked = parseInt(localStorage.getItem("angryBirdsMaxLevel")) || 1;
 
-window.onload = function() {
-    let savedUser = localStorage.getItem("angryBirdsUser");
-    if (savedUser) {
-        currentUser = JSON.parse(savedUser);
-        if (!currentUser.maxLevelUnlocked) currentUser.maxLevelUnlocked = 1;
-        
-        panelUsername.textContent = currentUser.username;
-        if (currentUser.avatar) panelAvatar.src = currentUser.avatar;
-        userInfoPanel.classList.remove("hidden");
-        welcomeScreen.classList.add("hidden");
-        levelMenuScreen.classList.remove("hidden");
-        welcomeUserText.textContent = `Xin chào, ${currentUser.username}! Hãy chọn màn chơi:`;
-        updateLevelButtons();
-    }
-}
-
-function goToAuthScreen() {
-    welcomeScreen.classList.add("hidden");
-    authScreen.classList.remove("hidden");
-}
-
-let tempAvatarBase64 = "";
-function previewAvatar(event) {
-    const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            tempAvatarBase64 = e.target.result;
-            document.getElementById("avatarPreview").src = tempAvatarBase64;
-        }
-        reader.readAsDataURL(file);
-    }
-}
-
-function handleLogin() {
-    let username = document.getElementById("usernameInput").value.trim();
-    let password = document.getElementById("passwordInput").value.trim();
-    if (!username || !password) {
-        alert("Vui lòng nhập đầy đủ tên tài khoản và mật khẩu!");
-        return;
-    }
-
-    let allUsers = JSON.parse(localStorage.getItem("angryBirdsAllUsers") || "{}");
-    if (allUsers[username] && allUsers[username] !== password) {
-        alert("Tên tài khoản này đã có, vui lòng nhập tên khác!");
-        return;
-    }
-
-    allUsers[username] = password;
-    localStorage.setItem("angryBirdsAllUsers", JSON.stringify(allUsers));
-
-    currentUser.username = username;
-    currentUser.password = password;
-    if (tempAvatarBase64) currentUser.avatar = tempAvatarBase64;
-    if (!currentUser.maxLevelUnlocked) currentUser.maxLevelUnlocked = 1;
-
-    localStorage.setItem("angryBirdsUser", JSON.stringify(currentUser));
-
-    panelUsername.textContent = currentUser.username;
-    if (currentUser.avatar) panelAvatar.src = currentUser.avatar;
-    userInfoPanel.classList.remove("hidden");
-
-    authScreen.classList.add("hidden");
-    levelMenuScreen.classList.remove("hidden");
-    welcomeUserText.textContent = `Xin chào, ${currentUser.username}! Hãy chọn màn chơi:`;
-    updateLevelButtons();
-}
-
-function logout() {
-    localStorage.removeItem("angryBirdsUser");
-    location.reload();
-}
-
-function returnToLevelMenu() {
+function openLevelMenu() {
+    mainMenuScreen.classList.add("hidden");
     gameOverScreen.classList.add("hidden");
+    shopScreen.classList.add("hidden");
     levelMenuScreen.classList.remove("hidden");
-    gameState = "MENU";
     updateLevelButtons();
+}
+
+function openShop() {
+    mainMenuScreen.classList.add("hidden");
+    shopScreen.classList.remove("hidden");
+}
+
+function returnToMainMenu() {
+    levelMenuScreen.classList.add("hidden");
+    shopScreen.classList.add("hidden");
+    gameOverScreen.classList.add("hidden");
+    mainMenuScreen.classList.remove("hidden");
+    gameState = "MENU";
 }
 
 function updateLevelButtons() {
     for (let i = 1; i <= 5; i++) {
         let btn = document.getElementById(`lvlBtn${i}`);
-        if (i <= currentUser.maxLevelUnlocked) {
+        if (i <= maxLevelUnlocked) {
             btn.classList.remove("locked");
             btn.textContent = `Màn ${i}`;
         } else {
@@ -640,14 +506,16 @@ function loadLevel(lvl) {
 }
 
 function startLevel(lvl) {
-    if (lvl > currentUser.maxLevelUnlocked) {
+    if (lvl > maxLevelUnlocked) {
         alert("Bạn cần phải vượt qua màn trước để mở khóa màn này!");
         return;
     }
     gameState = "PLAYING";
     score = 0;
     lives = 4;
+    mainMenuScreen.classList.add("hidden");
     levelMenuScreen.classList.add("hidden");
+    shopScreen.classList.add("hidden");
     gameOverScreen.classList.add("hidden");
     loadLevel(lvl);
     resetBird();
@@ -674,9 +542,9 @@ function endGame(isWin) {
         gameOverTitle.style.color = "#8ddb44";
         finalScoreText.innerHTML = `Tổng điểm đạt được: ${score} <br><span style="font-size:16px; color:#ffcc00;">(+${bonusScore} điểm thưởng chim dư)</span>`;
 
-        if (currentLevel >= currentUser.maxLevelUnlocked && currentLevel < 5) {
-            currentUser.maxLevelUnlocked = currentLevel + 1;
-            localStorage.setItem("angryBirdsUser", JSON.stringify(currentUser));
+        if (currentLevel >= maxLevelUnlocked && currentLevel < 5) {
+            maxLevelUnlocked = currentLevel + 1;
+            localStorage.setItem("angryBirdsMaxLevel", maxLevelUnlocked);
         }
 
         if (!isMuted) {
@@ -1097,7 +965,6 @@ function update() {
 
         drawBirdByType(bird.type, bird.x, bird.y, bird.radius);
 
-        // Cập nhật và vẽ các hạt mảnh vỡ (Particles)
         particles.forEach((p, idx) => {
             p.x += p.vx;
             p.y += p.vy;
