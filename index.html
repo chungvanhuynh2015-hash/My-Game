@@ -149,6 +149,112 @@
             margin-bottom: 20px;
         }
 
+        /* Giao diện Shop Cây Cổ Thuộc (Danh Sách Chim) lướt từ trên xuống */
+        #birdListScreen {
+            background: linear-gradient(rgba(10, 30, 15, 0.92), rgba(5, 15, 8, 0.95)), 
+                        radial-gradient(circle, #2d6a4f 0%, #1b4332 100%);
+            overflow-y: auto;
+            animation: slideDownTree 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes slideDownTree {
+            0% { transform: translateY(-100%); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        #birdGridContainer {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            max-width: 750px;
+            margin: 15px auto;
+            padding: 15px;
+            max-height: 450px;
+            overflow-y: auto;
+        }
+
+        .bird-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #52b788;
+            border-radius: 15px;
+            padding: 15px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.5);
+            transition: 0.2s;
+        }
+        .bird-card:hover {
+            transform: translateY(-4px);
+            border-color: #ffcc00;
+        }
+        .bird-card.locked-card {
+            background: rgba(0, 0, 0, 0.5);
+            border-color: #444;
+        }
+
+        .bird-avatar-box {
+            position: relative;
+            width: 75px;
+            height: 75px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .bird-avatar-box canvas {
+            width: 70px;
+            height: 70px;
+        }
+        .bird-avatar-box.dimmed canvas {
+            filter: brightness(0.2) grayscale(1);
+        }
+        .lock-overlay-emoji {
+            position: absolute;
+            font-size: 26px;
+            z-index: 2;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.9);
+        }
+
+        .bird-name {
+            font-size: 14px;
+            font-weight: bold;
+            color: #ffcc00;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .equip-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            border: none;
+            width: 100%;
+            transition: 0.1s;
+        }
+        .equip-btn.equipped {
+            background: #2dc653;
+            color: white;
+            box-shadow: 0 3px 0 #1b7a33;
+            cursor: default;
+        }
+        .equip-btn.equip-ready {
+            background: #ffb703;
+            color: #000;
+            box-shadow: 0 3px 0 #b38200;
+        }
+        .equip-btn.equip-ready:hover {
+            background: #ffca3a;
+        }
+        .equip-btn.locked-btn {
+            background: #6c757d;
+            color: #ccc;
+            box-shadow: 0 3px 0 #495057;
+            cursor: not-allowed;
+        }
+
         /* Khung thông báo thành tựu dạng hình chữ nhật dài ở góc dưới bên phải */
         #achievementToast {
             position: absolute;
@@ -261,7 +367,16 @@
             <div style="display: flex; flex-direction: column; gap: 12px; align-items: center;">
                 <button class="btn" onclick="startLevel(maxLevelUnlocked)">PLAY</button>
                 <button class="btn" onclick="openLevelMenu()" style="background: linear-gradient(to bottom, #3388ff, #1155cc); border-color: #113399; box-shadow: 0 6px 0 #113399;">CHỌN MÀN</button>
+                <button class="btn" onclick="openBirdListMenu()" style="background: linear-gradient(to bottom, #9d4edd, #5a189a); border-color: #3c096c; box-shadow: 0 6px 0 #3c096c;">DANH SÁCH CHIM</button>
             </div>
+        </div>
+
+        <!-- Màn hình Danh Sách Chim (Cây Cổ Thụ) -->
+        <div id="birdListScreen" class="overlay hidden">
+            <h1>🌳 DANH SÁCH CHIM 🌳</h1>
+            <p style="margin: 0 0 10px 0; color: #b7e4c7; font-size: 15px;">Mở khóa các màn chơi cao hơn để chiêu mộ thêm các chiến binh chim!</p>
+            <div id="birdGridContainer"></div>
+            <button class="back-menu-btn" onclick="returnToMainMenu()">Về Menu Chính</button>
         </div>
 
         <!-- Màn hình Chọn màn chơi -->
@@ -319,12 +434,12 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// Làm sắc nét chữ và đồ họa trên canvas (Fix mờ)
 ctx.imageSmoothingEnabled = true;
 ctx.imageSmoothingQuality = 'high';
 
 const mainMenuScreen = document.getElementById("mainMenuScreen");
 const levelMenuScreen = document.getElementById("levelMenuScreen");
+const birdListScreen = document.getElementById("birdListScreen");
 const gameOverScreen = document.getElementById("gameOverScreen");
 const gameOverTitle = document.getElementById("gameOverTitle");
 const finalScoreText = document.getElementById("finalScoreText");
@@ -334,12 +449,22 @@ const volumeValue = document.getElementById("volumeValue");
 const muteBtn = document.getElementById("muteBtn");
 const bgMusicSelect = document.getElementById("bgMusicSelect");
 const levelGridContainer = document.getElementById("levelGridContainer");
+const birdGridContainer = document.getElementById("birdGridContainer");
 const achievementToast = document.getElementById("achievementToast");
 const toastTitle = document.getElementById("toastTitle");
 const toastDesc = document.getElementById("toastDesc");
 
 let maxLevelUnlocked = parseInt(localStorage.getItem("angryBirdsMaxLevel40")) || 1;
+let equippedBirdId = localStorage.getItem("angryBirdsEquippedBird") || "red";
 let toastTimeout = null;
+
+// Cấu hình danh sách 4 chú chim: Đỏ, Vàng, Xanh, Đen
+const allBirdsConfig = [
+    { id: "red", name: "Chim Đỏ", unlockLevel: 1, primaryColor: "#e53935", beakColor: "#f57c00" },
+    { id: "yellow", name: "Chim Vàng", unlockLevel: 10, primaryColor: "#fbc02d", beakColor: "#ff8f00" },
+    { id: "blue", name: "Chim Xanh", unlockLevel: 20, primaryColor: "#00acc1", beakColor: "#00838f" },
+    { id: "black", name: "Chim Đen", unlockLevel: 30, primaryColor: "#424242", beakColor: "#ffb300" }
+];
 
 function showAchievementToast(title, desc) {
     toastTitle.textContent = title;
@@ -349,7 +474,7 @@ function showAchievementToast(title, desc) {
     if (toastTimeout) clearTimeout(toastTimeout);
     toastTimeout = setTimeout(() => {
         achievementToast.classList.remove("show");
-    }, 4500); // Tự ẩn sau 4.5 giây
+    }, 4500);
 }
 
 function buildLevelGrid() {
@@ -370,15 +495,113 @@ function buildLevelGrid() {
 }
 buildLevelGrid();
 
+function renderBirdPreviewCanvas(canvasEl, birdType) {
+    let pCtx = canvasEl.getContext("2d");
+    pCtx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+    pCtx.save();
+    pCtx.translate(canvasEl.width / 2, canvasEl.height / 2);
+    let r = 26;
+
+    let grad = pCtx.createRadialGradient(-r*0.3, -r*0.3, r*0.05, 0, 0, r);
+    if (birdType === "yellow") {
+        grad.addColorStop(0, "#ffee58"); grad.addColorStop(0.6, "#fbc02d"); grad.addColorStop(1, "#f57f17");
+    } else if (birdType === "blue") {
+        grad.addColorStop(0, "#26c6da"); grad.addColorStop(0.6, "#00acc1"); grad.addColorStop(1, "#006064");
+    } else if (birdType === "black") {
+        grad.addColorStop(0, "#757575"); grad.addColorStop(0.6, "#424242"); grad.addColorStop(1, "#212121");
+    } else {
+        grad.addColorStop(0, "#ff6b6b"); grad.addColorStop(0.6, "#e53935"); grad.addColorStop(1, "#b71c1c");
+    }
+    pCtx.fillStyle = grad;
+    pCtx.beginPath(); pCtx.arc(0, 0, r, 0, Math.PI * 2); pCtx.fill();
+    pCtx.strokeStyle = "#111"; pCtx.lineWidth = 2; pCtx.stroke();
+    
+    // Mắt và mỏ minh họa thu gọn
+    pCtx.fillStyle = "#ffffff";
+    pCtx.beginPath();
+    pCtx.arc(-r*0.25, -r*0.05, r*0.3, 0, Math.PI * 2);
+    pCtx.arc(r*0.25, -r*0.05, r*0.3, 0, Math.PI * 2);
+    pCtx.fill();
+    pCtx.strokeStyle = "#000"; pCtx.lineWidth = 1.5; pCtx.stroke();
+
+    pCtx.fillStyle = "#000000";
+    pCtx.beginPath();
+    pCtx.arc(-r*0.15, -r*0.05, r*0.12, 0, Math.PI * 2);
+    pCtx.arc(r*0.35, -r*0.05, r*0.12, 0, Math.PI * 2);
+    pCtx.fill();
+    pCtx.restore();
+}
+
+function buildBirdGrid() {
+    birdGridContainer.innerHTML = "";
+    allBirdsConfig.forEach(bInfo => {
+        let isUnlocked = maxLevelUnlocked >= bInfo.unlockLevel;
+        let isEquipped = (equippedBirdId === bInfo.id);
+
+        let card = document.createElement("div");
+        card.className = `bird-card ${isUnlocked ? '' : 'locked-card'}`;
+
+        let avatarBox = document.createElement("div");
+        avatarBox.className = `bird-avatar-box ${isUnlocked ? '' : 'dimmed'}`;
+        
+        let cElem = document.createElement("canvas");
+        cElem.width = 70;
+        cElem.height = 70;
+        renderBirdPreviewCanvas(cElem, bInfo.id);
+        avatarBox.appendChild(cElem);
+
+        if (!isUnlocked) {
+            let lockEmoji = document.createElement("span");
+            lockEmoji.className = "lock-overlay-emoji";
+            lockEmoji.textContent = "🔒";
+            avatarBox.appendChild(lockEmoji);
+        }
+
+        let nameDiv = document.createElement("div");
+        nameDiv.className = "bird-name";
+        nameDiv.textContent = bInfo.name;
+
+        let btnElem = document.createElement("button");
+        if (!isUnlocked) {
+            btnElem.className = "equip-btn locked-btn";
+            btnElem.textContent = `Cần màn ${bInfo.unlockLevel}`;
+        } else if (isEquipped) {
+            btnElem.className = "equip-btn equipped";
+            btnElem.textContent = "Đã trang bị";
+        } else {
+            btnElem.className = "equip-btn equip-ready";
+            btnElem.textContent = "Trang bị";
+            btnElem.onclick = () => {
+                equippedBirdId = bInfo.id;
+                localStorage.setItem("angryBirdsEquippedBird", equippedBirdId);
+                buildBirdGrid();
+            };
+        }
+
+        card.appendChild(avatarBox);
+        card.appendChild(nameDiv);
+        card.appendChild(btnElem);
+        birdGridContainer.appendChild(card);
+    });
+}
+
+function openBirdListMenu() {
+    mainMenuScreen.classList.add("hidden");
+    birdListScreen.classList.remove("hidden");
+    buildBirdGrid();
+}
+
 function openLevelMenu() {
     mainMenuScreen.classList.add("hidden");
     gameOverScreen.classList.add("hidden");
+    birdListScreen.classList.add("hidden");
     levelMenuScreen.classList.remove("hidden");
     buildLevelGrid();
 }
 
 function returnToMainMenu() {
     levelMenuScreen.classList.add("hidden");
+    birdListScreen.classList.add("hidden");
     gameOverScreen.classList.add("hidden");
     mainMenuScreen.classList.remove("hidden");
     gameState = "MENU";
@@ -445,7 +668,7 @@ let groundY = 0;
 let scale = 1;
 
 let sling = { x: 0, y: 0 };
-const birdTypes = ["red", "red", "red", "red"];
+let birdTypes = ["red", "red", "red", "red"];
 let currentBirdIndex = 0;
 
 let bird = { 
@@ -508,8 +731,13 @@ function loadLevel(lvl) {
     resizeCanvas();
     currentBirdIndex = 0;
     particles = [];
-    const startX = canvas.width * 0.62;
     
+    // Đặt loại chim theo trang bị hiện tại của người chơi
+    let activeBird = equippedBirdId;
+    birdTypes = [activeBird, activeBird, activeBird, activeBird];
+    bird.type = activeBird;
+
+    const startX = canvas.width * 0.62;
     const longW = 120 * scale;
     const longThinH = 18 * scale; 
     const blockW = 48 * scale;
@@ -573,6 +801,7 @@ function startLevel(lvl) {
     lives = 4;
     mainMenuScreen.classList.add("hidden");
     levelMenuScreen.classList.add("hidden");
+    birdListScreen.classList.add("hidden");
     gameOverScreen.classList.add("hidden");
     loadLevel(lvl);
     resetBird();
@@ -599,13 +828,12 @@ function endGame(isWin) {
         gameOverTitle.style.color = "#8ddb44";
         finalScoreText.innerHTML = `Tổng điểm đạt được: ${score} <br><span style="font-size:15px; color:#ffcc00;">(+${bonusScore} điểm thưởng chim dư)</span>`;
 
-        // Hiển thị thông báo mở khóa thành tựu góc dưới bên phải không làm dừng game
         if (currentLevel === 10) {
             showAchievementToast("🎉 Mở khóa thành công!", "Đã mở khóa: CHIM VÀNG (Tốc độ siêu cấp)");
         } else if (currentLevel === 20) {
-            showAchievementToast("🎉 Mở khóa thành công!", "Đã mở khóa: CHIM XANH DƯƠNG (Phân thân tam kiếm)");
+            showAchievementToast("🎉 Mở khóa thành công!", "Đã mở khóa: CHIM XANH (Phân thân tam kiếm)");
         } else if (currentLevel === 30) {
-            showAchievementToast("🎉 Mở khóa thành công!", "Đã mở khóa: CHIM ĐEN (Bom nguyên tử hủy diệt)");
+            showAchievementToast("🎉 Mở khóa thành công!", "Đã mở khóa: CHIM ĐEN (Bom hủy diệt)");
         }
 
         if (currentLevel >= maxLevelUnlocked && currentLevel < 40) {
@@ -715,17 +943,29 @@ function drawBirdByType(type, x, y, r) {
     ctx.translate(x, y);
 
     let grad = ctx.createRadialGradient(-r*0.3, -r*0.3, r*0.05, 0, 0, r);
-    grad.addColorStop(0, "#ff6b6b");
-    grad.addColorStop(0.6, "#e53935");
-    grad.addColorStop(1, "#b71c1c");
+    if (type === "yellow") {
+        grad.addColorStop(0, "#ffee58"); grad.addColorStop(0.6, "#fbc02d"); grad.addColorStop(1, "#f57f17");
+    } else if (type === "blue") {
+        grad.addColorStop(0, "#26c6da"); grad.addColorStop(0.6, "#00acc1"); grad.addColorStop(1, "#006064");
+    } else if (type === "black") {
+        grad.addColorStop(0, "#757575"); grad.addColorStop(0.6, "#424242"); grad.addColorStop(1, "#212121");
+    } else {
+        grad.addColorStop(0, "#ff6b6b"); grad.addColorStop(0.6, "#e53935"); grad.addColorStop(1, "#b71c1c");
+    }
     ctx.fillStyle = grad;
     ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = "#5f0000"; ctx.lineWidth = 2.2 * scale; ctx.stroke();
-
-    ctx.fillStyle = "#3a0000";
-    ctx.beginPath(); ctx.moveTo(-r*0.85, -r*0.35); ctx.lineTo(r*0.7, -r*0.05); ctx.lineTo(r*0.6, r*0.15); ctx.lineTo(-r*0.75, -r*0.15); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = "#3a0000"; ctx.lineWidth = 2.2 * scale; ctx.stroke();
     
-    drawDetailedEyesAndBeak(r, "#ffb74d", "#f57c00");
+    if (type === "yellow") {
+        drawDetailedEyesAndBeak(r, "#fff176", "#f57f17");
+    } else if (type === "blue") {
+        drawDetailedEyesAndBeak(r, "#80deea", "#00838f");
+    } else if (type === "black") {
+        drawDetailedEyesAndBeak(r, "#ffcc00", "#e65100");
+    } else {
+        drawDetailedEyesAndBeak(r, "#ffb74d", "#f57c00");
+    }
+
     ctx.restore();
 }
 
@@ -970,7 +1210,6 @@ function update() {
 
     ctx.restore();
 
-    // Bảng điểm và thông tin font chữ sắc nét, bình thường
     ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
     ctx.fillRect(20, 20, 310, 75 * scale);
     ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
@@ -983,9 +1222,9 @@ function update() {
     ctx.fillText(`MÀN: ${currentLevel}/40  |  ĐIỂM: ${score}`, 32, 50 * scale);
 
     ctx.font = `bold ${Math.round(14 * scale)}px Arial, sans-serif`;
-    ctx.fillText("Chim Đỏ:", 32, 78 * scale);
+    ctx.fillText("Chim Trang Bị:", 32, 78 * scale);
     for (let i = currentBirdIndex; i < birdTypes.length; i++) {
-        drawBirdByType(birdTypes[i], 115 + (i - currentBirdIndex) * 32 * scale, 73 * scale, 12 * scale);
+        drawBirdByType(birdTypes[i], 135 + (i - currentBirdIndex) * 32 * scale, 73 * scale, 12 * scale);
     }
 
     let remainingPigs = targets.some(t => t.type === "pig" && t.alive);
