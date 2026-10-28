@@ -643,14 +643,11 @@ let bgMusic = new Audio(currentMusicFile);
 bgMusic.loop = true;
 bgMusic.volume = 0.5;
 
-const launchSound = new Audio("victorysound.mp4");
-launchSound.volume = 0.5;
-
-// Âm thanh khi Thắng (Dùng victorysound.mp4)
+// Âm thanh khi Thắng
 const victorySound = new Audio("victorysound.mp4");
 victorySound.volume = 0.7;
 
-// Âm thanh khi Thua (Dùng file defeatsound.mp4 bạn vừa thêm)
+// Âm thanh khi Thua
 const defeatSound = new Audio("defeatsound.mp4");
 defeatSound.volume = 0.7;
 
@@ -677,7 +674,6 @@ function updateVolume(val) {
     bgMusic.volume = vol;
     victorySound.volume = vol;
     defeatSound.volume = vol;
-    launchSound.volume = vol;
     if (val > 0 && isMuted) {
         isMuted = false;
         muteBtn.textContent = "Tắt Nhạc";
@@ -691,7 +687,6 @@ function toggleMute() {
         bgMusic.pause();
         victorySound.pause();
         defeatSound.pause();
-        launchSound.pause();
         muteBtn.textContent = "Bật Nhạc";
         muteBtn.style.background = "#ff3333";
     } else {
@@ -722,7 +717,6 @@ let subBirds = [];
 let explosions = [];
 
 let targets = [];
-let groundHills = [];
 let trapezoidPlatforms = [];
 let particles = [];
 let screenShakeTime = 0;
@@ -783,13 +777,14 @@ function loadLevel(lvl) {
     targets = [];
     trapezoidPlatforms = [];
 
-    let platformCount = 1 + (lvl % 3);
-    let startX = canvas.width * 0.48;
+    // Tăng số lượng bệ đỡ nhiều hơn để có nhiều chỗ xây block
+    let platformCount = 2 + (lvl % 3);
+    let startX = canvas.width * 0.44;
     
     for (let p = 0; p < platformCount; p++) {
-        let pWidth = (140 + (lvl * 7) % 80) * scale;
-        let pHeight = (40 + (lvl * 5) % 35) * scale;
-        let px = startX + (p * 220 * scale);
+        let pWidth = (160 + (lvl * 6) % 70) * scale;
+        let pHeight = (45 + (lvl * 4) % 30) * scale;
+        let px = startX + (p * 240 * scale);
         let py = groundY - pHeight;
         
         trapezoidPlatforms.push({
@@ -798,55 +793,47 @@ function loadLevel(lvl) {
         });
     }
 
-    let blockW = 42 * scale;
-    let blockH = 65 * scale;
-    let pigCount = Math.min(5 + Math.floor(lvl / 5), 10);
+    let blockW = 38 * scale;
+    let blockH = 58 * scale;
+    // Đảm bảo số lượng heo luôn ít nhất là 5 con và tăng dần theo màn
+    let pigCount = Math.max(5, Math.min(5 + Math.floor(lvl / 3), 12));
 
+    // Thêm nhiều block xây dựng phong phú hơn trên mỗi bệ
     trapezoidPlatforms.forEach((plat, idx) => {
         let tType1 = (idx % 2 === 0) ? "stone" : "wood";
         let tType2 = (idx % 3 === 0) ? "ice" : "stone";
 
-        targets.push({
-            type: tType1,
-            x: plat.x + plat.width * 0.15,
-            y: plat.y - blockH,
-            width: blockW, height: blockH, alive: true
-        });
-        targets.push({
-            type: tType1,
-            x: plat.x + plat.width * 0.55,
-            y: plat.y - blockH,
-            width: blockW, height: blockH, alive: true
-        });
+        // Cột đứng tầng 1
+        targets.push({ type: tType1, x: plat.x + plat.width * 0.1, y: plat.y - blockH, width: blockW, height: blockH, alive: true });
+        targets.push({ type: tType1, x: plat.x + plat.width * 0.45, y: plat.y - blockH, width: blockW, height: blockH, alive: true });
+        targets.push({ type: tType1, x: plat.x + plat.width * 0.78, y: plat.y - blockH, width: blockW, height: blockH, alive: true });
 
-        targets.push({
-            type: tType2,
-            x: plat.x,
-            y: plat.y - blockH - 22 * scale,
-            width: plat.width, height: 20 * scale, alive: true
-        });
+        // Tấm chắn ngang tầng 1
+        targets.push({ type: tType2, x: plat.x, y: plat.y - blockH - 18 * scale, width: plat.width, height: 18 * scale, alive: true });
 
-        targets.push({
-            type: "wood",
-            x: plat.x + plat.width * 0.3,
-            y: plat.y - (blockH * 2) - 22 * scale,
-            width: blockW, height: blockH, alive: true
-        });
+        // Cột đứng tầng 2 (nhiều block hơn)
+        targets.push({ type: "wood", x: plat.x + plat.width * 0.22, y: plat.y - (blockH * 2) - 18 * scale, width: blockW, height: blockH, alive: true });
+        targets.push({ type: tType2, x: plat.x + plat.width * 0.55, y: plat.y - (blockH * 2) - 18 * scale, width: blockW, height: blockH, alive: true });
+
+        // Tấm mái che tầng 2
+        targets.push({ type: "stone", x: plat.x + plat.width * 0.15, y: plat.y - (blockH * 2) - 36 * scale, width: plat.width * 0.7, height: 16 * scale, alive: true });
     });
 
+    // Phân bổ ít nhất 5+ con heo khắp các tầng tháp block
     for (let p = 0; p < pigCount; p++) {
         let platIndex = p % trapezoidPlatforms.length;
         let plat = trapezoidPlatforms[platIndex];
         
-        let px = plat.x + plat.width * 0.35 + (p * 12) % (plat.width * 0.4);
+        let px = plat.x + plat.width * 0.3 + (p * 18) % (plat.width * 0.5);
         let py = plat.y - 25 * scale;
-        if (p >= 5) py = plat.y - blockH - 45 * scale;
+        if (p >= 4) py = plat.y - blockH - 30 * scale;
+        if (p >= 8) py = plat.y - (blockH * 2) - 50 * scale;
 
         targets.push({
             type: "pig",
             x: px, y: py,
             alive: true,
-            radius: (20 + (p % 3)) * scale,
+            radius: (18 + (p % 3)) * scale,
             vy: 0
         });
     }
@@ -912,7 +899,6 @@ function endGame(isWin) {
         gameOverTitle.style.color = "#ff3333";
         finalScoreText.innerHTML = "Điểm số đạt được: " + score;
 
-        // Chỉ phát nhạc thua bằng file defeatsound.mp4
         if (!isMuted) {
             defeatSound.currentTime = 0;
             defeatSound.play().catch(e => console.log(e));
@@ -1040,10 +1026,7 @@ function onTouchEnd() {
     bird.isDragging = false;
     bird.isLaunched = true;
 
-    if (!isMuted) {
-        launchSound.currentTime = 0;
-        launchSound.play().catch(e => {});
-    }
+    // ĐÃ TẮT ÂM THANH KHI BẮN THEO YÊU CẦU
 
     bird.vx = (sling.x - bird.x) * 0.21;
     bird.vy = (sling.y - bird.y) * 0.21;
