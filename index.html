@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Angry Bird Version 40 Levels</title>
+    <title>Angry Bird Version 40 Levels - Siêu Khó</title>
     <style>
         * {
             box-sizing: border-box;
@@ -485,7 +485,6 @@ let maxLevelUnlocked = parseInt(localStorage.getItem("angryBirdsMaxLevel40")) ||
 let equippedBirds = JSON.parse(localStorage.getItem("angryBirdsEquippedBirds")) || ["red"];
 let toastTimeout = null;
 
-// Cấu hình danh sách 4 loại chim chính và các ô Coming Soon
 const allBirdsConfig = [
     { id: "red", name: "Chim Đỏ", unlockLevel: 1, type: "bird" },
     { id: "yellow", name: "Chim Vàng", unlockLevel: 10, type: "bird" },
@@ -534,7 +533,6 @@ function renderBirdPreviewCanvas(canvasEl, birdType) {
     let r = 24;
 
     if (birdType === "yellow") {
-        // Chim vàng hình tam giác
         let grad = pCtx.createRadialGradient(0, -r*0.2, r*0.1, 0, 0, r);
         grad.addColorStop(0, "#fff176"); grad.addColorStop(0.6, "#fbc02d"); grad.addColorStop(1, "#f57f17");
         pCtx.fillStyle = grad;
@@ -546,25 +544,21 @@ function renderBirdPreviewCanvas(canvasEl, birdType) {
         pCtx.fill();
         pCtx.strokeStyle = "#5d4037"; pCtx.lineWidth = 2; pCtx.stroke();
     } else if (birdType === "blue") {
-        // Chim xanh dương nhỏ
         let grad = pCtx.createRadialGradient(-r*0.3, -r*0.3, r*0.05, 0, 0, r);
         grad.addColorStop(0, "#4dd0e1"); grad.addColorStop(0.6, "#00acc1"); grad.addColorStop(1, "#006064");
         pCtx.fillStyle = grad;
         pCtx.beginPath(); pCtx.arc(0, 0, r*0.85, 0, Math.PI * 2); pCtx.fill();
         pCtx.strokeStyle = "#004d40"; pCtx.lineWidth = 2; pCtx.stroke();
     } else if (birdType === "black") {
-        // Chim đen có ngòi nổ
         let grad = pCtx.createRadialGradient(-r*0.3, -r*0.3, r*0.05, 0, 0, r);
         grad.addColorStop(0, "#616161"); grad.addColorStop(0.6, "#212121"); grad.addColorStop(1, "#000000");
         pCtx.fillStyle = grad;
         pCtx.beginPath(); pCtx.arc(0, 0, r, 0, Math.PI * 2); pCtx.fill();
         pCtx.strokeStyle = "#ff3333"; pCtx.lineWidth = 2; pCtx.stroke();
-        // Ngòi nổ
         pCtx.strokeStyle = "#ffcc00"; pCtx.lineWidth = 2.5;
         pCtx.beginPath(); pCtx.moveTo(0, -r); pCtx.quadraticCurveTo(r*0.5, -r*1.4, r*0.8, -r*1.3); pCtx.stroke();
         pCtx.fillStyle = "#ff3333"; pCtx.beginPath(); pCtx.arc(r*0.8, -r*1.3, 3, 0, Math.PI*2); pCtx.fill();
     } else {
-        // Chim đỏ kinh điển
         let grad = pCtx.createRadialGradient(-r*0.3, -r*0.3, r*0.05, 0, 0, r);
         grad.addColorStop(0, "#ff6b6b"); grad.addColorStop(0.6, "#e53935"); grad.addColorStop(1, "#b71c1c");
         pCtx.fillStyle = grad;
@@ -761,9 +755,7 @@ let bird = {
     type: "red", skillUsed: false 
 };
 
-// Hỗ trợ mảng phụ cho chim xanh khi tách làm 3 con
 let subBirds = [];
-// Hiệu ứng nổ cho chim đen
 let explosions = [];
 
 let targets = [];
@@ -815,6 +807,7 @@ function resizeCanvas() {
     ];
 }
 
+// CƠ CHẾ CẤU TRÚC MÀN CHƠI SIÊU KHÓ (TẤT CẢ 40 MÀN)
 function loadLevel(lvl) {
     currentLevel = lvl;
     resizeCanvas();
@@ -831,29 +824,24 @@ function loadLevel(lvl) {
     }
     bird.type = birdTypes[0];
 
-    const startX = canvas.width * 0.62;
-    const longW = 120 * scale;
-    const longThinH = 18 * scale; 
-    const blockW = 48 * scale;
-    const blockH = 70 * scale;
+    const startX = canvas.width * 0.55;
+    const blockW = 44 * scale;
+    const blockH = 65 * scale;
 
     targets = [];
     
-    let pigCount = Math.min(1 + Math.floor(lvl / 8), 5);
-    let hasStone = lvl >= 11;
-    let hasIce = lvl >= 6;
+    // ĐỘ KHÓ CỰC ĐẠI: Tất cả màn đều có cấu trúc tháp kiên cố nhiều tầng đá/băng/gỗ kết hợp dày đặc, cùng gấp đôi số lượng heo (từ 5 đến 9 con heo phòng thủ sâu bên trong)
+    let pigCount = Math.min(5 + Math.floor(lvl / 5), 9);
 
     let baseHeight = groundY;
-    if (lvl > 20) baseHeight = groundY - 30 * scale;
 
-    for (let i = 0; i < (lvl % 3 === 0 ? 3 : 2); i++) {
-        let tType = "wood";
-        if (hasStone && i % 2 === 0) tType = "stone";
-        else if (hasIce && i % 2 !== 0) tType = "ice";
-
+    // Tầng 1: Hàng rào kiên cố vật liệu đá và băng dày đặc bảo vệ phía trước
+    for (let i = 0; i < 5; i++) {
+        let tType = (i % 2 === 0) ? "stone" : "ice";
+        if (i === 2) tType = "stone";
         targets.push({
             type: tType,
-            x: startX + (i * 65 * scale),
+            x: startX + (i * 52 * scale),
             y: baseHeight - blockH,
             width: blockW,
             height: blockH,
@@ -861,26 +849,52 @@ function loadLevel(lvl) {
         });
     }
 
+    // Tầng 2: Thanh chắn ngang siêu dài bằng đá
     targets.push({
-        type: lvl > 25 ? "stone" : "wood",
+        type: "stone",
         x: startX - 10 * scale,
-        y: baseHeight - blockH - longThinH,
-        width: longW + (lvl * 2) * scale,
-        height: longThinH,
+        y: baseHeight - blockH - 20 * scale,
+        width: 280 * scale,
+        height: 20 * scale,
         alive: true
     });
 
+    // Tầng 3: Pháo đài tháp đôi kiên cố phía trên
+    for (let i = 0; i < 4; i++) {
+        let tType = (i < 2) ? "wood" : "stone";
+        targets.push({
+            type: tType,
+            x: startX + 25 * scale + (i * 55 * scale),
+            y: baseHeight - (blockH * 2) - 25 * scale,
+            width: blockW,
+            height: blockH,
+            alive: true
+        });
+    }
+
+    // Tầng mái che cố định bằng băng/đá nặng
+    targets.push({
+        type: "stone",
+        x: startX + 20 * scale,
+        y: baseHeight - (blockH * 2) - 45 * scale,
+        width: 230 * scale,
+        height: 20 * scale,
+        alive: true
+    });
+
+    // Hệ thống Heo tinh ranh ẩn nấp tầng sâu bên trong pháo đài
     for (let p = 0; p < pigCount; p++) {
-        let px = startX + (p * 40 * scale) + 15 * scale;
+        let px = startX + 35 * scale + (p * 32 * scale);
         let py = baseHeight - 24 * scale;
-        if (p % 2 !== 0) py = baseHeight - blockH - 45 * scale;
+        if (p >= 4) py = baseHeight - blockH - 45 * scale;
+        if (p >= 7) py = baseHeight - (blockH * 2) - 70 * scale;
 
         targets.push({
             type: "pig",
             x: px,
             y: py,
             alive: true,
-            radius: (22 + (lvl % 3)) * scale
+            radius: (20 + (p % 3)) * scale
         });
     }
 }
@@ -915,10 +929,10 @@ function endGame(isWin) {
     bgMusic.pause();
 
     if (isWin) {
-        let bonusScore = lives * 200;
+        let bonusScore = lives * 100; // Giảm thưởng điểm dư vì màn siêu khó
         score += bonusScore;
 
-        gameOverTitle.textContent = "CHIẾN THẮNG MÀN " + currentLevel + "!";
+        gameOverTitle.textContent = "CHIẾN THẮNG MÀN " + currentLevel + " (SIÊU KHÓ)!";
         gameOverTitle.style.color = "#8ddb44";
         finalScoreText.innerHTML = `Tổng điểm đạt được: ${score} <br><span style="font-size:15px; color:#ffcc00;">(+${bonusScore} điểm thưởng chim dư)</span>`;
 
@@ -940,7 +954,7 @@ function endGame(isWin) {
             victorySound.play().catch(e => console.log(e));
         }
     } else {
-        gameOverTitle.textContent = "HẾT LƯỢT BẮN!";
+        gameOverTitle.textContent = "THẤT BẠI - PHÁO ĐÀI QUÁ KIÊN CỐ!";
         gameOverTitle.style.color = "#ff3333";
         finalScoreText.innerHTML = "Điểm số đạt được: " + score;
     }
@@ -971,17 +985,14 @@ function getPointerPos(e) {
     return { x: clientX - rect.left, y: clientY - rect.top };
 }
 
-// Kỹ năng đặc biệt của từng loài chim khi bấm / chạm lúc đang bay
 function triggerSkill() {
     if (gameState === "PLAYING" && bird.isLaunched && !bird.skillUsed) {
         bird.skillUsed = true;
         
         if (bird.type === "yellow") {
-            // Chim vàng: Bứt tốc lao thẳng
-            bird.vx *= 2.2;
+            bird.vx *= 2.3;
             bird.vy *= 1.2;
         } else if (bird.type === "blue") {
-            // Chim xanh dương: Tách thành 3 con nhỏ và mất con chính
             let baseAngle = Math.atan2(bird.vy, bird.vx);
             let baseSpeed = Math.hypot(bird.vx, bird.vy);
             
@@ -1004,16 +1015,13 @@ function triggerSkill() {
                 type: "blue"
             });
             
-            // Ẩn con chim chính
             bird.x = -9999;
             bird.y = -9999;
             bird.vx = 0;
             bird.vy = 0;
         } else if (bird.type === "black") {
-            // Chim đen: Phát nổ lập tức
             explodeBlackBird(bird.x, bird.y);
         } else {
-            // Chim đỏ: Tăng nhẹ tốc độ
             bird.vx *= 1.35;
         }
     }
@@ -1021,9 +1029,8 @@ function triggerSkill() {
 
 function explodeBlackBird(x, y) {
     triggerScreenShake(20);
-    explosions.push({ x: x, y: y, radius: 10, maxRadius: 110 * scale, alpha: 1.0 });
+    explosions.push({ x: x, y: y, radius: 10, maxRadius: 115 * scale, alpha: 1.0 });
     
-    // Phá hủy toàn bộ vật thể và heo trong bán kính nổ
     targets.forEach(t => {
         if (!t.alive) return;
         let tx = t.type === "pig" ? t.x : t.x + t.width/2;
@@ -1035,7 +1042,6 @@ function explodeBlackBird(x, y) {
         }
     });
 
-    // Xóa chim chính
     bird.isLaunched = false;
     handleBirdFinish();
 }
@@ -1098,13 +1104,11 @@ function checkCollision(b, t) {
     }
 }
 
-// Vẽ chi tiết hình ảnh chim chuẩn phong cách game gốc trên canvas
 function drawBirdByType(type, x, y, r) {
     ctx.save();
     ctx.translate(x, y);
 
     if (type === "yellow") {
-        // Chim vàng tam giác
         let grad = ctx.createRadialGradient(0, -r*0.2, r*0.1, 0, 0, r);
         grad.addColorStop(0, "#fff176"); grad.addColorStop(0.6, "#fbc02d"); grad.addColorStop(1, "#f57f17");
         ctx.fillStyle = grad;
@@ -1116,18 +1120,15 @@ function drawBirdByType(type, x, y, r) {
         ctx.fill();
         ctx.strokeStyle = "#5d4037"; ctx.lineWidth = 2.2 * scale; ctx.stroke();
 
-        // Mắt và lông mày
         ctx.fillStyle = "#ffffff";
         ctx.beginPath(); ctx.arc(-r*0.35, -r*0.1, r*0.28, 0, Math.PI * 2); ctx.arc(r*0.35, -r*0.1, r*0.28, 0, Math.PI * 2); ctx.fill();
         ctx.strokeStyle = "#000"; ctx.lineWidth = 1.5; ctx.stroke();
         ctx.fillStyle = "#000";
         ctx.beginPath(); ctx.arc(-r*0.25, -r*0.1, r*0.1, 0, Math.PI * 2); ctx.arc(r*0.45, -r*0.1, r*0.1, 0, Math.PI * 2); ctx.fill();
 
-        // Mỏ lớn màu vàng nhọn
         ctx.fillStyle = "#ff8f00";
         ctx.beginPath(); ctx.moveTo(r*0.8, r*0.1); ctx.lineTo(r*1.6, r*0.3); ctx.lineTo(r*0.8, r*0.6); ctx.closePath(); ctx.fill(); ctx.stroke();
     } else if (type === "blue") {
-        // Chim xanh dương nhỏ
         let grad = ctx.createRadialGradient(-r*0.3, -r*0.3, r*0.05, 0, 0, r);
         grad.addColorStop(0, "#4dd0e1"); grad.addColorStop(0.6, "#00acc1"); grad.addColorStop(1, "#006064");
         ctx.fillStyle = grad;
@@ -1136,28 +1137,24 @@ function drawBirdByType(type, x, y, r) {
 
         drawDetailedEyesAndBeak(r, "#80deea", "#00838f");
     } else if (type === "black") {
-        // Chim đen bom
         let grad = ctx.createRadialGradient(-r*0.3, -r*0.3, r*0.05, 0, 0, r);
         grad.addColorStop(0, "#616161"); grad.addColorStop(0.6, "#212121"); grad.addColorStop(1, "#000000");
         ctx.fillStyle = grad;
         ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
         ctx.strokeStyle = "#ff3333"; ctx.lineWidth = 2.5 * scale; ctx.stroke();
 
-        // Ngòi nổ trên đầu
         ctx.strokeStyle = "#ffcc00"; ctx.lineWidth = 3;
         ctx.beginPath(); ctx.moveTo(0, -r); ctx.quadraticCurveTo(r*0.6, -r*1.5, r*0.9, -r*1.4); ctx.stroke();
         ctx.fillStyle = "#ff3333"; ctx.beginPath(); ctx.arc(r*0.9, -r*1.4, 4 * scale, 0, Math.PI*2); ctx.fill();
 
         drawDetailedEyesAndBeak(r, "#ffcc00", "#e65100");
     } else {
-        // Chim đỏ kinh điển
         let grad = ctx.createRadialGradient(-r*0.3, -r*0.3, r*0.05, 0, 0, r);
         grad.addColorStop(0, "#ff6b6b"); grad.addColorStop(0.6, "#e53935"); grad.addColorStop(1, "#b71c1c");
         ctx.fillStyle = grad;
         ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
         ctx.strokeStyle = "#5f0000"; ctx.lineWidth = 2.2 * scale; ctx.stroke();
 
-        // Lông mày cau có đặc trưng
         ctx.fillStyle = "#3a0000";
         ctx.beginPath(); ctx.moveTo(-r*0.85, -r*0.35); ctx.lineTo(r*0.7, -r*0.05); ctx.lineTo(r*0.6, r*0.15); ctx.lineTo(-r*0.75, -r*0.15); ctx.closePath(); ctx.fill();
         
@@ -1351,7 +1348,6 @@ function update() {
         bird.x += bird.vx;
         bird.y += bird.vy;
 
-        // Nếu là chim đen và chạm trúng vật thể/mặt đất -> Nổ ngay lập tức
         if (bird.type === "black") {
             let hitGround = bird.y > groundY;
             let hitTarget = targets.some(t => checkCollision(bird, t));
@@ -1374,7 +1370,6 @@ function update() {
         }
     }
 
-    // Cập nhật các con chim phụ (khi chim xanh tách làm 3)
     subBirds.forEach((sb, index) => {
         sb.vx *= 0.99;
         sb.vy += 0.35 * scale;
@@ -1396,7 +1391,6 @@ function update() {
         }
     });
 
-    // Nếu chim xanh đã tách và cả 3 con phụ đã rơi hết -> kết thúc lượt
     if (bird.type === "blue" && bird.isLaunched && bird.x === -9999 && subBirds.length === 0) {
         bird.isLaunched = false;
         handleBirdFinish();
@@ -1404,7 +1398,6 @@ function update() {
 
     drawBirdByType(bird.type, bird.x, bird.y, bird.radius);
 
-    // Hiệu ứng nổ bom của chim đen
     explosions.forEach((ex, idx) => {
         ex.radius += 8;
         ex.alpha -= 0.05;
@@ -1462,7 +1455,6 @@ function update() {
 
     ctx.restore();
 
-    // Bảng điểm góc trên bên trái lớn và rõ nét
     ctx.fillStyle = "rgba(10, 25, 40, 0.85)";
     ctx.fillRect(20, 20, 390, 95 * scale);
     ctx.strokeStyle = "rgba(255, 204, 0, 0.6)";
@@ -1472,7 +1464,7 @@ function update() {
     ctx.fillStyle = "#ffcc00";
     ctx.font = `bold ${Math.round(18 * scale)}px Arial, sans-serif`;
     ctx.textAlign = "left";
-    ctx.fillText(`MÀN: ${currentLevel}/40`, 35, 52 * scale);
+    ctx.fillText(`MÀN: ${currentLevel}/40 (Siêu Khó)`, 35, 52 * scale);
     ctx.fillText(`ĐIỂM: ${score}`, 210, 52 * scale);
 
     ctx.fillStyle = "#ffffff";
