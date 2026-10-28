@@ -19,7 +19,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-family: 'Segoe UI', Arial, sans-serif;
+            font-family: Arial, Helvetica, sans-serif;
         }
         #gameContainer {
             position: relative;
@@ -57,20 +57,20 @@
         }
 
         .overlay h1 {
-            font-size: 58px;
+            font-size: 52px;
             margin: 0 0 25px 0;
             color: #ffcc00;
-            text-shadow: 4px 4px 0px #ff3333, 6px 6px 20px rgba(0,0,0,0.8);
-            letter-spacing: 2px;
+            text-shadow: 2px 2px 0px #ff3333;
+            letter-spacing: 1px;
         }
         .btn {
             padding: 16px 50px;
-            font-size: 22px;
+            font-size: 20px;
             font-weight: bold;
             background: linear-gradient(to bottom, #8ddb44, #558822);
             color: #fff;
             border: 2px solid #335511;
-            border-radius: 35px;
+            border-radius: 30px;
             cursor: pointer;
             box-shadow: 0 6px 0 #335511, 0 10px 20px rgba(0,0,0,0.4);
             transition: 0.1s;
@@ -105,7 +105,7 @@
             color: #fff;
             width: 50px;
             height: 50px;
-            font-size: 26px;
+            font-size: 24px;
             border-radius: 50%;
             cursor: pointer;
             display: flex;
@@ -137,7 +137,6 @@
             box-shadow: 0 1px 0 #992200;
         }
 
-        /* Danh sách màn chơi cuộn để chứa đủ 40 màn */
         #levelGridContainer {
             max-height: 420px;
             overflow-y: auto;
@@ -148,6 +147,39 @@
             max-width: 750px;
             padding: 10px;
             margin-bottom: 20px;
+        }
+
+        /* Khung thông báo thành tựu dạng hình chữ nhật dài ở góc dưới bên phải */
+        #achievementToast {
+            position: absolute;
+            bottom: 30px;
+            right: -350px;
+            width: 320px;
+            background: linear-gradient(135deg, rgba(20, 20, 20, 0.95), rgba(40, 40, 40, 0.95));
+            border: 2px solid #ffcc00;
+            border-left: 6px solid #ffcc00;
+            border-radius: 10px;
+            padding: 14px 18px;
+            color: white;
+            z-index: 500;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.7);
+            transition: right 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-family: Arial, sans-serif;
+            text-align: left;
+        }
+        #achievementToast.show {
+            right: 30px;
+        }
+        #achievementToast h4 {
+            margin: 0 0 5px 0;
+            color: #ffcc00;
+            font-size: 15px;
+        }
+        #achievementToast p {
+            margin: 0;
+            font-size: 13px;
+            line-height: 1.4;
+            color: #e0e0e0;
         }
 
         #settingsModal {
@@ -176,6 +208,7 @@
         .settings-content h2 {
             margin-top: 0;
             color: #ffcc00;
+            font-size: 22px;
         }
         .setting-group {
             margin: 18px 0;
@@ -185,6 +218,7 @@
             display: block;
             margin-bottom: 6px;
             font-weight: bold;
+            font-size: 14px;
         }
         .setting-group select, .setting-group input[type="range"] {
             width: 100%;
@@ -193,14 +227,14 @@
             border: none;
             background: #333;
             color: white;
-            font-size: 16px;
+            font-size: 15px;
         }
         .close-btn {
             background: #ff3333;
             color: white;
             border: none;
             padding: 10px 25px;
-            font-size: 16px;
+            font-size: 15px;
             border-radius: 15px;
             cursor: pointer;
             font-weight: bold;
@@ -215,7 +249,13 @@
         <!-- Nút cài đặt -->
         <button id="gearBtn" onclick="openSettings()">⚙️</button>
 
-        <!-- Menu Chính (Đã gỡ nút Shop) -->
+        <!-- Thẻ thông báo thành tựu góc dưới bên phải -->
+        <div id="achievementToast">
+            <h4 id="toastTitle">🏆 Mở khóa thành tựu</h4>
+            <p id="toastDesc">Nội dung thông báo...</p>
+        </div>
+
+        <!-- Menu Chính -->
         <div id="mainMenuScreen" class="overlay">
             <h1>ANGRY BIRD v4.0</h1>
             <div style="display: flex; flex-direction: column; gap: 12px; align-items: center;">
@@ -224,12 +264,10 @@
             </div>
         </div>
 
-        <!-- Màn hình Chọn màn chơi (40 Màn) -->
+        <!-- Màn hình Chọn màn chơi -->
         <div id="levelMenuScreen" class="overlay hidden">
             <h1>CHỌN MÀN CHƠI (1 - 40)</h1>
-            <div id="levelGridContainer">
-                <!-- Được tạo tự động bằng Javascript -->
-            </div>
+            <div id="levelGridContainer"></div>
             <button class="back-menu-btn" onclick="returnToMainMenu()">Về Menu Chính</button>
         </div>
 
@@ -252,10 +290,10 @@
                 </div>
 
                 <div class="setting-group" style="display: flex; gap: 10px;">
-                    <button class="btn" style="flex:1; padding: 10px; font-size: 16px; margin:0;" onclick="toggleMute()" id="muteBtn">Tắt Nhạc</button>
+                    <button class="btn" style="flex:1; padding: 10px; font-size: 15px; margin:0;" onclick="toggleMute()" id="muteBtn">Tắt Nhạc</button>
                 </div>
 
-                <button class="btn" style="width: 100%; padding: 10px; font-size: 16px; background: linear-gradient(to bottom, #ff8844, #cc4400); border-color: #992200; box-shadow: 0 4px 0 #992200; margin: 5px 0 12px 0;" onclick="closeSettings(); returnToMainMenu();">Về Menu Chính</button>
+                <button class="btn" style="width: 100%; padding: 10px; font-size: 15px; background: linear-gradient(to bottom, #ff8844, #cc4400); border-color: #992200; box-shadow: 0 4px 0 #992200; margin: 5px 0 12px 0;" onclick="closeSettings(); returnToMainMenu();">Về Menu Chính</button>
 
                 <button class="close-btn" onclick="closeSettings()">Đóng</button>
             </div>
@@ -264,11 +302,11 @@
         <!-- Màn hình Thắng/Thua -->
         <div id="gameOverScreen" class="overlay hidden">
             <h1 id="gameOverTitle">CHIẾN THẮNG!</h1>
-            <p id="finalScoreText">Tổng điểm tuyệt đối: 0</p>
+            <p id="finalScoreText" style="font-size: 18px;">Tổng điểm tuyệt đối: 0</p>
             <div style="display: flex; flex-direction: column; gap: 10px; align-items: center;">
                 <div style="display: flex; gap: 12px;">
-                    <button class="btn" style="min-width: 150px; padding: 12px 20px; font-size: 18px;" onclick="startLevel(currentLevel)">CHƠI LẠI</button>
-                    <button class="btn" style="background: #3388ff; border-color: #1155cc; box-shadow: 0 5px 0 #1155cc; min-width: 150px; padding: 12px 20px; font-size: 18px;" onclick="openLevelMenu()">CHỌN MÀN</button>
+                    <button class="btn" style="min-width: 150px; padding: 12px 20px; font-size: 16px;" onclick="startLevel(currentLevel)">CHƠI LẠI</button>
+                    <button class="btn" style="background: #3388ff; border-color: #1155cc; box-shadow: 0 5px 0 #1155cc; min-width: 150px; padding: 12px 20px; font-size: 16px;" onclick="openLevelMenu()">CHỌN MÀN</button>
                 </div>
                 <button class="back-menu-btn" style="margin-top: 5px;" onclick="returnToMainMenu()">Về Menu Chính</button>
             </div>
@@ -281,6 +319,10 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+// Làm sắc nét chữ và đồ họa trên canvas (Fix mờ)
+ctx.imageSmoothingEnabled = true;
+ctx.imageSmoothingQuality = 'high';
+
 const mainMenuScreen = document.getElementById("mainMenuScreen");
 const levelMenuScreen = document.getElementById("levelMenuScreen");
 const gameOverScreen = document.getElementById("gameOverScreen");
@@ -292,17 +334,30 @@ const volumeValue = document.getElementById("volumeValue");
 const muteBtn = document.getElementById("muteBtn");
 const bgMusicSelect = document.getElementById("bgMusicSelect");
 const levelGridContainer = document.getElementById("levelGridContainer");
+const achievementToast = document.getElementById("achievementToast");
+const toastTitle = document.getElementById("toastTitle");
+const toastDesc = document.getElementById("toastDesc");
 
 let maxLevelUnlocked = parseInt(localStorage.getItem("angryBirdsMaxLevel40")) || 1;
+let toastTimeout = null;
 
-// Tạo tự động nút cho 40 màn chơi
+function showAchievementToast(title, desc) {
+    toastTitle.textContent = title;
+    toastDesc.textContent = desc;
+    achievementToast.classList.add("show");
+    
+    if (toastTimeout) clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => {
+        achievementToast.classList.remove("show");
+    }, 4500); // Tự ẩn sau 4.5 giây
+}
+
 function buildLevelGrid() {
     levelGridContainer.innerHTML = "";
     for (let i = 1; i <= 40; i++) {
         let btn = document.createElement("button");
         btn.className = "btn";
-        btn.id = `lvlBtn${i}`;
-        btn.style.cssText = "padding: 12px 18px; min-width: 75px; font-size: 16px; margin: 4px;";
+        btn.style.cssText = "padding: 12px 18px; min-width: 75px; font-size: 15px; margin: 4px;";
         if (i <= maxLevelUnlocked) {
             btn.textContent = `${i}`;
             btn.onclick = () => startLevel(i);
@@ -385,13 +440,11 @@ function toggleMute() {
 let gameState = "MENU"; 
 let currentLevel = 1;
 let score = 0;
-let lives = 4; // 4 lượt bắn tương ứng 4 chú chim đỏ
+let lives = 4;
 let groundY = 0;
 let scale = 1;
 
 let sling = { x: 0, y: 0 };
-
-// Chỉ sử dụng 4 con chim đỏ xuyên suốt 40 màn
 const birdTypes = ["red", "red", "red", "red"];
 let currentBirdIndex = 0;
 
@@ -401,7 +454,6 @@ let bird = {
     type: "red", skillUsed: false 
 };
 
-let subBirds = []; 
 let targets = [];
 let groundHills = [];
 let particles = [];
@@ -451,7 +503,6 @@ function resizeCanvas() {
     ];
 }
 
-// Hệ thống sinh tự động bố cục cho 40 màn chơi với độ khó tăng dần
 function loadLevel(lvl) {
     currentLevel = lvl;
     resizeCanvas();
@@ -466,16 +517,13 @@ function loadLevel(lvl) {
 
     targets = [];
     
-    // Thuật toán phân bổ độ khó theo cấp độ (1 đến 40)
-    let pigCount = Math.min(1 + Math.floor(lvl / 8), 5); // Số lượng heo tăng dần từ 1 lên 5
+    let pigCount = Math.min(1 + Math.floor(lvl / 8), 5);
     let hasStone = lvl >= 11;
     let hasIce = lvl >= 6;
 
-    // Xây dựng cấu trúc cấu trúc vật cản và heo dựa trên số thứ tự màn
     let baseHeight = groundY;
     if (lvl > 20) baseHeight = groundY - 30 * scale;
 
-    // Tạo các trụ đỡ khối gỗ/đá/băng
     for (let i = 0; i < (lvl % 3 === 0 ? 3 : 2); i++) {
         let tType = "wood";
         if (hasStone && i % 2 === 0) tType = "stone";
@@ -491,7 +539,6 @@ function loadLevel(lvl) {
         });
     }
 
-    // Tấm che ngang bên trên
     targets.push({
         type: lvl > 25 ? "stone" : "wood",
         x: startX - 10 * scale,
@@ -501,7 +548,6 @@ function loadLevel(lvl) {
         alive: true
     });
 
-    // Bổ sung các chú heo thử thách ẩn bên trong và xung quanh cấu trúc
     for (let p = 0; p < pigCount; p++) {
         let px = startX + (p * 40 * scale) + 15 * scale;
         let py = baseHeight - 24 * scale;
@@ -551,15 +597,15 @@ function endGame(isWin) {
 
         gameOverTitle.textContent = "CHIẾN THẮNG MÀN " + currentLevel + "!";
         gameOverTitle.style.color = "#8ddb44";
-        finalScoreText.innerHTML = `Tổng điểm đạt được: ${score} <br><span style="font-size:16px; color:#ffcc00;">(+${bonusScore} điểm thưởng chim dư)</span>`;
+        finalScoreText.innerHTML = `Tổng điểm đạt được: ${score} <br><span style="font-size:15px; color:#ffcc00;">(+${bonusScore} điểm thưởng chim dư)</span>`;
 
-        // Kiểm tra các mốc mở khóa chim mới sau mỗi 10 màn
+        // Hiển thị thông báo mở khóa thành tựu góc dưới bên phải không làm dừng game
         if (currentLevel === 10) {
-            setTimeout(() => alert("🎉 Chúc mừng! Bạn đã hoàn thành 10 màn và mở khóa thành công: CHIM VÀNG (Tốc độ siêu cấp)!"), 300);
+            showAchievementToast("🎉 Mở khóa thành công!", "Đã mở khóa: CHIM VÀNG (Tốc độ siêu cấp)");
         } else if (currentLevel === 20) {
-            setTimeout(() => alert("🎉 Chúc mừng! Bạn đã hoàn thành 20 màn và mở khóa thành công: CHIM XANH DƯƠNG (Phân thân tam kiếm)!"), 300);
+            showAchievementToast("🎉 Mở khóa thành công!", "Đã mở khóa: CHIM XANH DƯƠNG (Phân thân tam kiếm)");
         } else if (currentLevel === 30) {
-            setTimeout(() => alert("🎉 Chúc mừng! Bạn đã hoàn thành 30 màn và mở khóa thành công: CHIM ĐEN (Bom nguyên tử hủy diệt)!"), 300);
+            showAchievementToast("🎉 Mở khóa thành công!", "Đã mở khóa: CHIM ĐEN (Bom nguyên tử hủy diệt)");
         }
 
         if (currentLevel >= maxLevelUnlocked && currentLevel < 40) {
@@ -586,13 +632,6 @@ function resetBird() {
     bird.isLaunched = false;
     bird.isDragging = false;
     bird.skillUsed = false;
-    subBirds = [];
-
-    if (currentBirdIndex < birdTypes.length) {
-        bird.type = birdTypes[currentBirdIndex];
-    } else {
-        bird.type = "red";
-    }
 }
 
 function getPointerPos(e) {
@@ -609,7 +648,6 @@ function getPointerPos(e) {
 function triggerSkill() {
     if (gameState === "PLAYING" && bird.isLaunched && !bird.skillUsed) {
         bird.skillUsed = true;
-        // Chim đỏ cơ bản không có kỹ năng đặc biệt phụ, khi bấm thêm có thể tạo gia tốc nhẹ
         bird.vx *= 1.15;
     }
 }
@@ -932,19 +970,19 @@ function update() {
 
     ctx.restore();
 
-    // Bảng thông tin điểm số và lượt chim đỏ còn lại
+    // Bảng điểm và thông tin font chữ sắc nét, bình thường
     ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
-    ctx.fillRect(20, 20, 300, 75 * scale);
+    ctx.fillRect(20, 20, 310, 75 * scale);
     ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
     ctx.lineWidth = 2;
-    ctx.strokeRect(20, 20, 300, 75 * scale);
+    ctx.strokeRect(20, 20, 310, 75 * scale);
 
     ctx.fillStyle = "#ffffff";
-    ctx.font = `bold ${18 * scale}px Segoe UI`;
+    ctx.font = `bold ${Math.round(16 * scale)}px Arial, sans-serif`;
     ctx.textAlign = "left";
     ctx.fillText(`MÀN: ${currentLevel}/40  |  ĐIỂM: ${score}`, 32, 50 * scale);
 
-    ctx.font = `bold ${14 * scale}px Segoe UI`;
+    ctx.font = `bold ${Math.round(14 * scale)}px Arial, sans-serif`;
     ctx.fillText("Chim Đỏ:", 32, 78 * scale);
     for (let i = currentBirdIndex; i < birdTypes.length; i++) {
         drawBirdByType(birdTypes[i], 115 + (i - currentBirdIndex) * 32 * scale, 73 * scale, 12 * scale);
