@@ -56,6 +56,16 @@
             background: linear-gradient(135deg, #1b4332, #2d6a4f, #40916c);
         }
 
+        .logo-img {
+            width: 110px;
+            height: 110px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 3px solid #ffcc00;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.6);
+            margin-bottom: 12px;
+        }
+
         .overlay h1 {
             font-size: 54px;
             margin: 0 0 25px 0;
@@ -149,7 +159,6 @@
             margin-bottom: 20px;
         }
 
-        /* Giao diện Shop Cây Cổ Thụ (Danh Sách Chim) */
         #birdListScreen {
             background: linear-gradient(rgba(10, 30, 15, 0.92), rgba(5, 15, 8, 0.95)), 
                         radial-gradient(circle, #2d6a4f 0%, #1b4332 100%);
@@ -383,8 +392,10 @@
             <p id="toastDesc">Nội dung thông báo...</p>
         </div>
 
+        <!-- Menu Chính -->
         <div id="mainMenuScreen" class="overlay">
-            <h1>BẮN CHIM v4.0</h1>
+            <img src="bird.jpg" alt="Bird Logo" class="logo-img" onerror="this.style.display='none'">
+            <h1>BẮN CHIM</h1>
             <div style="display: flex; flex-direction: column; gap: 12px; align-items: center;">
                 <button class="btn" onclick="startLevel(maxLevelUnlocked)">PLAY</button>
                 <button class="btn" onclick="openLevelMenu()" style="background: linear-gradient(to bottom, #3388ff, #1155cc); border-color: #113399; box-shadow: 0 6px 0 #113399;">CHỌN MÀN</button>
@@ -667,7 +678,7 @@ let bgMusic = new Audio(currentMusicFile);
 bgMusic.loop = true;
 bgMusic.volume = 0.5;
 
-const launchSound = new Audio("victorysound.mp4"); // Âm thanh khi bắn
+const launchSound = new Audio("victorysound.mp4");
 launchSound.volume = 0.5;
 const victorySound = new Audio("victorysound.mp4");
 victorySound.volume = 0.7;
@@ -739,7 +750,7 @@ let explosions = [];
 
 let targets = [];
 let groundHills = [];
-let trapezoidPlatforms = []; // Các ô đất hình thang nhô lên ở mỗi màn
+let trapezoidPlatforms = [];
 let particles = [];
 let screenShakeTime = 0;
 
@@ -780,7 +791,6 @@ function resizeCanvas() {
     bird.radius = 22 * scale;
 }
 
-// THIẾT KẾ KIẾN TRÚC & ĐẤT HÌNH THANG HOÀN TOÀN KHÁC BIỆT THEO TỪNG MÀN
 function loadLevel(lvl) {
     currentLevel = lvl;
     resizeCanvas();
@@ -800,8 +810,7 @@ function loadLevel(lvl) {
     targets = [];
     trapezoidPlatforms = [];
 
-    // Sinh ngẫu nhiên các ô đất nhô lên hình thang độc lập dựa theo số màn chơi
-    let platformCount = 1 + (lvl % 3); // 1 đến 3 bệ đất hình thang
+    let platformCount = 1 + (lvl % 3);
     let startX = canvas.width * 0.48;
     
     for (let p = 0; p < platformCount; p++) {
@@ -812,21 +821,18 @@ function loadLevel(lvl) {
         
         trapezoidPlatforms.push({
             x: px, y: py, width: pWidth, height: pHeight,
-            topWidth: pWidth * 0.65 // Tạo hình thang (đáy trên nhỏ hơn đáy dưới)
+            topWidth: pWidth * 0.65
         });
     }
 
-    // Bố trí kiến trúc tháp vật liệu (gỗ, đá, băng) siêu khó và phong phú theo từng màn
     let blockW = 42 * scale;
     let blockH = 65 * scale;
     let pigCount = Math.min(5 + Math.floor(lvl / 5), 10);
 
-    // Xây dựng pháo đài dựa trên các bệ đất hình thang
     trapezoidPlatforms.forEach((plat, idx) => {
         let tType1 = (idx % 2 === 0) ? "stone" : "wood";
         let tType2 = (idx % 3 === 0) ? "ice" : "stone";
 
-        // Cột đỡ tầng 1 trên bệ hình thang
         targets.push({
             type: tType1,
             x: plat.x + plat.width * 0.15,
@@ -840,7 +846,6 @@ function loadLevel(lvl) {
             width: blockW, height: blockH, alive: true
         });
 
-        // Thanh chắn ngang tầng 2
         targets.push({
             type: tType2,
             x: plat.x,
@@ -848,7 +853,6 @@ function loadLevel(lvl) {
             width: plat.width, height: 20 * scale, alive: true
         });
 
-        // Tầng tháp thứ 3 phía trên
         targets.push({
             type: "wood",
             x: plat.x + plat.width * 0.3,
@@ -857,7 +861,6 @@ function loadLevel(lvl) {
         });
     });
 
-    // Hệ thống Heo rải rác bên trong pháo đài
     for (let p = 0; p < pigCount; p++) {
         let platIndex = p % trapezoidPlatforms.length;
         let plat = trapezoidPlatforms[platIndex];
@@ -871,7 +874,7 @@ function loadLevel(lvl) {
             x: px, y: py,
             alive: true,
             radius: (20 + (p % 3)) * scale,
-            vy: 0 // Vận tốc rơi tự do khi không còn chỗ đứng
+            vy: 0
         });
     }
 }
@@ -1042,7 +1045,7 @@ function onTouchMove(e) {
     const dx = pos.x - sling.x;
     const dy = pos.y - sling.y;
     const dist = Math.hypot(dx, dy);
-    const maxDrag = 140 * scale; // Tăng khoảng kéo bắn xa hơn
+    const maxDrag = 140 * scale;
 
     let angle = Math.atan2(dy, dx);
     let currentDist = Math.min(dist, maxDrag);
@@ -1056,14 +1059,14 @@ function onTouchEnd() {
     bird.isDragging = false;
     bird.isLaunched = true;
 
-    // Phát âm thanh khi bắn
     if (!isMuted) {
         launchSound.currentTime = 0;
         launchSound.play().catch(e => {});
     }
 
-    bird.vx = (sling.x - bird.x) * 0.26; // Lực bắn mạnh hơn, bay xa hơn
-    bird.vy = (sling.y - bird.y) * 0.26;
+    // Làm bắn nhẹ lại (hệ số 0.21)
+    bird.vx = (sling.x - bird.x) * 0.21;
+    bird.vy = (sling.y - bird.y) * 0.21;
 }
 
 window.addEventListener("mousedown", onTouchStart);
@@ -1086,7 +1089,6 @@ function checkCollision(b, t) {
     }
 }
 
-// HÌNH ẢNH CHIM CHUẨN GAME GỐC: Viền đen rõ, mỏ màu vàng
 function drawBirdByType(type, x, y, r) {
     ctx.save();
     ctx.translate(x, y);
@@ -1101,9 +1103,8 @@ function drawBirdByType(type, x, y, r) {
         ctx.lineTo(-r*1.2, r*0.9);
         ctx.closePath();
         ctx.fill();
-        ctx.strokeStyle = "#000000"; ctx.lineWidth = 2.8 * scale; ctx.stroke(); // Viền đen rõ
+        ctx.strokeStyle = "#000000"; ctx.lineWidth = 2.8 * scale; ctx.stroke();
 
-        // Mỏ vàng nhọn
         ctx.fillStyle = "#ff8f00";
         ctx.beginPath(); ctx.moveTo(r*0.8, r*0.1); ctx.lineTo(r*1.6, r*0.3); ctx.lineTo(r*0.8, r*0.6); ctx.closePath(); ctx.fill(); 
         ctx.strokeStyle = "#000000"; ctx.lineWidth = 1.5; ctx.stroke();
@@ -1132,13 +1133,12 @@ function drawBirdByType(type, x, y, r) {
         grad.addColorStop(0, "#ff6b6b"); grad.addColorStop(0.6, "#e53935"); grad.addColorStop(1, "#b71c1c");
         ctx.fillStyle = grad;
         ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = "#000000"; ctx.lineWidth = 2.8 * scale; ctx.stroke(); // Viền đen rõ
+        ctx.strokeStyle = "#000000"; ctx.lineWidth = 2.8 * scale; ctx.stroke();
 
-        // Lông mày cau có
         ctx.fillStyle = "#3a0000";
         ctx.beginPath(); ctx.moveTo(-r*0.85, -r*0.35); ctx.lineTo(r*0.7, -r*0.05); ctx.lineTo(r*0.6, r*0.15); ctx.lineTo(-r*0.75, -r*0.15); ctx.closePath(); ctx.fill();
         
-        drawDetailedEyesAndBeak(r, "#ffb74d", "#f57c00"); // Mỏ màu vàng
+        drawDetailedEyesAndBeak(r, "#ffb74d", "#f57c00");
     }
     ctx.restore();
 }
@@ -1157,7 +1157,6 @@ function drawDetailedEyesAndBeak(r, beakColor1, beakColor2) {
     ctx.arc(r*0.4, -r*0.05, r*0.12, 0, Math.PI * 2);
     ctx.fill();
 
-    // Mỏ vàng
     ctx.fillStyle = beakColor1;
     ctx.beginPath();
     ctx.moveTo(r*0.2, r*0.02);
@@ -1256,7 +1255,7 @@ function handleBirdFinish() {
         endGame(true);
     } else if (lives <= 0 || currentBirdIndex >= birdTypes.length) {
         setTimeout(() => {
-            let checkPigs = targets.some(t.type === "pig" && t.alive);
+            let checkPigs = targets.some(t => t.type === "pig" && t.alive);
             if (!checkPigs) endGame(true);
             else endGame(false);
         }, 500);
@@ -1278,9 +1277,8 @@ function update() {
 
     drawCanvasBackground();
 
-    // Vẽ các ô đất hình thang nhô lên
     trapezoidPlatforms.forEach(plat => {
-        ctx.fillStyle = "#8a5a36"; // Màu đất sẫm
+        ctx.fillStyle = "#8a5a36";
         ctx.beginPath();
         ctx.moveTo(plat.x, groundY);
         ctx.lineTo(plat.x + plat.width, groundY);
@@ -1292,7 +1290,6 @@ function update() {
         ctx.lineWidth = 3 * scale;
         ctx.stroke();
 
-        // Lớp cỏ xanh trên đỉnh hình thang
         ctx.fillStyle = "#559c25";
         ctx.fillRect(plat.x + plat.width * 0.18, plat.y, plat.width * 0.64, 12 * scale);
     });
@@ -1315,8 +1312,8 @@ function update() {
         ctx.lineTo(sling.x + 6 * scale, sling.y);
         ctx.stroke();
 
-        let simVx = (sling.x - bird.x) * 0.26;
-        let simVy = (sling.y - bird.y) * 0.26;
+        let simVx = (sling.x - bird.x) * 0.21;
+        let simVy = (sling.y - bird.y) * 0.21;
         let simX = bird.x;
         let simY = bird.y;
 
@@ -1405,18 +1402,15 @@ function update() {
         }
     });
 
-    // CẬP NHẬT TRỌNG LỰC CHO HEO: Kiểm tra nếu heo không còn chỗ đứng (bệ đỡ) sẽ tự rơi xuống
     targets.forEach(t => {
         if (!t.alive) return;
         if (t.type === "pig") {
             let hasSupport = false;
-            // Kiểm tra xem heo có đứng trên bệ hình thang hoặc chạm mặt đất không
             trapezoidPlatforms.forEach(plat => {
                 if (t.x >= plat.x && t.x <= plat.x + plat.width && Math.abs(t.y + t.radius - plat.y) < 10) {
                     hasSupport = true;
                 }
             });
-            // Hoặc đứng trên vật liệu khác
             targets.forEach(other => {
                 if (other.alive && other.type !== "pig") {
                     if (t.x >= other.x && t.x <= other.x + other.width && Math.abs(t.y + t.radius - other.y) < 10) {
