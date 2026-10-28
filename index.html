@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Angry Bird Version 1.0</title>
+    <title>Angry Bird Version 40 Levels</title>
     <style>
         * {
             box-sizing: border-box;
@@ -95,7 +95,6 @@
             display: none !important;
         }
 
-        /* Đã dời nút cài đặt sang góc bên phải phía trên để không đè lên bảng điểm */
         #gearBtn {
             position: absolute;
             top: 25px;
@@ -136,6 +135,19 @@
         .back-menu-btn:active {
             transform: translateY(2px);
             box-shadow: 0 1px 0 #992200;
+        }
+
+        /* Danh sách màn chơi cuộn để chứa đủ 40 màn */
+        #levelGridContainer {
+            max-height: 420px;
+            overflow-y: auto;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            max-width: 750px;
+            padding: 10px;
+            margin-bottom: 20px;
         }
 
         #settingsModal {
@@ -200,50 +212,23 @@
 <body>
 
     <div id="gameContainer">
-        <!-- Nút cài đặt chuyển sang góc phải -->
+        <!-- Nút cài đặt -->
         <button id="gearBtn" onclick="openSettings()">⚙️</button>
 
-        <!-- Menu Chính -->
+        <!-- Menu Chính (Đã gỡ nút Shop) -->
         <div id="mainMenuScreen" class="overlay">
-            <h1>ANGRY BIRD v1.0</h1>
+            <h1>ANGRY BIRD v4.0</h1>
             <div style="display: flex; flex-direction: column; gap: 12px; align-items: center;">
                 <button class="btn" onclick="startLevel(maxLevelUnlocked)">PLAY</button>
                 <button class="btn" onclick="openLevelMenu()" style="background: linear-gradient(to bottom, #3388ff, #1155cc); border-color: #113399; box-shadow: 0 6px 0 #113399;">CHỌN MÀN</button>
-                <button class="btn" onclick="openShop()" style="background: linear-gradient(to bottom, #ffaa00, #cc7700); border-color: #995500; box-shadow: 0 6px 0 #995500;">SHOP</button>
             </div>
         </div>
 
-        <!-- Màn hình Chọn màn chơi -->
+        <!-- Màn hình Chọn màn chơi (40 Màn) -->
         <div id="levelMenuScreen" class="overlay hidden">
-            <h1>CHỌN MÀN CHƠI</h1>
-            <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-bottom: 25px;">
-                <button class="btn" id="lvlBtn1" style="padding: 15px 25px; min-width: 100px;" onclick="startLevel(1)">Màn 1</button>
-                <button class="btn locked" id="lvlBtn2" style="padding: 15px 25px; min-width: 100px;" onclick="startLevel(2)">Màn 2 🔒</button>
-                <button class="btn locked" id="lvlBtn3" style="padding: 15px 25px; min-width: 100px;" onclick="startLevel(3)">Màn 3 🔒</button>
-                <button class="btn locked" id="lvlBtn4" style="padding: 15px 25px; min-width: 100px;" onclick="startLevel(4)">Màn 4 🔒</button>
-                <button class="btn locked" id="lvlBtn5" style="padding: 15px 25px; min-width: 100px;" onclick="startLevel(5)">Màn 5 🔒</button>
-            </div>
-            <button class="back-menu-btn" onclick="returnToMainMenu()">Về Menu Chính</button>
-        </div>
-
-        <!-- Màn hình Shop -->
-        <div id="shopScreen" class="overlay hidden">
-            <h1>CỬA HÀNG</h1>
-            <div style="display: flex; flex-direction: column; gap: 15px; max-width: 480px; width: 100%; margin-bottom: 20px;">
-                <div style="background: rgba(255,255,255,0.12); padding: 15px 20px; border-radius: 12px; display: flex; align-items: center; gap: 18px; text-align: left; border: 1px solid rgba(255,255,255,0.2);">
-                    <div style="font-size: 38px; background: rgba(0,0,0,0.3); width: 65px; height: 65px; display: flex; align-items: center; justify-content: center; border-radius: 10px;">⚡</div>
-                    <div>
-                        <h3 style="margin: 0 0 5px 0; color: #ffcc00;">Năng lượng siêu cấp</h3>
-                        <p style="margin: 0; font-size: 14px; opacity: 0.85;">Mở khóa kỹ năng phá hủy diện rộng cực mạnh cho các chú chim.</p>
-                    </div>
-                </div>
-                <div style="background: rgba(255,255,255,0.12); padding: 15px 20px; border-radius: 12px; display: flex; align-items: center; gap: 18px; text-align: left; border: 1px solid rgba(255,255,255,0.2);">
-                    <div style="font-size: 38px; background: rgba(0,0,0,0.3); width: 65px; height: 65px; display: flex; align-items: center; justify-content: center; border-radius: 10px;">👑</div>
-                    <div>
-                        <h3 style="margin: 0 0 5px 0; color: #ffcc00;">Skin Độc Quyền</h3>
-                        <p style="margin: 0; font-size: 14px; opacity: 0.85;">Thay đổi diện mạo và hiệu ứng trang phục hoàng gia cho nhân vật.</p>
-                    </div>
-                </div>
+            <h1>CHỌN MÀN CHƠI (1 - 40)</h1>
+            <div id="levelGridContainer">
+                <!-- Được tạo tự động bằng Javascript -->
             </div>
             <button class="back-menu-btn" onclick="returnToMainMenu()">Về Menu Chính</button>
         </div>
@@ -298,7 +283,6 @@ const ctx = canvas.getContext("2d");
 
 const mainMenuScreen = document.getElementById("mainMenuScreen");
 const levelMenuScreen = document.getElementById("levelMenuScreen");
-const shopScreen = document.getElementById("shopScreen");
 const gameOverScreen = document.getElementById("gameOverScreen");
 const gameOverTitle = document.getElementById("gameOverTitle");
 const finalScoreText = document.getElementById("finalScoreText");
@@ -307,41 +291,42 @@ const volumeSlider = document.getElementById("volumeSlider");
 const volumeValue = document.getElementById("volumeValue");
 const muteBtn = document.getElementById("muteBtn");
 const bgMusicSelect = document.getElementById("bgMusicSelect");
+const levelGridContainer = document.getElementById("levelGridContainer");
 
-let maxLevelUnlocked = parseInt(localStorage.getItem("angryBirdsMaxLevel")) || 1;
+let maxLevelUnlocked = parseInt(localStorage.getItem("angryBirdsMaxLevel40")) || 1;
+
+// Tạo tự động nút cho 40 màn chơi
+function buildLevelGrid() {
+    levelGridContainer.innerHTML = "";
+    for (let i = 1; i <= 40; i++) {
+        let btn = document.createElement("button");
+        btn.className = "btn";
+        btn.id = `lvlBtn${i}`;
+        btn.style.cssText = "padding: 12px 18px; min-width: 75px; font-size: 16px; margin: 4px;";
+        if (i <= maxLevelUnlocked) {
+            btn.textContent = `${i}`;
+            btn.onclick = () => startLevel(i);
+        } else {
+            btn.className = "btn locked";
+            btn.textContent = `${i} 🔒`;
+        }
+        levelGridContainer.appendChild(btn);
+    }
+}
+buildLevelGrid();
 
 function openLevelMenu() {
     mainMenuScreen.classList.add("hidden");
     gameOverScreen.classList.add("hidden");
-    shopScreen.classList.add("hidden");
     levelMenuScreen.classList.remove("hidden");
-    updateLevelButtons();
-}
-
-function openShop() {
-    mainMenuScreen.classList.add("hidden");
-    shopScreen.classList.remove("hidden");
+    buildLevelGrid();
 }
 
 function returnToMainMenu() {
     levelMenuScreen.classList.add("hidden");
-    shopScreen.classList.add("hidden");
     gameOverScreen.classList.add("hidden");
     mainMenuScreen.classList.remove("hidden");
     gameState = "MENU";
-}
-
-function updateLevelButtons() {
-    for (let i = 1; i <= 5; i++) {
-        let btn = document.getElementById(`lvlBtn${i}`);
-        if (i <= maxLevelUnlocked) {
-            btn.classList.remove("locked");
-            btn.textContent = `Màn ${i}`;
-        } else {
-            btn.classList.add("locked");
-            btn.textContent = `Màn ${i} 🔒`;
-        }
-    }
 }
 
 let currentMusicFile = "angrybird.sound2.mp4";
@@ -400,13 +385,14 @@ function toggleMute() {
 let gameState = "MENU"; 
 let currentLevel = 1;
 let score = 0;
-let lives = 4;
+let lives = 4; // 4 lượt bắn tương ứng 4 chú chim đỏ
 let groundY = 0;
 let scale = 1;
 
 let sling = { x: 0, y: 0 };
 
-const birdTypes = ["red", "yellow", "blue", "black"];
+// Chỉ sử dụng 4 con chim đỏ xuyên suốt 40 màn
+const birdTypes = ["red", "red", "red", "red"];
 let currentBirdIndex = 0;
 
 let bird = { 
@@ -465,60 +451,69 @@ function resizeCanvas() {
     ];
 }
 
+// Hệ thống sinh tự động bố cục cho 40 màn chơi với độ khó tăng dần
 function loadLevel(lvl) {
     currentLevel = lvl;
     resizeCanvas();
     currentBirdIndex = 0;
     particles = [];
-    const startX = canvas.width * 0.65;
+    const startX = canvas.width * 0.62;
     
     const longW = 120 * scale;
     const longThinH = 18 * scale; 
     const blockW = 48 * scale;
     const blockH = 70 * scale;
 
-    if (lvl === 1) {
-        targets = [
-            { type: "wood", x: startX, y: groundY - blockH, width: blockW, height: blockH, alive: true },
-            { type: "pig", x: startX + blockW/2, y: groundY - blockH - 24 * scale, alive: true, radius: 24 * scale },
-            { type: "ice", x: startX - 10 * scale, y: groundY - blockH - 26 * scale, width: longW, height: longThinH, alive: true },
-            { type: "pig", x: startX + blockW + 40 * scale, y: groundY - 24 * scale, alive: true, radius: 24 * scale }
-        ];
-    } else if (lvl === 2) {
-        targets = [
-            { type: "wood", x: startX, y: groundY - blockH, width: blockW, height: blockH, alive: true },
-            { type: "wood", x: startX + 75 * scale, y: groundY - blockH, width: blockW, height: blockH, alive: true },
-            { type: "stone", x: startX - 15 * scale, y: groundY - blockH - longThinH, width: longW + 30 * scale, height: longThinH, alive: true },
-            { type: "pig", x: startX + 37 * scale, y: groundY - blockH - 48 * scale, alive: true, radius: 24 * scale },
-            { type: "pig", x: startX + 37 * scale, y: groundY - 24 * scale, alive: true, radius: 24 * scale }
-        ];
-    } else if (lvl === 3) {
-        let hillTopY = groundY - 55 * scale;
-        targets = [
-            { type: "stone", x: startX, y: hillTopY - blockH, width: blockW, height: blockH, alive: true },
-            { type: "stone", x: startX + 85 * scale, y: hillTopY - blockH, width: blockW, height: blockH, alive: true },
-            { type: "wood", x: startX - 10 * scale, y: hillTopY - blockH - longThinH, width: longW + 20 * scale, height: longThinH, alive: true },
-            { type: "pig", x: startX + 42 * scale, y: hillTopY - blockH - 42 * scale, alive: true, radius: 24 * scale },
-            { type: "pig", x: startX + 125 * scale, y: hillTopY - 24 * scale, alive: true, radius: 24 * scale }
-        ];
-    } else if (lvl === 4) {
-        targets = [
-            { type: "wood", x: startX + 30 * scale, y: groundY - blockH, width: blockW, height: blockH, alive: true },
-            { type: "ice", x: startX, y: groundY - blockH - longThinH, width: longW, height: longThinH, alive: true },
-            { type: "pig", x: startX + 50 * scale, y: groundY - blockH - 38 * scale, alive: true, radius: 24 * scale },
-            { type: "stone", x: startX + 15 * scale, y: groundY - blockH * 2 - longThinH, width: 85 * scale, height: longThinH, alive: true },
-            { type: "pig", x: startX + 57 * scale, y: groundY - blockH * 2 - 62 * scale, alive: true, radius: 24 * scale }
-        ];
-    } else if (lvl === 5) {
-        let hillTopY2 = groundY - 70 * scale;
-        targets = [
-            { type: "stone", x: startX - 20 * scale, y: hillTopY2 - blockH, width: blockW, height: blockH, alive: true },
-            { type: "stone", x: startX + 65 * scale, y: hillTopY2 - blockH, width: blockW, height: blockH, alive: true },
-            { type: "wood", x: startX - 35 * scale, y: hillTopY2 - blockH - longThinH, width: longW + 50 * scale, height: longThinH, alive: true },
-            { type: "pig", x: startX + 22 * scale, y: hillTopY2 - blockH - 42 * scale, alive: true, radius: 24 * scale },
-            { type: "pig", x: startX - 10 * scale, y: hillTopY2 - 24 * scale, alive: true, radius: 24 * scale },
-            { type: "pig", x: startX + 85 * scale, y: hillTopY2 - 24 * scale, alive: true, radius: 24 * scale }
-        ];
+    targets = [];
+    
+    // Thuật toán phân bổ độ khó theo cấp độ (1 đến 40)
+    let pigCount = Math.min(1 + Math.floor(lvl / 8), 5); // Số lượng heo tăng dần từ 1 lên 5
+    let hasStone = lvl >= 11;
+    let hasIce = lvl >= 6;
+
+    // Xây dựng cấu trúc cấu trúc vật cản và heo dựa trên số thứ tự màn
+    let baseHeight = groundY;
+    if (lvl > 20) baseHeight = groundY - 30 * scale;
+
+    // Tạo các trụ đỡ khối gỗ/đá/băng
+    for (let i = 0; i < (lvl % 3 === 0 ? 3 : 2); i++) {
+        let tType = "wood";
+        if (hasStone && i % 2 === 0) tType = "stone";
+        else if (hasIce && i % 2 !== 0) tType = "ice";
+
+        targets.push({
+            type: tType,
+            x: startX + (i * 65 * scale),
+            y: baseHeight - blockH,
+            width: blockW,
+            height: blockH,
+            alive: true
+        });
+    }
+
+    // Tấm che ngang bên trên
+    targets.push({
+        type: lvl > 25 ? "stone" : "wood",
+        x: startX - 10 * scale,
+        y: baseHeight - blockH - longThinH,
+        width: longW + (lvl * 2) * scale,
+        height: longThinH,
+        alive: true
+    });
+
+    // Bổ sung các chú heo thử thách ẩn bên trong và xung quanh cấu trúc
+    for (let p = 0; p < pigCount; p++) {
+        let px = startX + (p * 40 * scale) + 15 * scale;
+        let py = baseHeight - 24 * scale;
+        if (p % 2 !== 0) py = baseHeight - blockH - 45 * scale;
+
+        targets.push({
+            type: "pig",
+            x: px,
+            y: py,
+            alive: true,
+            radius: (22 + (lvl % 3)) * scale
+        });
     }
 }
 
@@ -532,7 +527,6 @@ function startLevel(lvl) {
     lives = 4;
     mainMenuScreen.classList.add("hidden");
     levelMenuScreen.classList.add("hidden");
-    shopScreen.classList.add("hidden");
     gameOverScreen.classList.add("hidden");
     loadLevel(lvl);
     resetBird();
@@ -559,9 +553,18 @@ function endGame(isWin) {
         gameOverTitle.style.color = "#8ddb44";
         finalScoreText.innerHTML = `Tổng điểm đạt được: ${score} <br><span style="font-size:16px; color:#ffcc00;">(+${bonusScore} điểm thưởng chim dư)</span>`;
 
-        if (currentLevel >= maxLevelUnlocked && currentLevel < 5) {
+        // Kiểm tra các mốc mở khóa chim mới sau mỗi 10 màn
+        if (currentLevel === 10) {
+            setTimeout(() => alert("🎉 Chúc mừng! Bạn đã hoàn thành 10 màn và mở khóa thành công: CHIM VÀNG (Tốc độ siêu cấp)!"), 300);
+        } else if (currentLevel === 20) {
+            setTimeout(() => alert("🎉 Chúc mừng! Bạn đã hoàn thành 20 màn và mở khóa thành công: CHIM XANH DƯƠNG (Phân thân tam kiếm)!"), 300);
+        } else if (currentLevel === 30) {
+            setTimeout(() => alert("🎉 Chúc mừng! Bạn đã hoàn thành 30 màn và mở khóa thành công: CHIM ĐEN (Bom nguyên tử hủy diệt)!"), 300);
+        }
+
+        if (currentLevel >= maxLevelUnlocked && currentLevel < 40) {
             maxLevelUnlocked = currentLevel + 1;
-            localStorage.setItem("angryBirdsMaxLevel", maxLevelUnlocked);
+            localStorage.setItem("angryBirdsMaxLevel40", maxLevelUnlocked);
         }
 
         if (!isMuted) {
@@ -606,36 +609,9 @@ function getPointerPos(e) {
 function triggerSkill() {
     if (gameState === "PLAYING" && bird.isLaunched && !bird.skillUsed) {
         bird.skillUsed = true;
-
-        if (bird.type === "yellow") {
-            bird.vx *= 3.2;
-            bird.vy *= 1.2;
-        } else if (bird.type === "blue") {
-            subBirds.push(
-                { x: bird.x, y: bird.y, radius: bird.radius * 0.7, vx: bird.vx * 1.1, vy: bird.vy - 1.8 },
-                { x: bird.x, y: bird.y, radius: bird.radius * 0.7, vx: bird.vx * 1.1, vy: bird.vy + 1.8 },
-                { x: bird.x, y: bird.y, radius: bird.radius * 0.7, vx: bird.vx * 1.3, vy: bird.vy }
-            );
-        } else if (bird.type === "black") {
-            triggerScreenShake(15);
-            explode(bird.x, bird.y, 160 * scale);
-            bird.isLaunched = false;
-            handleBirdFinish();
-        }
+        // Chim đỏ cơ bản không có kỹ năng đặc biệt phụ, khi bấm thêm có thể tạo gia tốc nhẹ
+        bird.vx *= 1.15;
     }
-}
-
-function explode(ex, ey, radius) {
-    targets.forEach(t => {
-        if (t.alive) {
-            let dist = Math.hypot(t.type === "pig" ? t.x - ex : (t.x + t.width/2) - ex, t.type === "pig" ? t.y - ey : (t.y + t.height/2) - ey);
-            if (dist < radius + (t.radius || t.width/2)) {
-                t.alive = false;
-                score += (t.type === "pig" ? 350 : 200);
-                createDebris(t.x, t.y, t.type === "pig" ? "#7acc29" : "#b5651d");
-            }
-        }
-    });
 }
 
 function onTouchStart(e) {
@@ -700,73 +676,18 @@ function drawBirdByType(type, x, y, r) {
     ctx.save();
     ctx.translate(x, y);
 
-    if (type === "red") {
-        let grad = ctx.createRadialGradient(-r*0.3, -r*0.3, r*0.05, 0, 0, r);
-        grad.addColorStop(0, "#ff6b6b");
-        grad.addColorStop(0.6, "#e53935");
-        grad.addColorStop(1, "#b71c1c");
-        ctx.fillStyle = grad;
-        ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = "#5f0000"; ctx.lineWidth = 2.2 * scale; ctx.stroke();
+    let grad = ctx.createRadialGradient(-r*0.3, -r*0.3, r*0.05, 0, 0, r);
+    grad.addColorStop(0, "#ff6b6b");
+    grad.addColorStop(0.6, "#e53935");
+    grad.addColorStop(1, "#b71c1c");
+    ctx.fillStyle = grad;
+    ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#5f0000"; ctx.lineWidth = 2.2 * scale; ctx.stroke();
 
-        ctx.fillStyle = "#3a0000";
-        ctx.beginPath(); ctx.moveTo(-r*0.85, -r*0.35); ctx.lineTo(r*0.7, -r*0.05); ctx.lineTo(r*0.6, r*0.15); ctx.lineTo(-r*0.75, -r*0.15); ctx.closePath(); ctx.fill();
-        
-        drawDetailedEyesAndBeak(r, "#ffb74d", "#f57c00");
-
-    } else if (type === "yellow") {
-        let grad = ctx.createRadialGradient(-r*0.3, -r*0.4, r*0.1, 0, 0, r*1.2);
-        grad.addColorStop(0, "#fff176");
-        grad.addColorStop(0.7, "#fbc02d");
-        grad.addColorStop(1, "#f57f17");
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.moveTo(r*1.4, 0);
-        ctx.lineTo(-r*1.1, -r*1.2);
-        ctx.lineTo(-r*1.1, r*1.2);
-        ctx.closePath();
-        ctx.fill();
-        ctx.strokeStyle = "#c46200"; ctx.lineWidth = 2.2 * scale; ctx.stroke();
-
-        ctx.fillStyle = "#8d4000";
-        ctx.beginPath(); ctx.moveTo(-r*0.6, -r*0.55); ctx.lineTo(r*0.5, -r*0.25); ctx.lineTo(r*0.4, -r*0.05); ctx.lineTo(-r*0.5, -r*0.3); ctx.closePath(); ctx.fill();
-
-        ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(0, -r*0.15, r*0.32, 0, Math.PI*2); ctx.fill(); ctx.stroke();
-        ctx.fillStyle = "#000"; ctx.beginPath(); ctx.arc(r*0.1, -r*0.15, r*0.11, 0, Math.PI*2); ctx.fill();
-
-        ctx.fillStyle = "#ff9800";
-        ctx.beginPath(); ctx.moveTo(r*1.1, -r*0.15); ctx.lineTo(r*1.9, r*0.05); ctx.lineTo(r*1.1, r*0.35); ctx.closePath(); ctx.fill(); ctx.stroke();
-
-    } else if (type === "blue") {
-        let grad = ctx.createRadialGradient(-r*0.2, -r*0.2, r*0.1, 0, 0, r);
-        grad.addColorStop(0, "#81d4fa");
-        grad.addColorStop(0.7, "#0288d1");
-        grad.addColorStop(1, "#01579b");
-        ctx.fillStyle = grad;
-        ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = "#002f6c"; ctx.lineWidth = 2 * scale; ctx.stroke();
-
-        drawDetailedEyesAndBeak(r, "#ffca28", "#ffa000");
-
-    } else if (type === "black") {
-        let grad = ctx.createRadialGradient(-r*0.3, -r*0.3, r*0.1, 0, 0, r);
-        grad.addColorStop(0, "#616161");
-        grad.addColorStop(0.7, "#212121");
-        grad.addColorStop(1, "#000000");
-        ctx.fillStyle = grad;
-        ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = "#ff3d00"; ctx.lineWidth = 2.5 * scale; ctx.stroke();
-
-        ctx.strokeStyle = "#ff6d00"; ctx.lineWidth = 3.5 * scale;
-        ctx.beginPath(); ctx.moveTo(0, -r); ctx.quadraticCurveTo(r*0.6, -r*1.6, r*0.9, -r*1.3); ctx.stroke();
-        ctx.fillStyle = "#d32f2f"; ctx.beginPath(); ctx.arc(r*0.9, -r*1.3, r*0.28, 0, Math.PI*2); ctx.fill();
-
-        ctx.fillStyle = "#ff3d00";
-        ctx.beginPath(); ctx.moveTo(-r*0.8, -r*0.45); ctx.lineTo(r*0.8, -r*0.45); ctx.lineTo(r*0.5, -r*0.2); ctx.lineTo(-r*0.6, -r*0.2); ctx.closePath(); ctx.fill();
-
-        drawDetailedEyesAndBeak(r, "#ffa726", "#ef6c00");
-    }
-
+    ctx.fillStyle = "#3a0000";
+    ctx.beginPath(); ctx.moveTo(-r*0.85, -r*0.35); ctx.lineTo(r*0.7, -r*0.05); ctx.lineTo(r*0.6, r*0.15); ctx.lineTo(-r*0.75, -r*0.15); ctx.closePath(); ctx.fill();
+    
+    drawDetailedEyesAndBeak(r, "#ffb74d", "#f57c00");
     ctx.restore();
 }
 
@@ -963,23 +884,6 @@ function update() {
             }
         });
 
-        subBirds.forEach(sb => {
-            sb.vy += 0.35 * scale;
-            sb.x += sb.vx;
-            sb.y += sb.vy;
-            targets.forEach(t => {
-                if (checkCollision(sb, t)) {
-                    t.alive = false;
-                    score += (t.type === "pig" ? 300 : 150);
-                    createDebris(t.x, t.y, t.type === "pig" ? "#7acc29" : "#b5651d");
-                }
-            });
-            drawBirdByType("blue", sb.x, sb.y, sb.radius);
-            if (sb.y > groundY || sb.x > canvas.width) {
-                sb.alive = false;
-            }
-        });
-
         if (bird.y > groundY || bird.x > canvas.width || bird.x < 0) {
             bird.isLaunched = false;
             handleBirdFinish();
@@ -1028,22 +932,22 @@ function update() {
 
     ctx.restore();
 
-    // Bảng điểm ở góc trên bên trái (đã tách không gian với nút cài đặt bên phải)
+    // Bảng thông tin điểm số và lượt chim đỏ còn lại
     ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
-    ctx.fillRect(20, 20, 280, 75 * scale);
+    ctx.fillRect(20, 20, 300, 75 * scale);
     ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
     ctx.lineWidth = 2;
-    ctx.strokeRect(20, 20, 280, 75 * scale);
+    ctx.strokeRect(20, 20, 300, 75 * scale);
 
     ctx.fillStyle = "#ffffff";
-    ctx.font = `bold ${20 * scale}px Segoe UI`;
+    ctx.font = `bold ${18 * scale}px Segoe UI`;
     ctx.textAlign = "left";
-    ctx.fillText(`MÀN: ${currentLevel}  |  ĐIỂM: ${score}`, 35, 52 * scale);
+    ctx.fillText(`MÀN: ${currentLevel}/40  |  ĐIỂM: ${score}`, 32, 50 * scale);
 
-    ctx.font = `bold ${15 * scale}px Segoe UI`;
-    ctx.fillText("Chim:", 35, 78 * scale);
+    ctx.font = `bold ${14 * scale}px Segoe UI`;
+    ctx.fillText("Chim Đỏ:", 32, 78 * scale);
     for (let i = currentBirdIndex; i < birdTypes.length; i++) {
-        drawBirdByType(birdTypes[i], 90 + (i - currentBirdIndex) * 36 * scale, 73 * scale, 14 * scale);
+        drawBirdByType(birdTypes[i], 115 + (i - currentBirdIndex) * 32 * scale, 73 * scale, 12 * scale);
     }
 
     let remainingPigs = targets.some(t => t.type === "pig" && t.alive);
