@@ -211,11 +211,14 @@
             align-items: center;
             margin-bottom: 6px;
         }
-        .bird-avatar-box canvas {
+        .bird-avatar-box img {
             width: 60px;
             height: 60px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 2px solid #ffcc00;
         }
-        .bird-avatar-box.dimmed canvas {
+        .bird-avatar-box.dimmed img {
             filter: brightness(0.2) grayscale(1);
         }
         .lock-overlay-emoji {
@@ -489,10 +492,10 @@ let equippedBirds = JSON.parse(localStorage.getItem("banChimEquippedBirds")) || 
 let toastTimeout = null;
 
 const allBirdsConfig = [
-    { id: "red", name: "Chim Đỏ", unlockLevel: 1, type: "bird" },
-    { id: "yellow", name: "Chim Vàng", unlockLevel: 10, type: "bird" },
-    { id: "blue", name: "Chim Xanh", unlockLevel: 20, type: "bird" },
-    { id: "black", name: "Chim Đen", unlockLevel: 30, type: "bird" },
+    { id: "red", name: "Chim Đỏ", unlockLevel: 1, type: "bird", imageFile: "red bird.jpg" },
+    { id: "yellow", name: "Chim Vàng", unlockLevel: 10, type: "bird", imageFile: "yellow bird.jpg" },
+    { id: "blue", name: "Chim Xanh", unlockLevel: 20, type: "bird", imageFile: "blue bird.jpg" },
+    { id: "black", name: "Chim Đen", unlockLevel: 30, type: "bird", imageFile: "nagi bird.jpg" },
     { id: "coming1", name: "Coming Soon", unlockLevel: 35, type: "coming" },
     { id: "coming2", name: "Coming Soon", unlockLevel: 38, type: "coming" },
     { id: "coming3", name: "Coming Soon", unlockLevel: 40, type: "coming" },
@@ -528,46 +531,6 @@ function buildLevelGrid() {
 }
 buildLevelGrid();
 
-function renderBirdPreviewCanvas(canvasEl, birdType) {
-    let pCtx = canvasEl.getContext("2d");
-    pCtx.clearRect(0, 0, canvasEl.width, canvasEl.height);
-    pCtx.save();
-    pCtx.translate(canvasEl.width / 2, canvasEl.height / 2);
-    let r = 24;
-
-    if (birdType === "yellow") {
-        let grad = pCtx.createRadialGradient(0, -r*0.2, r*0.1, 0, 0, r);
-        grad.addColorStop(0, "#fff176"); grad.addColorStop(0.6, "#fbc02d"); grad.addColorStop(1, "#f57f17");
-        pCtx.fillStyle = grad;
-        pCtx.beginPath();
-        pCtx.moveTo(0, -r*1.2);
-        pCtx.lineTo(r*1.1, r*0.9);
-        pCtx.lineTo(-r*1.1, r*0.9);
-        pCtx.closePath();
-        pCtx.fill();
-        pCtx.strokeStyle = "#000"; pCtx.lineWidth = 2.5; pCtx.stroke();
-    } else if (birdType === "blue") {
-        let grad = pCtx.createRadialGradient(-r*0.3, -r*0.3, r*0.05, 0, 0, r);
-        grad.addColorStop(0, "#4dd0e1"); grad.addColorStop(0.6, "#00acc1"); grad.addColorStop(1, "#006064");
-        pCtx.fillStyle = grad;
-        pCtx.beginPath(); pCtx.arc(0, 0, r*0.85, 0, Math.PI * 2); pCtx.fill();
-        pCtx.strokeStyle = "#000"; pCtx.lineWidth = 2.5; pCtx.stroke();
-    } else if (birdType === "black") {
-        let grad = pCtx.createRadialGradient(-r*0.3, -r*0.3, r*0.05, 0, 0, r);
-        grad.addColorStop(0, "#616161"); grad.addColorStop(0.6, "#212121"); grad.addColorStop(1, "#000000");
-        pCtx.fillStyle = grad;
-        pCtx.beginPath(); pCtx.arc(0, 0, r, 0, Math.PI * 2); pCtx.fill();
-        pCtx.strokeStyle = "#000"; pCtx.lineWidth = 2.5; pCtx.stroke();
-    } else {
-        let grad = pCtx.createRadialGradient(-r*0.3, -r*0.3, r*0.05, 0, 0, r);
-        grad.addColorStop(0, "#ff6b6b"); grad.addColorStop(0.6, "#e53935"); grad.addColorStop(1, "#b71c1c");
-        pCtx.fillStyle = grad;
-        pCtx.beginPath(); pCtx.arc(0, 0, r, 0, Math.PI * 2); pCtx.fill();
-        pCtx.strokeStyle = "#000"; pCtx.lineWidth = 2.5; pCtx.stroke();
-    }
-    pCtx.restore();
-}
-
 function buildBirdGrid() {
     birdGridContainer.innerHTML = "";
     equipmentStatusBanner.textContent = `Đã trang bị: ${equippedBirds.length}/2 con`;
@@ -589,11 +552,13 @@ function buildBirdGrid() {
             avatarBox.innerHTML = "";
             avatarBox.appendChild(mysteryDiv);
         } else {
-            let cElem = document.createElement("canvas");
-            cElem.width = 60;
-            cElem.height = 60;
-            renderBirdPreviewCanvas(cElem, bInfo.id);
-            avatarBox.appendChild(cElem);
+            let imgElem = document.createElement("img");
+            imgElem.src = bInfo.imageFile;
+            imgElem.alt = bInfo.name;
+            imgElem.onerror = () => {
+                imgElem.style.display = 'none';
+            };
+            avatarBox.appendChild(imgElem);
         }
 
         if (!isUnlocked) {
@@ -916,11 +881,11 @@ function endGame(isWin) {
         finalScoreText.innerHTML = `Tổng điểm đạt được: ${score} <br><span style="font-size:15px; color:#ffcc00;">(+${bonusScore} điểm thưởng chim dư)</span>`;
 
         if (currentLevel === 10) {
-            showAchievementToast("🎉 Mở khóa thành công!", "Đã mở khóa: CHIM VÀNG (Bứt tốc siêu cấp)");
+            showAchievementToast("🎉 Mở khóa thành tựu!", "Đã mở khóa: CHIM VÀNG (Bứt tốc siêu cấp)");
         } else if (currentLevel === 20) {
-            showAchievementToast("🎉 Mở khóa thành công!", "Đã mở khóa: CHIM XANH (Tách 3 con nhỏ)");
+            showAchievementToast("🎉 Mở khóa thành tựu!", "Đã mở khóa: CHIM XANH (Tách 3 con nhỏ)");
         } else if (currentLevel === 30) {
-            showAchievementToast("🎉 Mở khóa thành công!", "Đã mở khóa: CHIM ĐEN (Bom nổ hủy diệt)");
+            showAchievementToast("🎉 Mở khóa thành tựu!", "Đã mở khóa: CHIM ĐEN (Bom nổ hủy diệt)");
         }
 
         if (currentLevel >= maxLevelUnlocked && currentLevel < 40) {
@@ -1064,7 +1029,6 @@ function onTouchEnd() {
         launchSound.play().catch(e => {});
     }
 
-    // Làm bắn nhẹ lại (hệ số 0.21)
     bird.vx = (sling.x - bird.x) * 0.21;
     bird.vy = (sling.y - bird.y) * 0.21;
 }
@@ -1317,13 +1281,14 @@ function update() {
         let simX = bird.x;
         let simY = bird.y;
 
-        ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
-        for (let i = 0; i < 30; i++) {
+        // Đã giảm số lượng chấm quỹ đạo từ 30 xuống 10 để người chơi tự tính toán
+        ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+        for (let i = 0; i < 10; i++) {
             simVy += 0.35 * scale;
             simX += simVx;
             simY += simVy;
             ctx.beginPath();
-            ctx.arc(simX, simY, (4.5 - i * 0.1) * scale, 0, Math.PI * 2);
+            ctx.arc(simX, simY, (3.5 - i * 0.15) * scale, 0, Math.PI * 2);
             ctx.fill();
             if (simY > groundY) break;
         }
