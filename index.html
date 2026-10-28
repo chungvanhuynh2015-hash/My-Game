@@ -95,10 +95,11 @@
             display: none !important;
         }
 
+        /* Đã chỉnh nút cài đặt xuống thấp hơn một chút */
         #gearBtn {
             position: absolute;
-            top: 20px;
-            left: 20px;
+            top: 28px;
+            left: 28px;
             z-index: 300;
             background: rgba(0, 0, 0, 0.6);
             border: 2px solid rgba(255, 255, 255, 0.7);
@@ -155,7 +156,7 @@
             border: 3px solid #558822;
             padding: 30px;
             border-radius: 20px;
-            width: 350px;
+            width: 380px;
             text-align: center;
             color: white;
             box-shadow: 0 10px 25px rgba(0,0,0,0.9);
@@ -165,12 +166,12 @@
             color: #ffcc00;
         }
         .setting-group {
-            margin: 20px 0;
+            margin: 18px 0;
             text-align: left;
         }
         .setting-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             font-weight: bold;
         }
         .setting-group select, .setting-group input[type="range"] {
@@ -187,11 +188,11 @@
             color: white;
             border: none;
             padding: 10px 25px;
-            font-size: 18px;
+            font-size: 16px;
             border-radius: 15px;
             cursor: pointer;
             font-weight: bold;
-            margin-top: 10px;
+            margin-top: 8px;
         }
         .close-btn:hover { background: #ff1a1a; }
     </style>
@@ -224,18 +225,29 @@
             <button class="back-menu-btn" onclick="returnToMainMenu()">Về Menu Chính</button>
         </div>
 
-        <!-- Màn hình Shop -->
+        <!-- Màn hình Shop (Đã thêm hình ảnh/biểu tượng minh họa) -->
         <div id="shopScreen" class="overlay hidden">
             <h1>CỬA HÀNG</h1>
-            <div style="background: rgba(255,255,255,0.1); padding: 25px; border-radius: 15px; margin-bottom: 20px; max-width: 450px; text-align: left;">
-                <p style="margin: 8px 0;">🌟 <b>Năng lượng siêu cấp:</b> Mở khóa kỹ năng độc quyền</p>
-                <p style="margin: 8px 0;">🎨 <b>Skin đặc biệt:</b> Thay đổi giao diện nhân vật</p>
-                <p style="color: #ffcc00; font-style: italic; margin-top: 15px; text-align: center;">(Tính năng mua sắm sẽ được cập nhật sớm!)</p>
+            <div style="display: flex; flex-direction: column; gap: 15px; max-width: 480px; width: 100%; margin-bottom: 20px;">
+                <div style="background: rgba(255,255,255,0.12); padding: 15px 20px; border-radius: 12px; display: flex; align-items: center; gap: 18px; text-align: left; border: 1px solid rgba(255,255,255,0.2);">
+                    <div style="font-size: 38px; background: rgba(0,0,0,0.3); width: 65px; height: 65px; display: flex; align-items: center; justify-content: center; border-radius: 10px;">⚡</div>
+                    <div>
+                        <h3 style="margin: 0 0 5px 0; color: #ffcc00;">Năng lượng siêu cấp</h3>
+                        <p style="margin: 0; font-size: 14px; opacity: 0.85;">Mở khóa kỹ năng phá hủy diện rộng cực mạnh cho các chú chim.</p>
+                    </div>
+                </div>
+                <div style="background: rgba(255,255,255,0.12); padding: 15px 20px; border-radius: 12px; display: flex; align-items: center; gap: 18px; text-align: left; border: 1px solid rgba(255,255,255,0.2);">
+                    <div style="font-size: 38px; background: rgba(0,0,0,0.3); width: 65px; height: 65px; display: flex; align-items: center; justify-content: center; border-radius: 10px;">👑</div>
+                    <div>
+                        <h3 style="margin: 0 0 5px 0; color: #ffcc00;">Skin Độc Quyền</h3>
+                        <p style="margin: 0; font-size: 14px; opacity: 0.85;">Thay đổi diện mạo và hiệu ứng trang phục hoàng gia cho nhân vật.</p>
+                    </div>
+                </div>
             </div>
             <button class="back-menu-btn" onclick="returnToMainMenu()">Về Menu Chính</button>
         </div>
 
-        <!-- Cài đặt âm thanh -->
+        <!-- Cài đặt âm thanh (Đã thêm nút Về Menu Chính) -->
         <div id="settingsModal" class="hidden">
             <div class="settings-content">
                 <h2>CÀI ĐẶT ÂM THANH</h2>
@@ -257,17 +269,24 @@
                     <button class="btn" style="flex:1; padding: 10px; font-size: 16px; margin:0;" onclick="toggleMute()" id="muteBtn">Tắt Nhạc</button>
                 </div>
 
+                <!-- Thêm nút Về Menu Chính trong Cài đặt -->
+                <button class="btn" style="width: 100%; padding: 10px; font-size: 16px; background: linear-gradient(to bottom, #ff8844, #cc4400); border-color: #992200; box-shadow: 0 4px 0 #992200; margin: 5px 0 12px 0;" onclick="closeSettings(); returnToMainMenu();">Về Menu Chính</button>
+
                 <button class="close-btn" onclick="closeSettings()">Đóng</button>
             </div>
         </div>
 
-        <!-- Màn hình Thắng/Thua -->
+        <!-- Màn hình Thắng/Thua (Đã thêm nút về Menu Chính) -->
         <div id="gameOverScreen" class="overlay hidden">
             <h1 id="gameOverTitle">CHIẾN THẮNG!</h1>
             <p id="finalScoreText">Tổng điểm tuyệt đối: 0</p>
-            <div style="display: flex; gap: 15px;">
-                <button class="btn" style="min-width: 160px;" onclick="startLevel(currentLevel)">CHƠI LẠI</button>
-                <button class="btn" style="background: #3388ff; border-color: #1155cc; box-shadow: 0 6px 0 #1155cc; min-width: 160px;" onclick="openLevelMenu()">CHỌN MÀN</button>
+            <div style="display: flex; flex-direction: column; gap: 10px; align-items: center;">
+                <div style="display: flex; gap: 12px;">
+                    <button class="btn" style="min-width: 150px; padding: 12px 20px; font-size: 18px;" onclick="startLevel(currentLevel)">CHƠI LẠI</button>
+                    <button class="btn" style="background: #3388ff; border-color: #1155cc; box-shadow: 0 5px 0 #1155cc; min-width: 150px; padding: 12px 20px; font-size: 18px;" onclick="openLevelMenu()">CHỌN MÀN</button>
+                </div>
+                <!-- Thêm nút Về Menu Chính -->
+                <button class="back-menu-btn" style="margin-top: 5px;" onclick="returnToMainMenu()">Về Menu Chính</button>
             </div>
         </div>
 
@@ -678,103 +697,116 @@ function checkCollision(b, t) {
     }
 }
 
+/* 🌟 ĐỒ HỌA CHIM CHI TIẾT VÀ SẮC NÉT HƠN */
 function drawBirdByType(type, x, y, r) {
     ctx.save();
     ctx.translate(x, y);
 
     if (type === "red") {
-        let grad = ctx.createRadialGradient(-r*0.2, -r*0.2, r*0.1, 0, 0, r);
-        grad.addColorStop(0, "#ff5252");
-        grad.addColorStop(0.7, "#d32f2f");
+        let grad = ctx.createRadialGradient(-r*0.3, -r*0.3, r*0.05, 0, 0, r);
+        grad.addColorStop(0, "#ff6b6b");
+        grad.addColorStop(0.6, "#e53935");
         grad.addColorStop(1, "#b71c1c");
         ctx.fillStyle = grad;
         ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = "#7f0000"; ctx.lineWidth = 2 * scale; ctx.stroke();
+        ctx.strokeStyle = "#5f0000"; ctx.lineWidth = 2.2 * scale; ctx.stroke();
 
-        ctx.fillStyle = "#5c0000";
-        ctx.beginPath(); ctx.moveTo(-r*0.8, -r*0.4); ctx.lineTo(r*0.6, -r*0.1); ctx.lineTo(r*0.5, r*0.1); ctx.lineTo(-r*0.7, -r*0.2); ctx.closePath(); ctx.fill();
+        // Lông mày đậm chi tiết
+        ctx.fillStyle = "#3a0000";
+        ctx.beginPath(); ctx.moveTo(-r*0.85, -r*0.35); ctx.lineTo(r*0.7, -r*0.05); ctx.lineTo(r*0.6, r*0.15); ctx.lineTo(-r*0.75, -r*0.15); ctx.closePath(); ctx.fill();
         
-        drawEyesAndBeak(r, "#ffa726", "#fb8c00");
+        drawDetailedEyesAndBeak(r, "#ffb74d", "#f57c00");
 
     } else if (type === "yellow") {
-        ctx.fillStyle = "#ffeb3b";
+        let grad = ctx.createRadialGradient(-r*0.3, -r*0.4, r*0.1, 0, 0, r*1.2);
+        grad.addColorStop(0, "#fff176");
+        grad.addColorStop(0.7, "#fbc02d");
+        grad.addColorStop(1, "#f57f17");
+        ctx.fillStyle = grad;
         ctx.beginPath();
-        ctx.moveTo(r*1.3, 0);
-        ctx.lineTo(-r, -r*1.1);
-        ctx.lineTo(-r, r*1.1);
+        ctx.moveTo(r*1.4, 0);
+        ctx.lineTo(-r*1.1, -r*1.2);
+        ctx.lineTo(-r*1.1, r*1.2);
         ctx.closePath();
         ctx.fill();
-        ctx.strokeStyle = "#f57f17"; ctx.lineWidth = 2 * scale; ctx.stroke();
+        ctx.strokeStyle = "#c46200"; ctx.lineWidth = 2.2 * scale; ctx.stroke();
 
-        ctx.fillStyle = "#f57f17";
-        ctx.beginPath(); ctx.moveTo(-r*0.5, -r*0.5); ctx.lineTo(r*0.4, -r*0.2); ctx.lineTo(r*0.3, 0); ctx.lineTo(-r*0.4, -r*0.2); ctx.closePath(); ctx.fill();
+        // Lông mày tam giác
+        ctx.fillStyle = "#8d4000";
+        ctx.beginPath(); ctx.moveTo(-r*0.6, -r*0.55); ctx.lineTo(r*0.5, -r*0.25); ctx.lineTo(r*0.4, -r*0.05); ctx.lineTo(-r*0.5, -r*0.3); ctx.closePath(); ctx.fill();
 
-        ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(0, -r*0.15, r*0.3, 0, Math.PI*2); ctx.fill(); ctx.stroke();
-        ctx.fillStyle = "#000"; ctx.beginPath(); ctx.arc(r*0.1, -r*0.15, r*0.1, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(0, -r*0.15, r*0.32, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = "#000"; ctx.beginPath(); ctx.arc(r*0.1, -r*0.15, r*0.11, 0, Math.PI*2); ctx.fill();
 
         ctx.fillStyle = "#ff9800";
-        ctx.beginPath(); ctx.moveTo(r*1.1, -r*0.1); ctx.lineTo(r*1.8, r*0.1); ctx.lineTo(r*1.1, r*0.3); ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(r*1.1, -r*0.15); ctx.lineTo(r*1.9, r*0.05); ctx.lineTo(r*1.1, r*0.35); ctx.closePath(); ctx.fill(); ctx.stroke();
 
     } else if (type === "blue") {
         let grad = ctx.createRadialGradient(-r*0.2, -r*0.2, r*0.1, 0, 0, r);
-        grad.addColorStop(0, "#4fc3f7");
+        grad.addColorStop(0, "#81d4fa");
         grad.addColorStop(0.7, "#0288d1");
         grad.addColorStop(1, "#01579b");
         ctx.fillStyle = grad;
         ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
         ctx.strokeStyle = "#002f6c"; ctx.lineWidth = 2 * scale; ctx.stroke();
 
-        drawEyesAndBeak(r, "#ffb300", "#fb8c00");
+        drawDetailedEyesAndBeak(r, "#ffca28", "#ffa000");
 
     } else if (type === "black") {
-        let grad = ctx.createRadialGradient(-r*0.2, -r*0.2, r*0.1, 0, 0, r);
-        grad.addColorStop(0, "#424242");
+        let grad = ctx.createRadialGradient(-r*0.3, -r*0.3, r*0.1, 0, 0, r);
+        grad.addColorStop(0, "#616161");
         grad.addColorStop(0.7, "#212121");
         grad.addColorStop(1, "#000000");
         ctx.fillStyle = grad;
         ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = "#ff5722"; ctx.lineWidth = 2.5 * scale; ctx.stroke();
+        ctx.strokeStyle = "#ff3d00"; ctx.lineWidth = 2.5 * scale; ctx.stroke();
 
-        ctx.strokeStyle = "#ff9800"; ctx.lineWidth = 3 * scale;
-        ctx.beginPath(); ctx.moveTo(0, -r); ctx.quadraticCurveTo(r*0.5, -r*1.5, r*0.8, -r*1.3); ctx.stroke();
-        ctx.fillStyle = "#f44336"; ctx.beginPath(); ctx.arc(r*0.8, -r*1.3, r*0.25, 0, Math.PI*2); ctx.fill();
+        // Tóc ngòi nổ
+        ctx.strokeStyle = "#ff6d00"; ctx.lineWidth = 3.5 * scale;
+        ctx.beginPath(); ctx.moveTo(0, -r); ctx.quadraticCurveTo(r*0.6, -r*1.6, r*0.9, -r*1.3); ctx.stroke();
+        ctx.fillStyle = "#d32f2f"; ctx.beginPath(); ctx.arc(r*0.9, -r*1.3, r*0.28, 0, Math.PI*2); ctx.fill();
 
-        ctx.fillStyle = "#ff5722";
-        ctx.beginPath(); ctx.moveTo(-r*0.7, -r*0.4); ctx.lineTo(r*0.7, -r*0.4); ctx.lineTo(r*0.4, -r*0.2); ctx.lineTo(-r*0.5, -r*0.2); ctx.closePath(); ctx.fill();
+        // Lông mày giận dữ
+        ctx.fillStyle = "#ff3d00";
+        ctx.beginPath(); ctx.moveTo(-r*0.8, -r*0.45); ctx.lineTo(r*0.8, -r*0.45); ctx.lineTo(r*0.5, -r*0.2); ctx.lineTo(-r*0.6, -r*0.2); ctx.closePath(); ctx.fill();
 
-        drawEyesAndBeak(r, "#ff9800", "#f57c00");
+        drawDetailedEyesAndBeak(r, "#ffa726", "#ef6c00");
     }
 
     ctx.restore();
 }
 
-function drawEyesAndBeak(r, beakColor1, beakColor2) {
+function drawDetailedEyesAndBeak(r, beakColor1, beakColor2) {
+    // Viền mắt trắng sắc nét
     ctx.fillStyle = "#ffffff";
     ctx.beginPath();
-    ctx.arc(-r*0.25, -r*0.05, r*0.3, 0, Math.PI * 2);
-    ctx.arc(r*0.25, -r*0.05, r*0.3, 0, Math.PI * 2);
+    ctx.arc(-r*0.28, -r*0.05, r*0.32, 0, Math.PI * 2);
+    ctx.arc(r*0.28, -r*0.05, r*0.32, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = "#000"; ctx.lineWidth = 1.5 * scale; ctx.stroke();
+    ctx.strokeStyle = "#000"; ctx.lineWidth = 1.8 * scale; ctx.stroke();
 
+    // Con ngươi đen
     ctx.fillStyle = "#000000";
     ctx.beginPath();
-    ctx.arc(-r*0.15, -r*0.05, r*0.1, 0, Math.PI * 2);
-    ctx.arc(r*0.35, -r*0.05, r*0.1, 0, Math.PI * 2);
+    ctx.arc(-r*0.16, -r*0.05, r*0.12, 0, Math.PI * 2);
+    ctx.arc(r*0.4, -r*0.05, r*0.12, 0, Math.PI * 2);
     ctx.fill();
 
+    // Mỏ trên
     ctx.fillStyle = beakColor1;
     ctx.beginPath();
-    ctx.moveTo(r*0.2, r*0.05);
-    ctx.lineTo(r*0.8, r*0.15);
-    ctx.lineTo(r*0.3, r*0.38);
+    ctx.moveTo(r*0.2, r*0.02);
+    ctx.lineTo(r*0.88, r*0.15);
+    ctx.lineTo(r*0.3, r*0.42);
     ctx.closePath();
     ctx.fill(); ctx.stroke();
 
+    // Mỏ dưới
     ctx.fillStyle = beakColor2;
     ctx.beginPath();
-    ctx.moveTo(r*0.2, r*0.35);
-    ctx.lineTo(r*0.65, r*0.42);
-    ctx.lineTo(r*0.3, r*0.6);
+    ctx.moveTo(r*0.2, r*0.38);
+    ctx.lineTo(r*0.7, r*0.48);
+    ctx.lineTo(r*0.3, r*0.65);
     ctx.closePath();
     ctx.fill(); ctx.stroke();
 }
@@ -892,7 +924,7 @@ function update() {
         ctx.stroke();
     });
 
-    // Vẽ Trụ thun (Slingshot)
+    // Trụ thun
     ctx.strokeStyle = "#4a3324";
     ctx.lineWidth = 9 * scale;
     ctx.beginPath();
@@ -903,7 +935,6 @@ function update() {
     ctx.stroke();
 
     if (bird.isDragging) {
-        // Dây thun
         ctx.strokeStyle = "#2b1604";
         ctx.lineWidth = 4 * scale;
         ctx.beginPath();
@@ -912,19 +943,19 @@ function update() {
         ctx.lineTo(sling.x + 6 * scale, sling.y);
         ctx.stroke();
 
-        // 🌟 TÍNH NĂNG MỚI: Vẽ đường dẫn hướng (Trajectory Guide)
+        // Đường dẫn hướng quỹ đạo
         let simVx = (sling.x - bird.x) * 0.23;
         let simVy = (sling.y - bird.y) * 0.23;
         let simX = bird.x;
         let simY = bird.y;
 
-        ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+        ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
         for (let i = 0; i < 25; i++) {
             simVy += 0.35 * scale;
             simX += simVx;
             simY += simVy;
             ctx.beginPath();
-            ctx.arc(simX, simY, (4 - i * 0.1) * scale, 0, Math.PI * 2);
+            ctx.arc(simX, simY, (4.5 - i * 0.1) * scale, 0, Math.PI * 2);
             ctx.fill();
             if (simY > groundY) break;
         }
@@ -995,7 +1026,7 @@ function update() {
         }
     });
 
-    // Vẽ Mảnh vỡ hiệu ứng
+    // Mảnh vỡ
     particles.forEach((p, index) => {
         p.x += p.vx;
         p.y += p.vy;
@@ -1012,18 +1043,23 @@ function update() {
 
     ctx.restore();
 
-    // 🌟 TÍNH NĂNG MỚI: Hiển thị số chim còn lại và Điểm số góc trên
-    ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
-    ctx.fillRect(20, 20, 210, 50 * scale);
-    ctx.fillStyle = "#ffffff";
-    ctx.font = `bold ${16 * scale}px Segoe UI`;
-    ctx.textAlign = "left";
-    ctx.fillText(`MÀN: ${currentLevel} | ĐIỂM: ${score}`, 30, 50 * scale);
+    // 🌟 BẢNG ĐIỂM TO VÀ RÕ HƠN Ở GÓC TRÊN
+    ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
+    ctx.fillRect(20, 20, 280, 75 * scale);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(20, 20, 280, 75 * scale);
 
-    // Hiển thị icon số lượng chim chờ bắn
-    ctx.fillText("Chim:", 30, 85 * scale);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = `bold ${20 * scale}px Segoe UI`;
+    ctx.textAlign = "left";
+    ctx.fillText(`MÀN: ${currentLevel}  |  ĐIỂM: ${score}`, 35, 52 * scale);
+
+    // Hiển thị icon số lượng chim chờ bắn to rõ
+    ctx.font = `bold ${15 * scale}px Segoe UI`;
+    ctx.fillText("Chim:", 35, 78 * scale);
     for (let i = currentBirdIndex; i < birdTypes.length; i++) {
-        drawBirdByType(birdTypes[i], 90 + (i - currentBirdIndex) * 32 * scale, 80 * scale, 12 * scale);
+        drawBirdByType(birdTypes[i], 90 + (i - currentBirdIndex) * 36 * scale, 73 * scale, 14 * scale);
     }
 
     let remainingPigs = targets.some(t => t.type === "pig" && t.alive);
