@@ -399,7 +399,7 @@
         <!-- Màn hình Danh Sách Chim (Cây Cổ Thụ) -->
         <div id="birdListScreen" class="overlay hidden">
             <h1>🌳 DANH SÁCH CHIM 🌳</h1>
-            <div id="equipmentStatusBanner">Đã trang bị: 0/2 con</div>
+            <div id="equipmentStatusBanner">Đã trang bị: 1/2 con</div>
             <p style="margin: 0 0 8px 0; color: #b7e4c7; font-size: 13px;">Chọn tối đa 2 chú chim để phối hợp ra trận (chia đều lượt bắn)!</p>
             <div id="birdGridContainer"></div>
             <button class="back-menu-btn" onclick="returnToMainMenu()">Về Menu Chính</button>
@@ -482,20 +482,19 @@ const toastTitle = document.getElementById("toastTitle");
 const toastDesc = document.getElementById("toastDesc");
 
 let maxLevelUnlocked = parseInt(localStorage.getItem("angryBirdsMaxLevel40")) || 1;
-// Lưu trữ tối đa 2 con chim được trang bị dưới dạng mảng (mặc định [red])
 let equippedBirds = JSON.parse(localStorage.getItem("angryBirdsEquippedBirds")) || ["red"];
 let toastTimeout = null;
 
-// Danh sách tổng hợp các ô chim (có thêm các ô bí ẩn dấu hỏi ? màu đen)
+// Cấu hình danh sách 4 loại chim chính và các ô Coming Soon
 const allBirdsConfig = [
-    { id: "red", name: "Chim Đỏ", unlockLevel: 1, type: "bird", primaryColor: "#e53935" },
-    { id: "yellow", name: "Chim Vàng", unlockLevel: 10, type: "bird", primaryColor: "#fbc02d" },
-    { id: "blue", name: "Chim Xanh", unlockLevel: 20, type: "bird", primaryColor: "#00acc1" },
-    { id: "black", name: "Chim Đen", unlockLevel: 30, type: "bird", primaryColor: "#424242" },
-    { id: "mystery1", name: "Bí Ẩn 1", unlockLevel: 35, type: "mystery" },
-    { id: "mystery2", name: "Bí Ẩn 2", unlockLevel: 38, type: "mystery" },
-    { id: "mystery3", name: "Bí Ẩn 3", unlockLevel: 40, type: "mystery" },
-    { id: "mystery4", name: "Truyền Thuyết", unlockLevel: 45, type: "mystery" }
+    { id: "red", name: "Chim Đỏ", unlockLevel: 1, type: "bird" },
+    { id: "yellow", name: "Chim Vàng", unlockLevel: 10, type: "bird" },
+    { id: "blue", name: "Chim Xanh", unlockLevel: 20, type: "bird" },
+    { id: "black", name: "Chim Đen", unlockLevel: 30, type: "bird" },
+    { id: "coming1", name: "Coming Soon", unlockLevel: 35, type: "coming" },
+    { id: "coming2", name: "Coming Soon", unlockLevel: 38, type: "coming" },
+    { id: "coming3", name: "Coming Soon", unlockLevel: 40, type: "coming" },
+    { id: "coming4", name: "Coming Soon", unlockLevel: 45, type: "coming" }
 ];
 
 function showAchievementToast(title, desc) {
@@ -534,32 +533,59 @@ function renderBirdPreviewCanvas(canvasEl, birdType) {
     pCtx.translate(canvasEl.width / 2, canvasEl.height / 2);
     let r = 24;
 
-    let grad = pCtx.createRadialGradient(-r*0.3, -r*0.3, r*0.05, 0, 0, r);
     if (birdType === "yellow") {
-        grad.addColorStop(0, "#ffee58"); grad.addColorStop(0.6, "#fbc02d"); grad.addColorStop(1, "#f57f17");
+        // Chim vàng hình tam giác
+        let grad = pCtx.createRadialGradient(0, -r*0.2, r*0.1, 0, 0, r);
+        grad.addColorStop(0, "#fff176"); grad.addColorStop(0.6, "#fbc02d"); grad.addColorStop(1, "#f57f17");
+        pCtx.fillStyle = grad;
+        pCtx.beginPath();
+        pCtx.moveTo(0, -r*1.2);
+        pCtx.lineTo(r*1.1, r*0.9);
+        pCtx.lineTo(-r*1.1, r*0.9);
+        pCtx.closePath();
+        pCtx.fill();
+        pCtx.strokeStyle = "#5d4037"; pCtx.lineWidth = 2; pCtx.stroke();
     } else if (birdType === "blue") {
-        grad.addColorStop(0, "#26c6da"); grad.addColorStop(0.6, "#00acc1"); grad.addColorStop(1, "#006064");
+        // Chim xanh dương nhỏ
+        let grad = pCtx.createRadialGradient(-r*0.3, -r*0.3, r*0.05, 0, 0, r);
+        grad.addColorStop(0, "#4dd0e1"); grad.addColorStop(0.6, "#00acc1"); grad.addColorStop(1, "#006064");
+        pCtx.fillStyle = grad;
+        pCtx.beginPath(); pCtx.arc(0, 0, r*0.85, 0, Math.PI * 2); pCtx.fill();
+        pCtx.strokeStyle = "#004d40"; pCtx.lineWidth = 2; pCtx.stroke();
     } else if (birdType === "black") {
-        grad.addColorStop(0, "#757575"); grad.addColorStop(0.6, "#424242"); grad.addColorStop(1, "#212121");
+        // Chim đen có ngòi nổ
+        let grad = pCtx.createRadialGradient(-r*0.3, -r*0.3, r*0.05, 0, 0, r);
+        grad.addColorStop(0, "#616161"); grad.addColorStop(0.6, "#212121"); grad.addColorStop(1, "#000000");
+        pCtx.fillStyle = grad;
+        pCtx.beginPath(); pCtx.arc(0, 0, r, 0, Math.PI * 2); pCtx.fill();
+        pCtx.strokeStyle = "#ff3333"; pCtx.lineWidth = 2; pCtx.stroke();
+        // Ngòi nổ
+        pCtx.strokeStyle = "#ffcc00"; pCtx.lineWidth = 2.5;
+        pCtx.beginPath(); pCtx.moveTo(0, -r); pCtx.quadraticCurveTo(r*0.5, -r*1.4, r*0.8, -r*1.3); pCtx.stroke();
+        pCtx.fillStyle = "#ff3333"; pCtx.beginPath(); pCtx.arc(r*0.8, -r*1.3, 3, 0, Math.PI*2); pCtx.fill();
     } else {
+        // Chim đỏ kinh điển
+        let grad = pCtx.createRadialGradient(-r*0.3, -r*0.3, r*0.05, 0, 0, r);
         grad.addColorStop(0, "#ff6b6b"); grad.addColorStop(0.6, "#e53935"); grad.addColorStop(1, "#b71c1c");
+        pCtx.fillStyle = grad;
+        pCtx.beginPath(); pCtx.arc(0, 0, r, 0, Math.PI * 2); pCtx.fill();
+        pCtx.strokeStyle = "#5f0000"; pCtx.lineWidth = 2; pCtx.stroke();
     }
-    pCtx.fillStyle = grad;
-    pCtx.beginPath(); pCtx.arc(0, 0, r, 0, Math.PI * 2); pCtx.fill();
-    pCtx.strokeStyle = "#111"; pCtx.lineWidth = 2; pCtx.stroke();
-    
-    pCtx.fillStyle = "#ffffff";
-    pCtx.beginPath();
-    pCtx.arc(-r*0.25, -r*0.05, r*0.3, 0, Math.PI * 2);
-    pCtx.arc(r*0.25, -r*0.05, r*0.3, 0, Math.PI * 2);
-    pCtx.fill();
-    pCtx.strokeStyle = "#000"; pCtx.lineWidth = 1.5; pCtx.stroke();
 
-    pCtx.fillStyle = "#000000";
-    pCtx.beginPath();
-    pCtx.arc(-r*0.15, -r*0.05, r*0.12, 0, Math.PI * 2);
-    pCtx.arc(r*0.35, -r*0.05, r*0.12, 0, Math.PI * 2);
-    pCtx.fill();
+    if (birdType !== "yellow") {
+        pCtx.fillStyle = "#ffffff";
+        pCtx.beginPath();
+        pCtx.arc(-r*0.25, -r*0.05, r*0.28, 0, Math.PI * 2);
+        pCtx.arc(r*0.25, -r*0.05, r*0.28, 0, Math.PI * 2);
+        pCtx.fill();
+        pCtx.strokeStyle = "#000"; pCtx.lineWidth = 1.5; pCtx.stroke();
+
+        pCtx.fillStyle = "#000000";
+        pCtx.beginPath();
+        pCtx.arc(-r*0.15, -r*0.05, r*0.1, 0, Math.PI * 2);
+        pCtx.arc(r*0.35, -r*0.05, r*0.1, 0, Math.PI * 2);
+        pCtx.fill();
+    }
     pCtx.restore();
 }
 
@@ -577,7 +603,7 @@ function buildBirdGrid() {
         let avatarBox = document.createElement("div");
         avatarBox.className = `bird-avatar-box ${isUnlocked ? '' : 'dimmed'}`;
 
-        if (bInfo.type === "mystery") {
+        if (bInfo.type === "coming") {
             let mysteryDiv = document.createElement("div");
             mysteryDiv.className = "mystery-bird-box";
             mysteryDiv.textContent = "?";
@@ -603,17 +629,16 @@ function buildBirdGrid() {
         nameDiv.textContent = bInfo.name;
 
         let btnElem = document.createElement("button");
-        if (!isUnlocked) {
-            btnElem.className = "equip-btn locked-btn";
-            btnElem.textContent = `Cần màn ${bInfo.unlockLevel}`;
-        } else if (bInfo.type === "mystery") {
+        if (bInfo.type === "coming") {
             btnElem.className = "equip-btn locked-btn";
             btnElem.textContent = "Sắp ra mắt";
+        } else if (!isUnlocked) {
+            btnElem.className = "equip-btn locked-btn";
+            btnElem.textContent = `Cần màn ${bInfo.unlockLevel}`;
         } else if (isEquipped) {
             btnElem.className = "equip-btn equipped";
             btnElem.textContent = "Đã trang bị";
             btnElem.onclick = () => {
-                // Bỏ trang bị con này (giữ lại ít nhất 1 con)
                 if (equippedBirds.length > 1) {
                     equippedBirds = equippedBirds.filter(id => id !== bInfo.id);
                     localStorage.setItem("angryBirdsEquippedBirds", JSON.stringify(equippedBirds));
@@ -629,7 +654,6 @@ function buildBirdGrid() {
                 if (equippedBirds.length < 2) {
                     equippedBirds.push(bInfo.id);
                 } else {
-                    // Nếu đã đủ 2 con, thay thế con đầu tiên
                     equippedBirds.shift();
                     equippedBirds.push(bInfo.id);
                 }
@@ -737,6 +761,11 @@ let bird = {
     type: "red", skillUsed: false 
 };
 
+// Hỗ trợ mảng phụ cho chim xanh khi tách làm 3 con
+let subBirds = [];
+// Hiệu ứng nổ cho chim đen
+let explosions = [];
+
 let targets = [];
 let groundHills = [];
 let particles = [];
@@ -791,8 +820,9 @@ function loadLevel(lvl) {
     resizeCanvas();
     currentBirdIndex = 0;
     particles = [];
+    subBirds = [];
+    explosions = [];
     
-    // Phân bổ đều các chú chim được trang bị cho 4 lượt bắn (ví dụ: 2 con đầu con A, 2 con sau con B)
     birdTypes = [];
     let activeList = equippedBirds;
     for (let i = 0; i < 4; i++) {
@@ -893,11 +923,11 @@ function endGame(isWin) {
         finalScoreText.innerHTML = `Tổng điểm đạt được: ${score} <br><span style="font-size:15px; color:#ffcc00;">(+${bonusScore} điểm thưởng chim dư)</span>`;
 
         if (currentLevel === 10) {
-            showAchievementToast("🎉 Mở khóa thành công!", "Đã mở khóa: CHIM VÀNG (Tốc độ siêu cấp)");
+            showAchievementToast("🎉 Mở khóa thành công!", "Đã mở khóa: CHIM VÀNG (Bứt tốc siêu cấp)");
         } else if (currentLevel === 20) {
-            showAchievementToast("🎉 Mở khóa thành công!", "Đã mở khóa: CHIM XANH (Phân thân tam kiếm)");
+            showAchievementToast("🎉 Mở khóa thành công!", "Đã mở khóa: CHIM XANH (Tách 3 con nhỏ)");
         } else if (currentLevel === 30) {
-            showAchievementToast("🎉 Mở khóa thành công!", "Đã mở khóa: CHIM ĐEN (Bom hủy diệt)");
+            showAchievementToast("🎉 Mở khóa thành công!", "Đã mở khóa: CHIM ĐEN (Bom nổ hủy diệt)");
         }
 
         if (currentLevel >= maxLevelUnlocked && currentLevel < 40) {
@@ -924,6 +954,7 @@ function resetBird() {
     bird.isLaunched = false;
     bird.isDragging = false;
     bird.skillUsed = false;
+    subBirds = [];
     if (currentBirdIndex < birdTypes.length) {
         bird.type = birdTypes[currentBirdIndex];
     }
@@ -940,11 +971,73 @@ function getPointerPos(e) {
     return { x: clientX - rect.left, y: clientY - rect.top };
 }
 
+// Kỹ năng đặc biệt của từng loài chim khi bấm / chạm lúc đang bay
 function triggerSkill() {
     if (gameState === "PLAYING" && bird.isLaunched && !bird.skillUsed) {
         bird.skillUsed = true;
-        bird.vx *= 1.15;
+        
+        if (bird.type === "yellow") {
+            // Chim vàng: Bứt tốc lao thẳng
+            bird.vx *= 2.2;
+            bird.vy *= 1.2;
+        } else if (bird.type === "blue") {
+            // Chim xanh dương: Tách thành 3 con nhỏ và mất con chính
+            let baseAngle = Math.atan2(bird.vy, bird.vx);
+            let baseSpeed = Math.hypot(bird.vx, bird.vy);
+            
+            subBirds.push({
+                x: bird.x, y: bird.y, radius: bird.radius * 0.65,
+                vx: Math.cos(baseAngle - 0.25) * baseSpeed * 1.1,
+                vy: Math.sin(baseAngle - 0.25) * baseSpeed * 1.1,
+                type: "blue"
+            });
+            subBirds.push({
+                x: bird.x, y: bird.y, radius: bird.radius * 0.65,
+                vx: Math.cos(baseAngle) * baseSpeed * 1.15,
+                vy: Math.sin(baseAngle) * baseSpeed * 1.15,
+                type: "blue"
+            });
+            subBirds.push({
+                x: bird.x, y: bird.y, radius: bird.radius * 0.65,
+                vx: Math.cos(baseAngle + 0.25) * baseSpeed * 1.1,
+                vy: Math.sin(baseAngle + 0.25) * baseSpeed * 1.1,
+                type: "blue"
+            });
+            
+            // Ẩn con chim chính
+            bird.x = -9999;
+            bird.y = -9999;
+            bird.vx = 0;
+            bird.vy = 0;
+        } else if (bird.type === "black") {
+            // Chim đen: Phát nổ lập tức
+            explodeBlackBird(bird.x, bird.y);
+        } else {
+            // Chim đỏ: Tăng nhẹ tốc độ
+            bird.vx *= 1.35;
+        }
     }
+}
+
+function explodeBlackBird(x, y) {
+    triggerScreenShake(20);
+    explosions.push({ x: x, y: y, radius: 10, maxRadius: 110 * scale, alpha: 1.0 });
+    
+    // Phá hủy toàn bộ vật thể và heo trong bán kính nổ
+    targets.forEach(t => {
+        if (!t.alive) return;
+        let tx = t.type === "pig" ? t.x : t.x + t.width/2;
+        let ty = t.type === "pig" ? t.y : t.y + t.height/2;
+        if (Math.hypot(x - tx, y - ty) < 130 * scale) {
+            t.alive = false;
+            score += (t.type === "pig" ? 500 : 250);
+            createDebris(tx, ty, t.type === "pig" ? "#7acc29" : "#b5651d");
+        }
+    });
+
+    // Xóa chim chính
+    bird.isLaunched = false;
+    handleBirdFinish();
 }
 
 function onTouchStart(e) {
@@ -1005,34 +1098,71 @@ function checkCollision(b, t) {
     }
 }
 
+// Vẽ chi tiết hình ảnh chim chuẩn phong cách game gốc trên canvas
 function drawBirdByType(type, x, y, r) {
     ctx.save();
     ctx.translate(x, y);
 
-    let grad = ctx.createRadialGradient(-r*0.3, -r*0.3, r*0.05, 0, 0, r);
     if (type === "yellow") {
-        grad.addColorStop(0, "#ffee58"); grad.addColorStop(0.6, "#fbc02d"); grad.addColorStop(1, "#f57f17");
+        // Chim vàng tam giác
+        let grad = ctx.createRadialGradient(0, -r*0.2, r*0.1, 0, 0, r);
+        grad.addColorStop(0, "#fff176"); grad.addColorStop(0.6, "#fbc02d"); grad.addColorStop(1, "#f57f17");
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.moveTo(0, -r*1.3);
+        ctx.lineTo(r*1.2, r*0.9);
+        ctx.lineTo(-r*1.2, r*0.9);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = "#5d4037"; ctx.lineWidth = 2.2 * scale; ctx.stroke();
+
+        // Mắt và lông mày
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath(); ctx.arc(-r*0.35, -r*0.1, r*0.28, 0, Math.PI * 2); ctx.arc(r*0.35, -r*0.1, r*0.28, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = "#000"; ctx.lineWidth = 1.5; ctx.stroke();
+        ctx.fillStyle = "#000";
+        ctx.beginPath(); ctx.arc(-r*0.25, -r*0.1, r*0.1, 0, Math.PI * 2); ctx.arc(r*0.45, -r*0.1, r*0.1, 0, Math.PI * 2); ctx.fill();
+
+        // Mỏ lớn màu vàng nhọn
+        ctx.fillStyle = "#ff8f00";
+        ctx.beginPath(); ctx.moveTo(r*0.8, r*0.1); ctx.lineTo(r*1.6, r*0.3); ctx.lineTo(r*0.8, r*0.6); ctx.closePath(); ctx.fill(); ctx.stroke();
     } else if (type === "blue") {
-        grad.addColorStop(0, "#26c6da"); grad.addColorStop(0.6, "#00acc1"); grad.addColorStop(1, "#006064");
-    } else if (type === "black") {
-        grad.addColorStop(0, "#757575"); grad.addColorStop(0.6, "#424242"); grad.addColorStop(1, "#212121");
-    } else {
-        grad.addColorStop(0, "#ff6b6b"); grad.addColorStop(0.6, "#e53935"); grad.addColorStop(1, "#b71c1c");
-    }
-    ctx.fillStyle = grad;
-    ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = "#3a0000"; ctx.lineWidth = 2.2 * scale; ctx.stroke();
-    
-    if (type === "yellow") {
-        drawDetailedEyesAndBeak(r, "#fff176", "#f57f17");
-    } else if (type === "blue") {
+        // Chim xanh dương nhỏ
+        let grad = ctx.createRadialGradient(-r*0.3, -r*0.3, r*0.05, 0, 0, r);
+        grad.addColorStop(0, "#4dd0e1"); grad.addColorStop(0.6, "#00acc1"); grad.addColorStop(1, "#006064");
+        ctx.fillStyle = grad;
+        ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = "#004d40"; ctx.lineWidth = 2.2 * scale; ctx.stroke();
+
         drawDetailedEyesAndBeak(r, "#80deea", "#00838f");
     } else if (type === "black") {
+        // Chim đen bom
+        let grad = ctx.createRadialGradient(-r*0.3, -r*0.3, r*0.05, 0, 0, r);
+        grad.addColorStop(0, "#616161"); grad.addColorStop(0.6, "#212121"); grad.addColorStop(1, "#000000");
+        ctx.fillStyle = grad;
+        ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = "#ff3333"; ctx.lineWidth = 2.5 * scale; ctx.stroke();
+
+        // Ngòi nổ trên đầu
+        ctx.strokeStyle = "#ffcc00"; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(0, -r); ctx.quadraticCurveTo(r*0.6, -r*1.5, r*0.9, -r*1.4); ctx.stroke();
+        ctx.fillStyle = "#ff3333"; ctx.beginPath(); ctx.arc(r*0.9, -r*1.4, 4 * scale, 0, Math.PI*2); ctx.fill();
+
         drawDetailedEyesAndBeak(r, "#ffcc00", "#e65100");
     } else {
+        // Chim đỏ kinh điển
+        let grad = ctx.createRadialGradient(-r*0.3, -r*0.3, r*0.05, 0, 0, r);
+        grad.addColorStop(0, "#ff6b6b"); grad.addColorStop(0.6, "#e53935"); grad.addColorStop(1, "#b71c1c");
+        ctx.fillStyle = grad;
+        ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = "#5f0000"; ctx.lineWidth = 2.2 * scale; ctx.stroke();
+
+        // Lông mày cau có đặc trưng
+        ctx.fillStyle = "#3a0000";
+        ctx.beginPath(); ctx.moveTo(-r*0.85, -r*0.35); ctx.lineTo(r*0.7, -r*0.05); ctx.lineTo(r*0.6, r*0.15); ctx.lineTo(-r*0.75, -r*0.15); ctx.closePath(); ctx.fill();
+        
         drawDetailedEyesAndBeak(r, "#ffb74d", "#f57c00");
     }
-
     ctx.restore();
 }
 
@@ -1221,13 +1351,22 @@ function update() {
         bird.x += bird.vx;
         bird.y += bird.vy;
 
-        targets.forEach(t => {
-            if (checkCollision(bird, t)) {
-                t.alive = false;
-                score += (t.type === "pig" ? 300 : 150);
-                createDebris(t.x, t.y, t.type === "pig" ? "#7acc29" : "#b5651d");
+        // Nếu là chim đen và chạm trúng vật thể/mặt đất -> Nổ ngay lập tức
+        if (bird.type === "black") {
+            let hitGround = bird.y > groundY;
+            let hitTarget = targets.some(t => checkCollision(bird, t));
+            if (hitGround || hitTarget) {
+                explodeBlackBird(bird.x, bird.y);
             }
-        });
+        } else {
+            targets.forEach(t => {
+                if (checkCollision(bird, t)) {
+                    t.alive = false;
+                    score += (t.type === "pig" ? 300 : 150);
+                    createDebris(t.x, t.y, t.type === "pig" ? "#7acc29" : "#b5651d");
+                }
+            });
+        }
 
         if (bird.y > groundY || bird.x > canvas.width || bird.x < 0) {
             bird.isLaunched = false;
@@ -1235,7 +1374,53 @@ function update() {
         }
     }
 
+    // Cập nhật các con chim phụ (khi chim xanh tách làm 3)
+    subBirds.forEach((sb, index) => {
+        sb.vx *= 0.99;
+        sb.vy += 0.35 * scale;
+        sb.x += sb.vx;
+        sb.y += sb.vy;
+
+        targets.forEach(t => {
+            if (t.alive && Math.hypot(sb.x - (t.type==="pig"?t.x:t.x+t.width/2), sb.y - (t.type==="pig"?t.y:t.y+t.height/2)) < sb.radius + 20) {
+                t.alive = false;
+                score += 150;
+                createDebris(t.x, t.y, "#7acc29");
+            }
+        });
+
+        drawBirdByType("blue", sb.x, sb.y, sb.radius);
+
+        if (sb.y > groundY || sb.x > canvas.width || sb.x < 0) {
+            subBirds.splice(index, 1);
+        }
+    });
+
+    // Nếu chim xanh đã tách và cả 3 con phụ đã rơi hết -> kết thúc lượt
+    if (bird.type === "blue" && bird.isLaunched && bird.x === -9999 && subBirds.length === 0) {
+        bird.isLaunched = false;
+        handleBirdFinish();
+    }
+
     drawBirdByType(bird.type, bird.x, bird.y, bird.radius);
+
+    // Hiệu ứng nổ bom của chim đen
+    explosions.forEach((ex, idx) => {
+        ex.radius += 8;
+        ex.alpha -= 0.05;
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(ex.x, ex.y, ex.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 100, 0, ${Math.max(ex.alpha, 0)})`;
+        ctx.fill();
+        ctx.strokeStyle = `rgba(255, 255, 0, ${Math.max(ex.alpha, 0)})`;
+        ctx.lineWidth = 4;
+        ctx.stroke();
+        ctx.restore();
+        if (ex.alpha <= 0 || ex.radius > ex.maxRadius) {
+            explosions.splice(idx, 1);
+        }
+    });
 
     targets.forEach(t => {
         if (!t.alive) return;
@@ -1277,7 +1462,7 @@ function update() {
 
     ctx.restore();
 
-    // Bảng điểm và thông tin góc trên bên trái được phóng to, rõ nét hơn
+    // Bảng điểm góc trên bên trái lớn và rõ nét
     ctx.fillStyle = "rgba(10, 25, 40, 0.85)";
     ctx.fillRect(20, 20, 390, 95 * scale);
     ctx.strokeStyle = "rgba(255, 204, 0, 0.6)";
