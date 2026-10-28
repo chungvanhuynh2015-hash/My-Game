@@ -95,11 +95,11 @@
             display: none !important;
         }
 
-        /* Đã chỉnh nút cài đặt xuống thấp hơn một chút */
+        /* Đã dời nút cài đặt sang góc bên phải phía trên để không đè lên bảng điểm */
         #gearBtn {
             position: absolute;
-            top: 28px;
-            left: 28px;
+            top: 25px;
+            right: 25px;
             z-index: 300;
             background: rgba(0, 0, 0, 0.6);
             border: 2px solid rgba(255, 255, 255, 0.7);
@@ -200,6 +200,7 @@
 <body>
 
     <div id="gameContainer">
+        <!-- Nút cài đặt chuyển sang góc phải -->
         <button id="gearBtn" onclick="openSettings()">⚙️</button>
 
         <!-- Menu Chính -->
@@ -225,7 +226,7 @@
             <button class="back-menu-btn" onclick="returnToMainMenu()">Về Menu Chính</button>
         </div>
 
-        <!-- Màn hình Shop (Đã thêm hình ảnh/biểu tượng minh họa) -->
+        <!-- Màn hình Shop -->
         <div id="shopScreen" class="overlay hidden">
             <h1>CỬA HÀNG</h1>
             <div style="display: flex; flex-direction: column; gap: 15px; max-width: 480px; width: 100%; margin-bottom: 20px;">
@@ -247,7 +248,7 @@
             <button class="back-menu-btn" onclick="returnToMainMenu()">Về Menu Chính</button>
         </div>
 
-        <!-- Cài đặt âm thanh (Đã thêm nút Về Menu Chính) -->
+        <!-- Cài đặt âm thanh -->
         <div id="settingsModal" class="hidden">
             <div class="settings-content">
                 <h2>CÀI ĐẶT ÂM THANH</h2>
@@ -269,14 +270,13 @@
                     <button class="btn" style="flex:1; padding: 10px; font-size: 16px; margin:0;" onclick="toggleMute()" id="muteBtn">Tắt Nhạc</button>
                 </div>
 
-                <!-- Thêm nút Về Menu Chính trong Cài đặt -->
                 <button class="btn" style="width: 100%; padding: 10px; font-size: 16px; background: linear-gradient(to bottom, #ff8844, #cc4400); border-color: #992200; box-shadow: 0 4px 0 #992200; margin: 5px 0 12px 0;" onclick="closeSettings(); returnToMainMenu();">Về Menu Chính</button>
 
                 <button class="close-btn" onclick="closeSettings()">Đóng</button>
             </div>
         </div>
 
-        <!-- Màn hình Thắng/Thua (Đã thêm nút về Menu Chính) -->
+        <!-- Màn hình Thắng/Thua -->
         <div id="gameOverScreen" class="overlay hidden">
             <h1 id="gameOverTitle">CHIẾN THẮNG!</h1>
             <p id="finalScoreText">Tổng điểm tuyệt đối: 0</p>
@@ -285,7 +285,6 @@
                     <button class="btn" style="min-width: 150px; padding: 12px 20px; font-size: 18px;" onclick="startLevel(currentLevel)">CHƠI LẠI</button>
                     <button class="btn" style="background: #3388ff; border-color: #1155cc; box-shadow: 0 5px 0 #1155cc; min-width: 150px; padding: 12px 20px; font-size: 18px;" onclick="openLevelMenu()">CHỌN MÀN</button>
                 </div>
-                <!-- Thêm nút Về Menu Chính -->
                 <button class="back-menu-btn" style="margin-top: 5px;" onclick="returnToMainMenu()">Về Menu Chính</button>
             </div>
         </div>
@@ -697,7 +696,6 @@ function checkCollision(b, t) {
     }
 }
 
-/* 🌟 ĐỒ HỌA CHIM CHI TIẾT VÀ SẮC NÉT HƠN */
 function drawBirdByType(type, x, y, r) {
     ctx.save();
     ctx.translate(x, y);
@@ -711,7 +709,6 @@ function drawBirdByType(type, x, y, r) {
         ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
         ctx.strokeStyle = "#5f0000"; ctx.lineWidth = 2.2 * scale; ctx.stroke();
 
-        // Lông mày đậm chi tiết
         ctx.fillStyle = "#3a0000";
         ctx.beginPath(); ctx.moveTo(-r*0.85, -r*0.35); ctx.lineTo(r*0.7, -r*0.05); ctx.lineTo(r*0.6, r*0.15); ctx.lineTo(-r*0.75, -r*0.15); ctx.closePath(); ctx.fill();
         
@@ -731,7 +728,6 @@ function drawBirdByType(type, x, y, r) {
         ctx.fill();
         ctx.strokeStyle = "#c46200"; ctx.lineWidth = 2.2 * scale; ctx.stroke();
 
-        // Lông mày tam giác
         ctx.fillStyle = "#8d4000";
         ctx.beginPath(); ctx.moveTo(-r*0.6, -r*0.55); ctx.lineTo(r*0.5, -r*0.25); ctx.lineTo(r*0.4, -r*0.05); ctx.lineTo(-r*0.5, -r*0.3); ctx.closePath(); ctx.fill();
 
@@ -761,12 +757,10 @@ function drawBirdByType(type, x, y, r) {
         ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
         ctx.strokeStyle = "#ff3d00"; ctx.lineWidth = 2.5 * scale; ctx.stroke();
 
-        // Tóc ngòi nổ
         ctx.strokeStyle = "#ff6d00"; ctx.lineWidth = 3.5 * scale;
         ctx.beginPath(); ctx.moveTo(0, -r); ctx.quadraticCurveTo(r*0.6, -r*1.6, r*0.9, -r*1.3); ctx.stroke();
         ctx.fillStyle = "#d32f2f"; ctx.beginPath(); ctx.arc(r*0.9, -r*1.3, r*0.28, 0, Math.PI*2); ctx.fill();
 
-        // Lông mày giận dữ
         ctx.fillStyle = "#ff3d00";
         ctx.beginPath(); ctx.moveTo(-r*0.8, -r*0.45); ctx.lineTo(r*0.8, -r*0.45); ctx.lineTo(r*0.5, -r*0.2); ctx.lineTo(-r*0.6, -r*0.2); ctx.closePath(); ctx.fill();
 
@@ -777,7 +771,6 @@ function drawBirdByType(type, x, y, r) {
 }
 
 function drawDetailedEyesAndBeak(r, beakColor1, beakColor2) {
-    // Viền mắt trắng sắc nét
     ctx.fillStyle = "#ffffff";
     ctx.beginPath();
     ctx.arc(-r*0.28, -r*0.05, r*0.32, 0, Math.PI * 2);
@@ -785,14 +778,12 @@ function drawDetailedEyesAndBeak(r, beakColor1, beakColor2) {
     ctx.fill();
     ctx.strokeStyle = "#000"; ctx.lineWidth = 1.8 * scale; ctx.stroke();
 
-    // Con ngươi đen
     ctx.fillStyle = "#000000";
     ctx.beginPath();
     ctx.arc(-r*0.16, -r*0.05, r*0.12, 0, Math.PI * 2);
     ctx.arc(r*0.4, -r*0.05, r*0.12, 0, Math.PI * 2);
     ctx.fill();
 
-    // Mỏ trên
     ctx.fillStyle = beakColor1;
     ctx.beginPath();
     ctx.moveTo(r*0.2, r*0.02);
@@ -801,7 +792,6 @@ function drawDetailedEyesAndBeak(r, beakColor1, beakColor2) {
     ctx.closePath();
     ctx.fill(); ctx.stroke();
 
-    // Mỏ dưới
     ctx.fillStyle = beakColor2;
     ctx.beginPath();
     ctx.moveTo(r*0.2, r*0.38);
@@ -924,7 +914,6 @@ function update() {
         ctx.stroke();
     });
 
-    // Trụ thun
     ctx.strokeStyle = "#4a3324";
     ctx.lineWidth = 9 * scale;
     ctx.beginPath();
@@ -943,7 +932,6 @@ function update() {
         ctx.lineTo(sling.x + 6 * scale, sling.y);
         ctx.stroke();
 
-        // Đường dẫn hướng quỹ đạo
         let simVx = (sling.x - bird.x) * 0.23;
         let simVy = (sling.y - bird.y) * 0.23;
         let simX = bird.x;
@@ -961,7 +949,6 @@ function update() {
         }
     }
 
-    // Physics Movement
     if (bird.isLaunched) {
         bird.vx *= 0.99;
         bird.vy += 0.35 * scale; 
@@ -1001,7 +988,6 @@ function update() {
 
     drawBirdByType(bird.type, bird.x, bird.y, bird.radius);
 
-    // Vẽ Mục tiêu & Khối
     targets.forEach(t => {
         if (!t.alive) return;
         if (t.type === "pig") {
@@ -1026,7 +1012,6 @@ function update() {
         }
     });
 
-    // Mảnh vỡ
     particles.forEach((p, index) => {
         p.x += p.vx;
         p.y += p.vy;
@@ -1043,7 +1028,7 @@ function update() {
 
     ctx.restore();
 
-    // 🌟 BẢNG ĐIỂM TO VÀ RÕ HƠN Ở GÓC TRÊN
+    // Bảng điểm ở góc trên bên trái (đã tách không gian với nút cài đặt bên phải)
     ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
     ctx.fillRect(20, 20, 280, 75 * scale);
     ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
@@ -1055,7 +1040,6 @@ function update() {
     ctx.textAlign = "left";
     ctx.fillText(`MÀN: ${currentLevel}  |  ĐIỂM: ${score}`, 35, 52 * scale);
 
-    // Hiển thị icon số lượng chim chờ bắn to rõ
     ctx.font = `bold ${15 * scale}px Segoe UI`;
     ctx.fillText("Chim:", 35, 78 * scale);
     for (let i = currentBirdIndex; i < birdTypes.length; i++) {
